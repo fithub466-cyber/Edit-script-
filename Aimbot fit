@@ -771,7 +771,7 @@ AimToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 AimToggleBtn.Position = UDim2.new(0.05, 0, 0.13, 0)
 AimToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 AimToggleBtn.Font = Enum.Font.GothamBold
-AimToggleBtn.Text = "Aimbot: OFF (Q)"
+AimToggleBtn.Text = "Aimbot: ON (Q)"
 AimToggleBtn.TextColor3 = Color3.fromRGB(220, 220, 220)
 AimToggleBtn.TextSize = 13
 Instance.new("UICorner", AimToggleBtn).CornerRadius = UDim.new(0, 6)
@@ -799,7 +799,7 @@ StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 StrongToggleBtn.Position = UDim2.new(0.53, 0, 0.13, 0)
 StrongToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 StrongToggleBtn.Font = Enum.Font.GothamBold
-StrongToggleBtn.Text = "Strong Lock: OFF"
+StrongToggleBtn.Text = "Strong Lock: ON"
 StrongToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 StrongToggleBtn.TextSize = 13
 Instance.new("UICorner", StrongToggleBtn).CornerRadius = UDim.new(0, 6)
@@ -827,7 +827,7 @@ WallToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
 WallToggleBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
 WallToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 WallToggleBtn.Font = Enum.Font.GothamBold
-WallToggleBtn.Text = "Wallcheck: ON"
+WallToggleBtn.Text = "Wallcheck: OFF"
 WallToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
 WallToggleBtn.TextSize = 13
 Instance.new("UICorner", WallToggleBtn).CornerRadius = UDim.new(0, 6)
@@ -1238,7 +1238,7 @@ end)
 local GunModMenuGui = Instance.new("ScreenGui", CoreGui)
 GunModMenuGui.Name = "GunModMenuGui"
 GunModMenuGui.IgnoreGuiInset = true
-GunModMenuGui.Enabled = true
+GunModMenuGui.Enabled = false
 
 local GunModFrame = Instance.new("ScrollingFrame", GunModMenuGui)
 GunModFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
@@ -1321,7 +1321,7 @@ ToggleGunMod.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 ToggleGunMod.Position = UDim2.new(0.05, 0, 0.06, 0)
 ToggleGunMod.Size = UDim2.new(0.9, 0, 0, 35)
 ToggleGunMod.Font = Enum.Font.GothamBold
-ToggleGunMod.Text = "Auto Apply Mod: OFF"
+ToggleGunMod.Text = "Auto Apply Mod: ON"
 ToggleGunMod.TextColor3 = Color3.fromRGB(255, 80, 80)
 ToggleGunMod.TextSize = 12
 Instance.new("UICorner", ToggleGunMod).CornerRadius = UDim.new(0, 6)
@@ -1459,7 +1459,7 @@ StaminaBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 StaminaBtn.Position = UDim2.new(0.05, 0, 0.52, 0)
 StaminaBtn.Size = UDim2.new(0.9, 0, 0, 35)
 StaminaBtn.Font = Enum.Font.GothamBold
-StaminaBtn.Text = "Stamina ไม่จำกัด: OFF"
+StaminaBtn.Text = "Stamina ไม่จำกัด: ON"
 StaminaBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 StaminaBtn.TextSize = 12
 Instance.new("UICorner", StaminaBtn).CornerRadius = UDim.new(0, 6)
@@ -1517,7 +1517,7 @@ ItemESPBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 ItemESPBtn.Position = UDim2.new(0.05, 0, 0.59, 0)
 ItemESPBtn.Size = UDim2.new(0.9, 0, 0, 35)
 ItemESPBtn.Font = Enum.Font.GothamBold
-ItemESPBtn.Text = "ดูของตกเรืองแสง: OFF"
+ItemESPBtn.Text = "ดูของตกเรืองแสง: ON"
 ItemESPBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 ItemESPBtn.TextSize = 12
 Instance.new("UICorner", ItemESPBtn).CornerRadius = UDim.new(0, 6)
@@ -1552,7 +1552,7 @@ AutoPickupBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 AutoPickupBtn.Position = UDim2.new(0.05, 0, 0.66, 0)
 AutoPickupBtn.Size = UDim2.new(0.9, 0, 0, 35)
 AutoPickupBtn.Font = Enum.Font.GothamBold
-AutoPickupBtn.Text = "ดูดของอัตโนมัติ: OFF"
+AutoPickupBtn.Text = "ดูดของอัตโนมัติ: ON"
 AutoPickupBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 AutoPickupBtn.TextSize = 12
 Instance.new("UICorner", AutoPickupBtn).CornerRadius = UDim.new(0, 6)
@@ -1822,6 +1822,51 @@ task.spawn(function()
     
     for _, p in ipairs(Players:GetPlayers()) do
         checkPlayerLegendItems(p)
+    end
+end)
+
+-- =======================================================
+-- [[ ระบบปุ่มลอยสำหรับเปิด-ปิด UI ทั้งหมด (Toggle UI Button) ]]
+-- =======================================================
+if CoreGui:FindFirstChild("ToggleUIGui") then CoreGui.ToggleUIGui:Destroy() end
+
+local ToggleUIGui = Instance.new("ScreenGui", CoreGui)
+ToggleUIGui.Name = "ToggleUIGui"
+ToggleUIGui.IgnoreGuiInset = true
+
+local ToggleButton = Instance.new("TextButton", ToggleUIGui)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ToggleButton.Position = UDim2.new(0.02, 0, 0.1, 0)
+ToggleButton.Size = UDim2.new(0, 100, 0, 35)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "UI: ON"
+ToggleButton.TextColor3 = Color3.fromRGB(80, 255, 80)
+ToggleButton.TextSize = 12
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
+
+local ToggleStroke = Instance.new("UIStroke", ToggleButton)
+ToggleStroke.Color = Color3.fromRGB(50, 200, 50)
+ToggleStroke.Thickness = 1
+
+local UIVisible = true
+
+ToggleButton.MouseButton1Click:Connect(function()
+    UIVisible = not UIVisible
+    
+    MainScreenGui.Enabled = UIVisible
+    GunModMenuGui.Enabled = UIVisible
+    FOVGui.Enabled = UIVisible and AimbotSettings.ShowFOV
+    
+    if UIVisible then
+        ToggleButton.Text = "UI: ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        ToggleStroke.Color = Color3.fromRGB(50, 200, 50)
+        ToggleButton.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        ToggleButton.Text = "UI: OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        ToggleStroke.Color = Color3.fromRGB(200, 50, 50)
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 80, 80)
     end
 end)
 
