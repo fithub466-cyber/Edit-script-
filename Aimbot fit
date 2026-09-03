@@ -767,7 +767,7 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 local AimToggleBtn = Instance.new("TextButton", MainFrame)
-AimToggleBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+AimToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
 AimToggleBtn.Position = UDim2.new(0.05, 0, 0.13, 0)
 AimToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 AimToggleBtn.Font = Enum.Font.GothamBold
@@ -776,7 +776,7 @@ AimToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
 AimToggleBtn.TextSize = 13
 Instance.new("UICorner", AimToggleBtn).CornerRadius = UDim.new(0, 6)
 local AimStroke = Instance.new("UIStroke", AimToggleBtn)
-AimStroke.Color = Color3.fromRGB(70, 70, 70)
+AimStroke.Color = Color3.fromRGB(50, 200, 50)
 AimStroke.Thickness = 1
 
 AimToggleBtn.MouseButton1Click:Connect(function()
@@ -795,7 +795,7 @@ AimToggleBtn.MouseButton1Click:Connect(function()
 end)
 
 local StrongToggleBtn = Instance.new("TextButton", MainFrame)
-StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
 StrongToggleBtn.Position = UDim2.new(0.53, 0, 0.13, 0)
 StrongToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 StrongToggleBtn.Font = Enum.Font.GothamBold
@@ -804,7 +804,7 @@ StrongToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
 StrongToggleBtn.TextSize = 13
 Instance.new("UICorner", StrongToggleBtn).CornerRadius = UDim.new(0, 6)
 local StrongStroke = Instance.new("UIStroke", StrongToggleBtn)
-StrongStroke.Color = Color3.fromRGB(200, 50, 50)
+StrongStroke.Color = Color3.fromRGB(50, 200, 50)
 StrongStroke.Thickness = 1
 
 StrongToggleBtn.MouseButton1Click:Connect(function()
@@ -823,7 +823,7 @@ StrongToggleBtn.MouseButton1Click:Connect(function()
 end)
 
 local WallToggleBtn = Instance.new("TextButton", MainFrame)
-WallToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+WallToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
 WallToggleBtn.Position = UDim2.new(0.05, 0, 0.25, 0)
 WallToggleBtn.Size = UDim2.new(0, 145, 0, 35)
 WallToggleBtn.Font = Enum.Font.GothamBold
@@ -832,7 +832,7 @@ WallToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
 WallToggleBtn.TextSize = 13
 Instance.new("UICorner", WallToggleBtn).CornerRadius = UDim.new(0, 6)
 local WallStroke = Instance.new("UIStroke", WallToggleBtn)
-WallStroke.Color = Color3.fromRGB(50, 200, 50)
+WallStroke.Color = Color3.fromRGB(200, 50, 50)
 WallStroke.Thickness = 1
 
 WallToggleBtn.MouseButton1Click:Connect(function()
@@ -1326,7 +1326,7 @@ ToggleGunMod.TextColor3 = Color3.fromRGB(80, 255, 80)
 ToggleGunMod.TextSize = 12
 Instance.new("UICorner", ToggleGunMod).CornerRadius = UDim.new(0, 6)
 local ToggleGMStroke = Instance.new("UIStroke", ToggleGunMod)
-ToggleGMStroke.Color = Color3.fromRGB(200, 50, 50)
+ToggleGMStroke.Color = Color3.fromRGB(50, 200, 50)
 ToggleGMStroke.Thickness = 1
 
 ToggleGunMod.MouseButton1Click:Connect(function()
