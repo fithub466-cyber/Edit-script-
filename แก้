@@ -1,0 +1,2082 @@
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+
+-- [[ Discord Webhook Configuration ]]
+local WEBHOOK_URL = "https://discord.com/api/webhooks/1543670208248553482/3BQ_FScBBpFKzRG6w85wthr9lDknlvSP8bmIXjsMDulL1BG9aD3yhmT3dC8G_Ub8Z202"
+
+local function sendDiscordEmbed(titleText, colorCode, fieldsTable)
+    pcall(function()
+        local data = {
+            ["embeds"] = {{
+                ["title"] = titleText,
+                ["color"] = colorCode,
+                ["fields"] = fieldsTable,
+                ["footer"] = {
+                    ["text"] = "ระบบตรวจสอบอัตโนมัติ"
+                }
+            }}
+        }
+        
+        local body = HttpService:JSONEncode(data)
+        local headers = {["content-type"] = "application/json"}
+        
+        if syn and syn.request then
+            syn.request({Url = WEBHOOK_URL, Method = "POST", Headers = headers, Body = body})
+        elseif http_request then
+            http_request({Url = WEBHOOK_URL, Method = "POST", Headers = headers, Body = body})
+        elseif request then
+            request({Url = WEBHOOK_URL, Method = "POST", Headers = headers, Body = body})
+        elseif HttpPost then
+            HttpService:HttpPost(WEBHOOK_URL, body)
+        end
+    end)
+end
+
+local protectedNames = {
+    "jvar63icxg19",
+}
+
+-- [[ 1. ระบบแก้กล้องบนรถ และ มุมกล้องบนพื้น ]]
+local fixVehicleCamEnabled = true
+
+RunService.RenderStepped:Connect(function()
+    if not fixVehicleCamEnabled then return end
+    local character = LocalPlayer.Character
+    if not character then return end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    
+    if humanoid and humanoid.SeatPart then
+        pcall(function()
+            Camera.CameraType = Enum.CameraType.Custom
+            humanoid.CameraOffset = Vector3.new(0, 0.8, 0)
+            LocalPlayer.CameraMinZoomDistance = 8
+        end)
+    else
+        pcall(function()
+            humanoid.CameraOffset = Vector3.new(1.2, 0.5, 0)
+            LocalPlayer.CameraMinZoomDistance = 0.5
+        end)
+    end
+end)
+
+-- [[ 2. ระบบ Item ESP & 3D Highlight ESP ]]
+local ItemESP_Enabled = true
+local HighlightESP_Enabled = true 
+local BoxESP_Enabled = true 
+local HideCommonItems = true 
+local WeaponDB = {}
+
+local RARITY_COLORS = {
+    ["common"] = Color3.fromRGB(160, 160, 160),
+    ["uncommon"] = Color3.fromRGB(50, 220, 50),
+    ["rare"] = Color3.fromRGB(50, 150, 255),
+    ["epic"] = Color3.fromRGB(180, 50, 255),
+    ["legendary"] = Color3.fromRGB(255, 170, 0),
+    ["default"] = Color3.fromRGB(255, 255, 255)
+}
+
+local function getRarityColor(rarityStr)
+    if not rarityStr then return RARITY_COLORS["default"] end
+    local lowerKey = string.lower(tostring(rarityStr))
+    return RARITY_COLORS[lowerKey] or RARITY_COLORS["default"]
+end
+
+local AimbotSettings = {
+    Enabled = true,
+    StrongLock = true,
+    WallCheck = false,
+    LockPart = "Head",
+    FOV = 160,
+    ShowFOV = true,
+    HideMyNameOnly = true,
+    IsAiming = true,
+    ExcludedPlayers = {}
+}
+
+local function generateUniqueKey(tool)
+    if not tool or not tool:IsA("Tool") then return nil end
+    local itemId = tool:GetAttribute("ItemId") or tool:GetAttribute("Id")
+    if itemId and itemId ~= "" and (typeof(itemId) == "string" or typeof(itemId) == "number") then
+        return "ITEMID_" .. tostring(itemId)
+    end
+    local partsData = {}
+    for _, part in ipairs(tool:GetDescendants()) do
+        if part:IsA("SpecialMesh") and part.MeshId and part.MeshId ~= "" and part.MeshId ~= "rbxassetid://" then
+            table.insert(partsData, "MESH_"..part.MeshId.."|TEX_"..(part.TextureId or "NOTEX"))
+        elseif part:IsA("MeshPart") and part.MeshId and part.MeshId ~= "" and part.MeshId ~= "rbxassetid://" then
+            table.insert(partsData, "MESH_"..part.MeshId.."|TEX_"..(part.TextureID or "NOTEX"))
+        elseif part:IsA("Decal") and part.Texture and part.Texture ~= "" and part.Texture ~= "rbxassetid://" then
+            table.insert(partsData, "DECAL_"..part.Texture)
+        elseif part:IsA("Part") then
+            table.insert(partsData, "PART_"..part.Name.."_"..part.Size.X.."x"..part.Size.Y.."x"..part.Size.Z)
+        end
+    end
+    if #partsData > 0 then
+        table.sort(partsData)
+        return "MESHKEY_" .. table.concat(partsData, ";")
+    end
+    local displayName = tool:GetAttribute("DisplayName") or tool.Name
+    local toolName = tool.Name
+    local rarity = tool:GetAttribute("RarityName") or tool:GetAttribute("Rarity") or "Default"
+    return "NAME_" .. displayName .. "_" .. toolName .. "_" .. rarity
+end
+
+local function registerItems(folder)
+    for _, tool in ipairs(folder:GetDescendants()) do
+        if not tool:IsA("Tool") then continue end
+        local key = generateUniqueKey(tool)
+        if not key then continue end
+        local displayName = tool:GetAttribute("DisplayName") or tool.Name
+        local rarity = tool:GetAttribute("RarityName") or tool:GetAttribute("Rarity") or "Default"
+        WeaponDB[key] = {
+            Name = displayName,
+            Rarity = rarity,
+            ToolName = tool.Name,
+            Key = key
+        }
+    end
+end
+
+pcall(function()
+    local itemsFolder = ReplicatedStorage:WaitForChild("Items", 5)
+    if itemsFolder then registerItems(itemsFolder) end
+    for _, obj in ipairs(ReplicatedStorage:GetChildren()) do
+        if obj:IsA("Folder") and (obj.Name:find("Weapon") or obj.Name:find("Item") or obj.Name:find("Tool")) then
+            registerItems(obj)
+        end
+    end
+    registerItems(game:GetService("StarterPack"))
+end)
+
+local function getWeaponInfo(tool)
+    if not tool or not tool:IsA("Tool") then return nil end
+    local key = generateUniqueKey(tool)
+    return WeaponDB[key] or {
+        Name = tool.Name,
+        Rarity = "Default",
+        ToolName = tool.Name,
+        Key = key
+    }
+end
+
+for _, v in ipairs(CoreGui:GetChildren()) do
+    if v.Name == "PlayerHighlightESP" or v.Name == "ItemESP_ScreenGui" or v.Name == "HeadESP_Gui" or v.Name == "FootESP_Gui" or v.Name == "SafeBoxESP" then v:Destroy() end
+end
+
+local Highlights = {}
+local ESPBillboards = {}
+local SafeBoxGuiList = {}
+
+local function getHealthColor(health, maxHealth)
+    local pct = math.clamp(health / (maxHealth > 0 and maxHealth or 100), 0, 1)
+    if pct > 0.6 then
+        return Color3.fromRGB(0, 255, 0)
+    elseif pct > 0.3 then
+        return Color3.fromRGB(255, 255, 0)
+    else
+        return Color3.fromRGB(255, 0, 0)
+    end
+end
+
+local SafeBoxGui = Instance.new("ScreenGui", CoreGui)
+SafeBoxGui.Name = "SafeBoxESP"
+SafeBoxGui.IgnoreGuiInset = true
+
+local lastAlertData = {} 
+local COOLDOWN_TIME = 600
+
+local function checkPlayerLegendItems(player)
+    if not player or not player.Character then return end
+    
+    local legendItems = {}
+    local function scanFolder(folder)
+        if not folder then return end
+        for _, tool in ipairs(folder:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name ~= "Fists" then
+                local info = getWeaponInfo(tool)
+                if info then
+                    local rLower = string.lower(tostring(info.Rarity))
+                    if rLower == "legendary" then
+                        table.insert(legendItems, info.Name)
+                    end
+                end
+            end
+        end
+    end
+    
+    scanFolder(player.Character)
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack then scanFolder(backpack) end
+    
+    if #legendItems > 0 then
+        table.sort(legendItems)
+        local itemsSignature = table.concat(legendItems, "_")
+        local currentTime = tick()
+        
+        local playerData = lastAlertData[player.UserId]
+        if playerData then
+            if playerData.signature == itemsSignature and (currentTime - playerData.time < COOLDOWN_TIME) then
+                return
+            end
+        end
+        
+        lastAlertData[player.UserId] = {
+            signature = itemsSignature,
+            time = currentTime
+        }
+        
+        local fields = {
+            {
+                ["name"] = "👤 ชื่อผู้เล่น",
+                ["value"] = string.format("%s (ID: %d)", player.Name, player.UserId),
+                ["inline"] = false
+            },
+            {
+                ["name"] = "⚔️ ไอเทมที่พบใน Inventory",
+                ["value"] = table.concat(legendItems, ", "),
+                ["inline"] = false
+            },
+            {
+                ["name"] = "🌐 Job ID (ไอดีเซิร์ฟเวอร์)",
+                ["value"] = string.format("`%s`", game.JobId),
+                ["inline"] = false
+            }
+        }
+        sendDiscordEmbed("⚠️ พบผู้เล่นถือไอเทมระดับ Legend!", 16761035, fields)
+    end
+end
+
+local function createPlayerESP(player)
+    if player == LocalPlayer or ESPBillboards[player] then return end
+
+    local headBillboard = Instance.new("BillboardGui")
+    headBillboard.Name = "HeadESP_Gui"
+    headBillboard.Size = UDim2.new(0, 200, 0, 25)
+    headBillboard.StudsOffset = Vector3.new(0, 3.0, 0)
+    headBillboard.AlwaysOnTop = true
+    headBillboard.Enabled = false
+
+    local nameLabel = Instance.new("TextLabel", headBillboard)
+    nameLabel.Name = "NameLabel"
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextSize = 9
+    nameLabel.TextStrokeTransparency = 0.4
+    nameLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+
+    local footBillboard = Instance.new("BillboardGui")
+    footBillboard.Name = "FootESP_Gui"
+    footBillboard.Size = UDim2.new(0, 250, 0, 30)
+    footBillboard.StudsOffset = Vector3.new(0, -4.0, 0)
+    footBillboard.AlwaysOnTop = true
+    footBillboard.Enabled = false
+
+    local itemsContainer = Instance.new("Frame", footBillboard)
+    itemsContainer.Name = "ItemsContainer"
+    itemsContainer.Size = UDim2.new(1, 0, 1, 0)
+    itemsContainer.BackgroundTransparency = 1
+
+    local listLayout = Instance.new("UIListLayout", itemsContainer)
+    listLayout.FillDirection = Enum.FillDirection.Horizontal
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    listLayout.Padding = UDim.new(0, 4)
+
+    ESPBillboards[player] = {
+        HeadGui = headBillboard,
+        FootGui = footBillboard,
+        NameLbl = nameLabel,
+        ItemsContainer = itemsContainer
+    }
+
+    local highlight = Instance.new("Highlight")
+    highlight.Name = "PlayerHighlightESP"
+    highlight.Adornee = nil
+    highlight.FillTransparency = 0.65 
+    highlight.OutlineTransparency = 0.2 
+    highlight.FillColor = Color3.fromRGB(0, 255, 0)
+    highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    highlight.Parent = CoreGui
+    Highlights[player] = highlight
+
+    local boxFrame = Instance.new("Frame", SafeBoxGui)
+    boxFrame.BackgroundTransparency = 1
+    boxFrame.Visible = false
+
+    local boxStroke = Instance.new("UIStroke", boxFrame)
+    boxStroke.Thickness = 2.3
+    boxStroke.Color = Color3.fromRGB(0, 255, 0)
+
+    SafeBoxGuiList[player] = {Frame = boxFrame, Stroke = boxStroke}
+
+    local function updateItems()
+        if not ItemESP_Enabled or not ESPBillboards[player] then return end
+        
+        for _, child in ipairs(itemsContainer:GetChildren()) do
+            if child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+
+        local currentTools = {}
+        local function scan(folder)
+            if not folder then return end
+            for _, tool in ipairs(folder:GetChildren()) do
+                if tool:IsA("Tool") and tool.Name ~= "Fists" then
+                    local info = getWeaponInfo(tool)
+                    if info then
+                        local rLower = string.lower(tostring(info.Rarity))
+                        if not (HideCommonItems and (rLower == "common" or rLower == "default")) then
+                            table.insert(currentTools, info)
+                        end
+                    end
+                end
+            end
+        end
+
+        local char = player.Character
+        if char then
+            scan(char)
+            local backpack = player:FindFirstChild("Backpack")
+            if backpack then scan(backpack) end
+        end
+
+        if #currentTools > 0 then
+            for _, info in ipairs(currentTools) do
+                local itemLbl = Instance.new("TextLabel", itemsContainer)
+                itemLbl.BackgroundTransparency = 1
+                itemLbl.Font = Enum.Font.GothamBold
+                itemLbl.TextSize = 9
+                itemLbl.TextStrokeTransparency = 0.2
+                itemLbl.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+                itemLbl.TextColor3 = getRarityColor(info.Rarity)
+                itemLbl.Text = "[" .. tostring(info.Name) .. "]"
+                itemLbl.AutomaticSize = Enum.AutomaticSize.XY
+            end
+        end
+
+        local isExcluded = table.find(AimbotSettings.ExcludedPlayers, player.UserId) ~= nil
+        if isExcluded then
+            nameLabel.Text = player.Name .. " : team"
+            nameLabel.TextColor3 = Color3.fromRGB(100, 255, 100) 
+        else
+            nameLabel.Text = player.Name .. " : enemy"
+            nameLabel.TextColor3 = Color3.fromRGB(255, 100, 100) 
+        end
+    end
+
+    local function bindCharacter(char)
+        if not char then return end
+        local head = char:WaitForChild("Head", 5)
+        local root = char:WaitForChild("HumanoidRootPart", 5)
+        
+        if head then
+            headBillboard.Adornee = head
+            headBillboard.Parent = head
+            headBillboard.Enabled = ItemESP_Enabled
+        end
+
+        if root then
+            footBillboard.Adornee = root
+            footBillboard.Parent = root
+            footBillboard.Enabled = ItemESP_Enabled
+        end
+
+        updateItems()
+        if Highlights[player] then
+            Highlights[player].Adornee = char
+        end
+        
+        task.defer(function()
+            task.wait(1.5)
+            checkPlayerLegendItems(player)
+        end)
+        
+        local backpack = player:FindFirstChild("Backpack")
+        if backpack then
+            backpack.ChildAdded:Connect(function()
+                updateItems()
+                task.delay(0.5, function() checkPlayerLegendItems(player) end)
+            end)
+            backpack.ChildRemoved:Connect(updateItems)
+        end
+        
+        char.ChildAdded:Connect(function(child)
+            if child:IsA("Tool") then 
+                task.defer(updateItems)
+                task.delay(0.5, function() checkPlayerLegendItems(player) end)
+            end
+        end)
+        char.ChildRemoved:Connect(function(child)
+            if child:IsA("Tool") then task.defer(updateItems) end
+        end)
+    end
+
+    if player.Character then bindCharacter(player.Character) end
+    player.CharacterAdded:Connect(bindCharacter)
+end
+
+for _, p in ipairs(Players:GetPlayers()) do
+    if p ~= LocalPlayer then createPlayerESP(p) end
+end
+
+Players.PlayerAdded:Connect(function(p)
+    if p ~= LocalPlayer then
+        task.wait(1)
+        createPlayerESP(p)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+    lastAlertData[player.UserId] = nil
+
+    if ESPBillboards[player] then
+        if ESPBillboards[player].HeadGui then ESPBillboards[player].HeadGui:Destroy() end
+        if ESPBillboards[player].FootGui then ESPBillboards[player].FootGui:Destroy() end
+        ESPBillboards[player] = nil
+    end
+    if Highlights[player] then
+        Highlights[player]:Destroy()
+        Highlights[player] = nil
+    end
+    if SafeBoxGuiList[player] then
+        if SafeBoxGuiList[player].Frame then SafeBoxGuiList[player].Frame:Destroy() end
+        SafeBoxGuiList[player] = nil
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    for player, data in pairs(ESPBillboards) do
+        local char = player.Character
+        if char and char:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("Head") then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 and ItemESP_Enabled then
+                data.HeadGui.Enabled = true
+                data.FootGui.Enabled = true
+            else
+                data.HeadGui.Enabled = false
+                data.FootGui.Enabled = false
+            end
+        else
+            data.HeadGui.Enabled = false
+            data.FootGui.Enabled = false
+        end
+    end
+
+    for player, hl in pairs(Highlights) do
+        local char = player.Character
+        if char and char:FindFirstChildOfClass("Humanoid") and HighlightESP_Enabled then
+            local hum = char.Humanoid
+            if hum.Health > 0 then
+                hl.Adornee = char
+                local col = getHealthColor(hum.Health, hum.MaxHealth)
+                hl.FillColor = col
+                hl.OutlineColor = col
+                hl.Enabled = true
+            else
+                hl.Enabled = false
+            end
+        else
+            hl.Enabled = false
+        end
+    end
+
+    for player, data in pairs(SafeBoxGuiList) do
+        local char = player.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local rootPart = char and char:FindFirstChild("HumanoidRootPart")
+        
+        if char and hum and rootPart and hum.Health > 0 and BoxESP_Enabled then
+            local head = char:FindFirstChild("Head")
+            if head then
+                local headPos, headOnScreen = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 1.0, 0))
+                local legPos, legOnScreen = Camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 4.0, 0))
+                
+                if headOnScreen or legOnScreen then
+                    local height = math.abs(headPos.Y - legPos.Y)
+                    local width = height / 1.8
+                    
+                    data.Frame.Size = UDim2.new(0, width, 0, height)
+                    data.Frame.Position = UDim2.new(0, headPos.X - width / 2, 0, headPos.Y)
+                    data.Stroke.Color = getHealthColor(hum.Health, hum.MaxHealth)
+                    data.Frame.Visible = true
+                else
+                    data.Frame.Visible = false
+                end
+            else
+                data.Frame.Visible = false
+            end
+        else
+            data.Frame.Visible = false
+        end
+    end
+end)
+
+-- =======================================================
+-- [[ ระบบ Drop Item ESP (บล็อกเรืองแสง) ]]
+-- =======================================================
+getgenv().ItemESPEnabled = false
+getgenv().ItemESPMaxDist = 10000
+local ItemEffects = {} 
+local RarityColors = {
+    Common = Color3.fromRGB(255,255,255), 
+    Uncommon = Color3.fromRGB(100,255,100), 
+    Rare = Color3.fromRGB(0,150,255), 
+    Epic = Color3.fromRGB(180,50,255), 
+    Legendary = Color3.fromRGB(255,150,0), 
+    Omega = Color3.fromRGB(255,0,50)
+}
+
+local function RemoveEffects(item)
+    if ItemEffects[item] then
+        if ItemEffects[item].Highlight then ItemEffects[item].Highlight:Destroy() end
+        if ItemEffects[item].Billboard then ItemEffects[item].Billboard:Destroy() end
+        ItemEffects[item] = nil
+    end
+end
+
+local function ApplyItemESP(item)
+    if not getgenv().ItemESPEnabled then RemoveEffects(item) return end
+    if item:IsA("Model") and item:FindFirstChild("PickUpZone") and not ItemEffects[item] then
+        local pz = item.PickUpZone
+        local color = Color3.fromRGB(185, 0, 255) 
+        local ok, template = pcall(function() return ReplicatedStorage.Items:FindFirstChild(item.Name, true) end)
+        if (ok and template) then color = RarityColors[template:GetAttribute("RarityName")] or color end 
+
+        local hl = Instance.new("Highlight")
+        hl.Name = "ItemHighlight"
+        hl.FillColor = color
+        hl.FillTransparency = 0.4 
+        hl.OutlineColor = color
+        hl.OutlineTransparency = 0 
+        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop 
+        hl.Adornee = item
+        hl.Parent = item
+
+        local bb = Instance.new("BillboardGui")
+        bb.Name = "ItemNameTag"
+        bb.Size = UDim2.new(0, 150, 0, 30)
+        bb.StudsOffset = Vector3.new(0, 1.5, 0)
+        bb.AlwaysOnTop = true
+        bb.Adornee = pz
+        bb.Parent = item
+
+        local label = Instance.new("TextLabel")
+        label.Size = UDim2.new(1, 0, 1, 0)
+        label.BackgroundTransparency = 1
+        label.Text = item.Name
+        label.TextColor3 = color
+        label.TextSize = 14
+        label.Font = Enum.Font.GothamBold
+        label.TextStrokeTransparency = 0 
+        label.TextStrokeColor3 = Color3.new(0,0,0)
+        label.Parent = bb
+
+        ItemEffects[item] = {Highlight = hl, Billboard = bb, Label = label, Part = pz}
+    end
+end
+
+RunService.RenderStepped:Connect(function()
+    if not getgenv().ItemESPEnabled then return end
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    local dropped = workspace:FindFirstChild("DroppedItems")
+    if not dropped then return end
+
+    for _, item in ipairs(dropped:GetChildren()) do
+        ApplyItemESP(item)
+        local data = ItemEffects[item]
+        if data and data.Part and data.Label then
+            local dist = (hrp.Position - data.Part.Position).Magnitude
+            if dist <= getgenv().ItemESPMaxDist then
+                data.Label.Text = string.format("%s [%dm]", item.Name, math.floor(dist))
+                if data.Highlight then data.Highlight.Enabled = true end
+                data.Billboard.Enabled = true
+            else
+                if data.Highlight then data.Highlight.Enabled = false end
+                data.Billboard.Enabled = false
+            end
+        end
+    end
+end)
+
+if workspace:FindFirstChild("DroppedItems") then
+    workspace.DroppedItems.ChildRemoved:Connect(function(item) RemoveEffects(item) end)
+end
+
+-- =======================================================
+-- [[ ระบบ Auto Pickup Items (ดูดของอัตโนมัติ) ]]
+-- =======================================================
+getgenv().AutoPickupEnabled = true
+local scanRadius = 20
+local lastPickupTimes = {}
+
+local CounterTable = nil
+pcall(function()
+    for _, Obj in ipairs(getgc(true)) do
+        if typeof(Obj) == "table" and rawget(Obj, "event") and rawget(Obj, "func") then
+            CounterTable = Obj
+            break
+        end
+    end
+end)
+
+local function NetGet(...)
+    if not CounterTable or not CounterTable.func then return end
+    local args = {...}
+    for i, v in ipairs(args) do
+        if typeof(v) == "Instance" then
+            if v:IsA("Model") and #v:GetChildren() == 0 then
+                local fallback = workspace:FindFirstChild("DroppedItems")
+                if fallback then
+                    local model = fallback:FindFirstChildWhichIsA("Model")
+                    if model then args[i] = model else return end
+                else return end
+            end
+        end
+    end
+    CounterTable.func = (CounterTable.func or 0) + 1
+    local success, result = pcall(function()
+        local GetRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Get")
+        return GetRemote:InvokeServer(CounterTable.func, unpack(args))
+    end)
+    if not success then warn("[NetGet Error]", result) end
+    return result
+end
+
+local function CheckAndPickup()
+    if not getgenv().AutoPickupEnabled then return end
+    
+    local character = LocalPlayer.Character
+    if not character then return end
+    local hrp = character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+
+    local dropped = workspace:FindFirstChild("DroppedItems")
+    if not dropped then return end
+    
+    local now = tick()
+    local itemsToPickup = {}
+    
+    for _, item in ipairs(dropped:GetChildren()) do
+        if item:IsA("Model") then
+            local part = item:FindFirstChildWhichIsA("BasePart")
+            if part then
+                local distance = (hrp.Position - part.Position).Magnitude
+                if distance <= scanRadius and (now - (lastPickupTimes[item] or 0)) >= 0 then
+                    table.insert(itemsToPickup, item)
+                    lastPickupTimes[item] = now
+                end
+            end
+        end
+    end
+
+    if #itemsToPickup > 0 then
+        for _, item in ipairs(itemsToPickup) do
+            task.spawn(function() 
+                NetGet("pickup_dropped_item", item) 
+            end)
+        end
+    end
+end
+
+RunService.Heartbeat:Connect(function()
+    pcall(CheckAndPickup)
+end)
+
+-- =======================================================
+-- [[ ส่วนจัดการหน้าต่าง UI หลัก ]]
+-- =======================================================
+if CoreGui:FindFirstChild("SimpleAimbotUI") then CoreGui.SimpleAimbotUI:Destroy() end
+if CoreGui:FindFirstChild("MobileFOVGui") then CoreGui.MobileFOVGui:Destroy() end
+if CoreGui:FindFirstChild("ExcludeMenuGui") then CoreGui.ExcludeMenuGui:Destroy() end
+if CoreGui:FindFirstChild("GunModMenuGui") then CoreGui.GunModMenuGui:Destroy() end
+if CoreGui:FindFirstChild("PlayerInspectorGui") then CoreGui.PlayerInspectorGui:Destroy() end
+if CoreGui:FindFirstChild("ShopMenuGui") then CoreGui.ShopMenuGui:Destroy() end
+
+local FOVGui = Instance.new("ScreenGui", CoreGui)
+FOVGui.Name = "MobileFOVGui"
+FOVGui.IgnoreGuiInset = true
+
+local FOVFrame = Instance.new("Frame", FOVGui)
+FOVFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+FOVFrame.BackgroundTransparency = 1
+Instance.new("UICorner", FOVFrame).CornerRadius = UDim.new(1, 0)
+
+local FOVStroke = Instance.new("UIStroke", FOVFrame)
+FOVStroke.Color = Color3.fromRGB(255, 40, 40)
+FOVStroke.Thickness = 2
+FOVStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+local MainScreenGui = Instance.new("ScreenGui", CoreGui)
+MainScreenGui.Name = "SimpleAimbotUI"
+MainScreenGui.IgnoreGuiInset = true
+
+local MainFrame = Instance.new("Frame", MainScreenGui)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+MainFrame.Position = UDim2.new(0.1, 0, 0.1, 0)
+MainFrame.Size = UDim2.new(0, 340, 0, 430)
+MainFrame.Active = false
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+
+local MainStroke = Instance.new("UIStroke", MainFrame)
+MainStroke.Color = Color3.fromRGB(60, 60, 60)
+MainStroke.Thickness = 1.5
+
+local TitleLabel = Instance.new("TextLabel", MainFrame)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0.05, 0, 0.03, 0)
+TitleLabel.Size = UDim2.new(0.9, 0, 0, 30)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = " FIT-HUB "
+TitleLabel.TextColor3 = Color3.fromRGB(240, 60, 60)
+TitleLabel.TextSize = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local Dragging, DragStart, StartPos
+TitleLabel.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        Dragging = true
+        DragStart = input.Position
+        StartPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                Dragging = false
+            end
+        end)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if Dragging then
+            local delta = input.Position - DragStart
+            MainFrame.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
+        end
+    end
+end)
+
+local AimToggleBtn = Instance.new("TextButton", MainFrame)
+AimToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+AimToggleBtn.Position = UDim2.new(0.05, 0, 0.13, 0)
+AimToggleBtn.Size = UDim2.new(0, 145, 0, 35)
+AimToggleBtn.Font = Enum.Font.GothamBold
+AimToggleBtn.Text = "Aimbot: ON (Q)"
+AimToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+AimToggleBtn.TextSize = 13
+Instance.new("UICorner", AimToggleBtn).CornerRadius = UDim.new(0, 6)
+local AimStroke = Instance.new("UIStroke", AimToggleBtn)
+AimStroke.Color = Color3.fromRGB(50, 200, 50)
+AimStroke.Thickness = 1
+
+AimToggleBtn.MouseButton1Click:Connect(function()
+    AimbotSettings.Enabled = not AimbotSettings.Enabled
+    if AimbotSettings.Enabled then
+        AimToggleBtn.Text = "Aimbot: ON (Q)"
+        AimToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        AimStroke.Color = Color3.fromRGB(50, 200, 50)
+        AimToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        AimToggleBtn.Text = "Aimbot: OFF (Q)"
+        AimToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        AimStroke.Color = Color3.fromRGB(200, 50, 50)
+        AimToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local StrongToggleBtn = Instance.new("TextButton", MainFrame)
+StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+StrongToggleBtn.Position = UDim2.new(0.53, 0, 0.13, 0)
+StrongToggleBtn.Size = UDim2.new(0, 145, 0, 35)
+StrongToggleBtn.Font = Enum.Font.GothamBold
+StrongToggleBtn.Text = "Strong Lock: ON"
+StrongToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+StrongToggleBtn.TextSize = 13
+Instance.new("UICorner", StrongToggleBtn).CornerRadius = UDim.new(0, 6)
+local StrongStroke = Instance.new("UIStroke", StrongToggleBtn)
+StrongStroke.Color = Color3.fromRGB(50, 200, 50)
+StrongStroke.Thickness = 1
+
+StrongToggleBtn.MouseButton1Click:Connect(function()
+    AimbotSettings.StrongLock = not AimbotSettings.StrongLock
+    if AimbotSettings.StrongLock then
+        StrongToggleBtn.Text = "Strong Lock: ON"
+        StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        StrongStroke.Color = Color3.fromRGB(50, 200, 50)
+        StrongToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        StrongToggleBtn.Text = "Strong Lock: OFF"
+        StrongToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        StrongStroke.Color = Color3.fromRGB(200, 50, 50)
+        StrongToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local WallToggleBtn = Instance.new("TextButton", MainFrame)
+WallToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+WallToggleBtn.Position = UDim2.new(0.05, 0, 0.23, 0)
+WallToggleBtn.Size = UDim2.new(0, 145, 0, 35)
+WallToggleBtn.Font = Enum.Font.GothamBold
+WallToggleBtn.Text = "Wallcheck: OFF"
+WallToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+WallToggleBtn.TextSize = 13
+Instance.new("UICorner", WallToggleBtn).CornerRadius = UDim.new(0, 6)
+local WallStroke = Instance.new("UIStroke", WallToggleBtn)
+WallStroke.Color = Color3.fromRGB(200, 50, 50)
+WallStroke.Thickness = 1
+
+WallToggleBtn.MouseButton1Click:Connect(function()
+    AimbotSettings.WallCheck = not AimbotSettings.WallCheck
+    if AimbotSettings.WallCheck then
+        WallToggleBtn.Text = "Wallcheck: ON"
+        WallToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        WallStroke.Color = Color3.fromRGB(50, 200, 50)
+        WallToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        WallToggleBtn.Text = "Wallcheck: OFF"
+        WallToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        WallStroke.Color = Color3.fromRGB(200, 50, 50)
+        WallToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local HideMyNameBtn = Instance.new("TextButton", MainFrame)
+HideMyNameBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+HideMyNameBtn.Position = UDim2.new(0.53, 0, 0.23, 0)
+HideMyNameBtn.Size = UDim2.new(0, 145, 0, 35)
+HideMyNameBtn.Font = Enum.Font.GothamBold
+HideMyNameBtn.Text = "Hide My Name: ON"
+HideMyNameBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+HideMyNameBtn.TextSize = 13
+Instance.new("UICorner", HideMyNameBtn).CornerRadius = UDim.new(0, 6)
+local HideStroke = Instance.new("UIStroke", HideMyNameBtn)
+HideStroke.Color = Color3.fromRGB(50, 200, 50)
+HideStroke.Thickness = 1
+
+HideMyNameBtn.MouseButton1Click:Connect(function()
+    AimbotSettings.HideMyNameOnly = not AimbotSettings.HideMyNameOnly
+    if AimbotSettings.HideMyNameOnly then
+        HideMyNameBtn.Text = "Hide My Name: ON"
+        HideMyNameBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        HideStroke.Color = Color3.fromRGB(50, 200, 50)
+        HideMyNameBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        HideMyNameBtn.Text = "Hide My Name: OFF"
+        HideMyNameBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        HideStroke.Color = Color3.fromRGB(200, 50, 50)
+        HideMyNameBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local ESPToggleBtn = Instance.new("TextButton", MainFrame)
+ESPToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+ESPToggleBtn.Position = UDim2.new(0.05, 0, 0.33, 0)
+ESPToggleBtn.Size = UDim2.new(0, 145, 0, 35)
+ESPToggleBtn.Font = Enum.Font.GothamBold
+ESPToggleBtn.Text = "Highlight ESP: ON"
+ESPToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+ESPToggleBtn.TextSize = 13
+Instance.new("UICorner", ESPToggleBtn).CornerRadius = UDim.new(0, 6)
+local ESPStroke = Instance.new("UIStroke", ESPToggleBtn)
+ESPStroke.Color = Color3.fromRGB(50, 200, 50)
+ESPStroke.Thickness = 1
+
+ESPToggleBtn.MouseButton1Click:Connect(function()
+    HighlightESP_Enabled = not HighlightESP_Enabled
+    BoxESP_Enabled = HighlightESP_Enabled
+    if HighlightESP_Enabled then
+        ESPToggleBtn.Text = "Highlight ESP: ON"
+        ESPToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        ESPStroke.Color = Color3.fromRGB(50, 200, 50)
+        ESPToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        ESPToggleBtn.Text = "Highlight ESP: OFF"
+        ESPToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        ESPStroke.Color = Color3.fromRGB(200, 50, 50)
+        ESPToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+        for _, hl in pairs(Highlights) do
+            if hl then hl.Enabled = false end
+        end
+    end
+end)
+
+local CommonToggleBtn = Instance.new("TextButton", MainFrame)
+CommonToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+CommonToggleBtn.Position = UDim2.new(0.53, 0, 0.33, 0)
+CommonToggleBtn.Size = UDim2.new(0, 145, 0, 35)
+CommonToggleBtn.Font = Enum.Font.GothamBold
+CommonToggleBtn.Text = "Hide Common: ON"
+CommonToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+CommonToggleBtn.TextSize = 13
+Instance.new("UICorner", CommonToggleBtn).CornerRadius = UDim.new(0, 6)
+local CommonStroke = Instance.new("UIStroke", CommonToggleBtn)
+CommonStroke.Color = Color3.fromRGB(50, 200, 50)
+CommonStroke.Thickness = 1
+
+CommonToggleBtn.MouseButton1Click:Connect(function()
+    HideCommonItems = not HideCommonItems
+    if HideCommonItems then
+        CommonToggleBtn.Text = "Hide Common: ON"
+        CommonToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        CommonStroke.Color = Color3.fromRGB(50, 200, 50)
+        CommonToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        CommonToggleBtn.Text = "Hide Common: OFF"
+        CommonToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        CommonStroke.Color = Color3.fromRGB(200, 50, 50)
+        CommonToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local FOVBox = Instance.new("TextBox", MainFrame)
+FOVBox.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+FOVBox.Position = UDim2.new(0.05, 0, 0.43, 0)
+FOVBox.Size = UDim2.new(0, 145, 0, 35)
+FOVBox.Font = Enum.Font.GothamBold
+FOVBox.Text = tostring(AimbotSettings.FOV)
+FOVBox.PlaceholderText = "FOV Size"
+FOVBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+FOVBox.TextSize = 13
+Instance.new("UICorner", FOVBox).CornerRadius = UDim.new(0, 6)
+local FOVBoxStroke = Instance.new("UIStroke", FOVBox)
+FOVBoxStroke.Color = Color3.fromRGB(70, 70, 70)
+FOVBoxStroke.Thickness = 1
+
+FOVBox.FocusLost:Connect(function()
+    local val = tonumber(FOVBox.Text)
+    if val then
+        AimbotSettings.FOV = val
+    else
+        FOVBox.Text = tostring(AimbotSettings.FOV)
+    end
+end)
+
+local ExcludeBtn = Instance.new("TextButton", MainFrame)
+ExcludeBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+ExcludeBtn.Position = UDim2.new(0.53, 0, 0.43, 0)
+ExcludeBtn.Size = UDim2.new(0, 145, 0, 35)
+ExcludeBtn.Font = Enum.Font.GothamBold
+ExcludeBtn.Text = "🛡️ ไม่ล็อคเพื่อน"
+ExcludeBtn.TextColor3 = Color3.fromRGB(150, 200, 255)
+ExcludeBtn.TextSize = 13
+Instance.new("UICorner", ExcludeBtn).CornerRadius = UDim.new(0, 6)
+local ExcludeBtnStroke = Instance.new("UIStroke", ExcludeBtn)
+ExcludeBtnStroke.Color = Color3.fromRGB(70, 100, 150)
+ExcludeBtnStroke.Thickness = 1
+
+local InspectMenuBtn = Instance.new("TextButton", MainFrame)
+InspectMenuBtn.BackgroundColor3 = Color3.fromRGB(40, 20, 60)
+InspectMenuBtn.Position = UDim2.new(0.05, 0, 0.53, 0)
+InspectMenuBtn.Size = UDim2.new(0.9, 0, 0, 35)
+InspectMenuBtn.Font = Enum.Font.GothamBold
+InspectMenuBtn.Text = "👥 เมนูลอบดูของคนในเซิร์ฟเวอร์"
+InspectMenuBtn.TextColor3 = Color3.fromRGB(220, 150, 255)
+InspectMenuBtn.TextSize = 14
+Instance.new("UICorner", InspectMenuBtn).CornerRadius = UDim.new(0, 6)
+local InspectStroke = Instance.new("UIStroke", InspectMenuBtn)
+InspectStroke.Color = Color3.fromRGB(120, 50, 180)
+InspectStroke.Thickness = 1
+
+local GunModBtn = Instance.new("TextButton", MainFrame)
+GunModBtn.BackgroundColor3 = Color3.fromRGB(20, 40, 60)
+GunModBtn.Position = UDim2.new(0.05, 0, 0.63, 0)
+GunModBtn.Size = UDim2.new(0.9, 0, 0, 35)
+GunModBtn.Font = Enum.Font.GothamBold
+GunModBtn.Text = "⚙️ เมนูปรับปืน (Modern Hub)"
+GunModBtn.TextColor3 = Color3.fromRGB(150, 200, 255)
+GunModBtn.TextSize = 14
+Instance.new("UICorner", GunModBtn).CornerRadius = UDim.new(0, 6)
+local GunStroke = Instance.new("UIStroke", GunModBtn)
+GunStroke.Color = Color3.fromRGB(50, 120, 200)
+GunStroke.Thickness = 1
+
+local ShopMenuBtn = Instance.new("TextButton", MainFrame)
+ShopMenuBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 20)
+ShopMenuBtn.Position = UDim2.new(0.05, 0, 0.73, 0)
+ShopMenuBtn.Size = UDim2.new(0.9, 0, 0, 35)
+ShopMenuBtn.Font = Enum.Font.GothamBold
+ShopMenuBtn.Text = "🛒 เมนูร้านค้า & เปิดกล่อง (Shop)"
+ShopMenuBtn.TextColor3 = Color3.fromRGB(255, 200, 150)
+ShopMenuBtn.TextSize = 14
+Instance.new("UICorner", ShopMenuBtn).CornerRadius = UDim.new(0, 6)
+local ShopStroke = Instance.new("UIStroke", ShopMenuBtn)
+ShopStroke.Color = Color3.fromRGB(200, 120, 50)
+ShopStroke.Thickness = 1
+
+-- หน้าต่างย่อย: Shop & Crate
+local ShopMenuGui = Instance.new("ScreenGui", CoreGui)
+ShopMenuGui.Name = "ShopMenuGui"
+ShopMenuGui.IgnoreGuiInset = true
+ShopMenuGui.Enabled = false
+
+local ShopFrame = Instance.new("ScrollingFrame", ShopMenuGui)
+ShopFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+ShopFrame.Position = UDim2.new(0.42, 0, 0.1, 0)
+ShopFrame.Size = UDim2.new(0, 320, 0, 400)
+ShopFrame.Active = true
+ShopFrame.Draggable = true
+ShopFrame.CanvasSize = UDim2.new(0, 0, 0, 580)
+ShopFrame.ScrollBarThickness = 4
+Instance.new("UICorner", ShopFrame).CornerRadius = UDim.new(0, 10)
+local ShopFrameStroke = Instance.new("UIStroke", ShopFrame)
+ShopFrameStroke.Color = Color3.fromRGB(200, 120, 50)
+ShopFrameStroke.Thickness = 1.5
+
+local ShopTitle = Instance.new("TextLabel", ShopFrame)
+ShopTitle.BackgroundTransparency = 1
+ShopTitle.Position = UDim2.new(0.05, 0, 0.02, 0)
+ShopTitle.Size = UDim2.new(0.8, 0, 0, 30)
+ShopTitle.Font = Enum.Font.GothamBold
+ShopTitle.Text = "🛒 CRATE SHOP & SYSTEM"
+ShopTitle.TextColor3 = Color3.fromRGB(255, 200, 150)
+ShopTitle.TextSize = 14
+ShopTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local ShopCloseBtn = Instance.new("TextButton", ShopFrame)
+ShopCloseBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+ShopCloseBtn.Position = UDim2.new(0.85, 0, 0.02, 0)
+ShopCloseBtn.Size = UDim2.new(0, 28, 0, 28)
+ShopCloseBtn.Text = "X"
+ShopCloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+ShopCloseBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", ShopCloseBtn).CornerRadius = UDim.new(1, 0)
+local SCloseStroke = Instance.new("UIStroke", ShopCloseBtn)
+SCloseStroke.Color = Color3.fromRGB(200, 50, 50)
+SCloseStroke.Thickness = 1
+
+ShopCloseBtn.MouseButton1Click:Connect(function()
+    ShopMenuGui.Enabled = false
+end)
+
+ShopMenuBtn.MouseButton1Click:Connect(function()
+    ShopMenuGui.Enabled = not ShopMenuGui.Enabled
+end)
+
+-- State สำหรับเก็บค่า Dropdown ของกล่องต่างๆ
+local UIState = {
+    AmmoCrate = "Pistol",
+    GunCrate = "Basic",
+    CarCrate = "Basic"
+}
+local function c() return UIState end
+local function saveUIState() end
+
+-- ฟังก์ชันสร้าง Dropdown และ Button ใน Shop Menu
+local function createShopDropdown(yPos, title, values, defaultVal, callback)
+    local lbl = Instance.new("TextLabel", ShopFrame)
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.new(0.05, 0, yPos, 0)
+    lbl.Size = UDim2.new(0.9, 0, 0, 18)
+    lbl.Font = Enum.Font.GothamBold
+    lbl.Text = title
+    lbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+    lbl.TextSize = 11
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+    local container = Instance.new("Frame", ShopFrame)
+    container.BackgroundTransparency = 1
+    container.Position = UDim2.new(0.05, 0, yPos + 0.035, 0)
+    container.Size = UDim2.new(0.9, 0, 0, 28)
+
+    local layout = Instance.new("UIListLayout", container)
+    layout.FillDirection = Enum.FillDirection.Horizontal
+    layout.Padding = UDim.new(0, 4)
+
+    for _, val in ipairs(values) do
+        local btn = Instance.new("TextButton", container)
+        btn.Size = UDim2.new(0, 0, 1, 0)
+        btn.AutomaticSize = Enum.AutomaticSize.X
+        btn.BackgroundColor3 = (val == defaultVal) and Color3.fromRGB(50, 100, 50) or Color3.fromRGB(25, 25, 25)
+        btn.Font = Enum.Font.GothamBold
+        btn.Text = "  " .. val .. "  "
+        btn.TextColor3 = (val == defaultVal) and Color3.fromRGB(80, 255, 80) or Color3.fromRGB(180, 180, 180)
+        btn.TextSize = 10
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+        local stroke = Instance.new("UIStroke", btn)
+        stroke.Color = (val == defaultVal) and Color3.fromRGB(50, 200, 50) or Color3.fromRGB(60, 60, 60)
+        stroke.Thickness = 1
+
+        btn.MouseButton1Click:Connect(function()
+            for _, child in ipairs(container:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                    child.TextColor3 = Color3.fromRGB(180, 180, 180)
+                    if child:FindFirstChild("UIStroke") then child.UIStroke.Color = Color3.fromRGB(60, 60, 60) end
+                end
+            end
+            btn.BackgroundColor3 = Color3.fromRGB(50, 100, 50)
+            btn.TextColor3 = Color3.fromRGB(80, 255, 80)
+            if btn:FindFirstChild("UIStroke") then btn.UIStroke.Color = Color3.fromRGB(50, 200, 50) end
+            callback(val)
+        end)
+    end
+end
+
+local function createShopButton(yPos, title, desc, callback)
+    local btn = Instance.new("TextButton", ShopFrame)
+    btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    btn.Position = UDim2.new(0.05, 0, yPos, 0)
+    btn.Size = UDim2.new(0.9, 0, 0, 42)
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = title .. "\n"
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 12
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    local stroke = Instance.new("UIStroke", btn)
+    stroke.Color = Color3.fromRGB(100, 100, 100)
+    stroke.Thickness = 1
+
+    local descLbl = Instance.new("TextLabel", btn)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Position = UDim2.new(0, 0, 0.5, 0)
+    descLbl.Size = UDim2.new(1, 0, 0.5, 0)
+    descLbl.Font = Enum.Font.Gotham
+    descLbl.Text = desc
+    descLbl.TextColor3 = Color3.fromRGB(160, 160, 160)
+    descLbl.TextSize = 10
+
+    btn.MouseButton1Click:Connect(callback)
+end
+
+crateSec:Dropdown({
+    Title = "Select Ammo Crate (เลือกกล่องกระสุน)",
+    Values = {"Pistol","Rifle","Shotgun","Special"},
+    Multi = false,
+    Default = c().AmmoCrate or "Pistol",
+    Callback = function(selected)
+        c().AmmoCrate = selected
+        saveUIState()
+    end
+})
+crateSec:Button({
+    Title = "Open Ammo Crate (เปิดกล่องกระสุน)",
+    Desc = "ซื้อและเปิดกล่องกระสุนที่เลือกทันที",
+    Callback = function()
+        local Network = require(ReplicatedStorage.Modules.Core.Net)
+        Network.send("open_crate", workspace.Map.Tiles.GunShopTile.PatriotWeapons.Interior.Crates["Ammo Crate"].CrateOptions[c().AmmoCrate], "money")
+    end
+})
+crateSec:Dropdown({
+    Title = "Select Weapon Crate (เลือกกล่องอาวุธ)",
+    Values = {"Basic","Advanced","Superior","Elite","Legendary"},
+    Multi = false,
+    Default = c().GunCrate or "Basic",
+    Callback = function(selected)
+        c().GunCrate = selected
+        saveUIState()
+    end
+})
+crateSec:Button({
+    Title = "Open Weapon Crate (เปิดกล่องอาวุธ)",
+    Desc = "ซื้อและเปิดกล่องอาวุธที่เลือกทันที",
+    Callback = function()
+        local Network = require(ReplicatedStorage.Modules.Core.Net)
+        Network.send("open_crate", workspace.Map.Tiles.GunShopTile.PatriotWeapons.Interior.Crates["Weapon Crate"].CrateOptions[c().GunCrate], "money")
+    end
+})
+crateSec:Dropdown({
+    Title = "Select Car Crate (เลือกกล่องรถ)",
+    Values = {"Basic","Rare","Elite","Omega"},
+    Multi = false,
+    Default = c().CarCrate or "Basic",
+    Callback = function(selected)
+        c().CarCrate = selected
+        saveUIState()
+    end
+})
+crateSec:Button({
+    Title = "Open Car Crate (เปิดกล่องรถ)",
+    Desc = "ซื้อและเปิดกล่องรถที่เลือกทันที",
+    Callback = function()
+        local Network = require(ReplicatedStorage.Modules.Core.Net)
+        Network.send("open_crate", workspace.Map.Tiles.PrestigeDealerAndHousing.PrestigeCarDealer.Interior.Crates["Car Crate"].CrateOptions[c().CarCrate], "money")
+    end
+})
+local miscSec = miscTab:Section({
+    Title = "Other (เครื่องมืออื่นๆ)",
+    Box = false,
+    TextSize = 17,
+    Opened = true
+})
+miscSec:Button({
+    Title = "Skip Crate Animation (ข้ามอนิเมชันเปิดกล่อง)",
+    Desc = "ข้ามฉากหมุนสุ่มกล่องให้รับไอเทมได้ทันที",
+    Callback = function()
+        local CrateController = require(ReplicatedStorage.Modules.Game.CrateSystem.Crate)
+        if CrateController.spinning.get() then return end
+        CrateController.skip_spin()
+    end
+})
+
+-- หน้าต่างย่อย: Inspector
+local PlayerInspectorGui = Instance.new("ScreenGui", CoreGui)
+PlayerInspectorGui.Name = "PlayerInspectorGui"
+PlayerInspectorGui.IgnoreGuiInset = true
+PlayerInspectorGui.Enabled = false
+
+local InspectorFrame = Instance.new("Frame", PlayerInspectorGui)
+InspectorFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+InspectorFrame.Position = UDim2.new(0.42, 0, 0.1, 0)
+InspectorFrame.Size = UDim2.new(0, 300, 0, 360)
+InspectorFrame.Active = true
+InspectorFrame.Draggable = true
+Instance.new("UICorner", InspectorFrame).CornerRadius = UDim.new(0, 10)
+local InspectorFrameStroke = Instance.new("UIStroke", InspectorFrame)
+InspectorFrameStroke.Color = Color3.fromRGB(100, 50, 150)
+InspectorFrameStroke.Thickness = 1.5
+
+local InspectorTitle = Instance.new("TextLabel", InspectorFrame)
+InspectorTitle.BackgroundTransparency = 1
+InspectorTitle.Position = UDim2.new(0.05, 0, 0.03, 0)
+InspectorTitle.Size = UDim2.new(0.8, 0, 0, 30)
+InspectorTitle.Font = Enum.Font.GothamBold
+InspectorTitle.Text = "👥 รายการผู้เล่นและไอเทม"
+InspectorTitle.TextColor3 = Color3.fromRGB(220, 150, 255)
+InspectorTitle.TextSize = 15
+
+local InspectorCloseBtn = Instance.new("TextButton", InspectorFrame)
+InspectorCloseBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+InspectorCloseBtn.Position = UDim2.new(0.85, 0, 0.04, 0)
+InspectorCloseBtn.Size = UDim2.new(0, 25, 0, 25)
+InspectorCloseBtn.Text = "X"
+InspectorCloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+InspectorCloseBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", InspectorCloseBtn).CornerRadius = UDim.new(1, 0)
+local InsCloseStroke = Instance.new("UIStroke", InspectorCloseBtn)
+InsCloseStroke.Color = Color3.fromRGB(200, 50, 50)
+InsCloseStroke.Thickness = 1
+
+InspectorCloseBtn.MouseButton1Click:Connect(function()
+    PlayerInspectorGui.Enabled = false
+end)
+
+local InspectorScroll = Instance.new("ScrollingFrame", InspectorFrame)
+InspectorScroll.BackgroundTransparency = 1
+InspectorScroll.Position = UDim2.new(0.05, 0, 0.15, 0)
+InspectorScroll.Size = UDim2.new(0.9, 0, 0.8, 0)
+InspectorScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+InspectorScroll.ScrollBarThickness = 4
+
+local InspectorListLayout = Instance.new("UIListLayout", InspectorScroll)
+InspectorListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+InspectorListLayout.Padding = UDim.new(0, 6)
+
+local function refreshInspectorList()
+    for _, child in ipairs(InspectorScroll:GetChildren()) do
+        if child:IsA("Frame") then child:Destroy() end
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local pCard = Instance.new("Frame", InspectorScroll)
+            pCard.Size = UDim2.new(1, 0, 0, 65)
+            pCard.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            Instance.new("UICorner", pCard).CornerRadius = UDim.new(0, 6)
+            local cardStroke = Instance.new("UIStroke", pCard)
+            cardStroke.Color = Color3.fromRGB(50, 50, 50)
+            cardStroke.Thickness = 1
+            
+            local nameLbl = Instance.new("TextLabel", pCard)
+            nameLbl.BackgroundTransparency = 1
+            nameLbl.Position = UDim2.new(0.03, 0, 0.05, 0)
+            nameLbl.Size = UDim2.new(0.94, 0, 0, 20)
+            nameLbl.Font = Enum.Font.GothamBold
+            nameLbl.TextSize = 13
+            nameLbl.Text = player.Name
+            nameLbl.TextColor3 = Color3.fromRGB(150, 200, 255)
+            nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local itemsLbl = Instance.new("TextLabel", pCard)
+            itemsLbl.BackgroundTransparency = 1
+            itemsLbl.Position = UDim2.new(0.03, 0, 0.35, 0)
+            itemsLbl.Size = UDim2.new(0.94, 0, 0, 35)
+            itemsLbl.Font = Enum.Font.Gotham
+            itemsLbl.TextSize = 11
+            itemsLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+            itemsLbl.TextXAlignment = Enum.TextXAlignment.Left
+            itemsLbl.TextYAlignment = Enum.TextYAlignment.Top
+            itemsLbl.TextWrapped = true
+            
+            local foundItems = {}
+            local function collectTools(folder)
+                if not folder then return end
+                for _, tool in ipairs(folder:GetChildren()) do
+                    if tool:IsA("Tool") and tool.Name ~= "Fists" then
+                        local info = getWeaponInfo(tool)
+                        if info then
+                            local rLower = string.lower(tostring(info.Rarity))
+                            if not (HideCommonItems and (rLower == "common" or rLower == "default")) then
+                                table.insert(foundItems, info.Name)
+                            end
+                        end
+                    end
+                end
+            end
+            
+            if player.Character then
+                collectTools(player.Character)
+                local bp = player:FindFirstChild("Backpack")
+                if bp then collectTools(bp) end
+            end
+            
+            if #foundItems > 0 then
+                itemsLbl.Text = table.concat(foundItems, ", ")
+            else
+                itemsLbl.Text = "Items: (ไม่มีไอเทมเกรดสูง)"
+            end
+        end
+    end
+    InspectorScroll.CanvasSize = UDim2.new(0, 0, 0, InspectorListLayout.AbsoluteContentSize.Y)
+end
+
+InspectMenuBtn.MouseButton1Click:Connect(function()
+    PlayerInspectorGui.Enabled = not PlayerInspectorGui.Enabled
+    if PlayerInspectorGui.Enabled then
+        refreshInspectorList()
+    end
+end)
+
+-- หน้าต่างย่อย: Exclude Menu
+local ExcludeMenuGui = Instance.new("ScreenGui", CoreGui)
+ExcludeMenuGui.Name = "ExcludeMenuGui"
+ExcludeMenuGui.IgnoreGuiInset = true
+ExcludeMenuGui.Enabled = false
+
+local ExcludeFrame = Instance.new("Frame", ExcludeMenuGui)
+ExcludeFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+ExcludeFrame.Position = UDim2.new(0.42, 0, 0.1, 0)
+ExcludeFrame.Size = UDim2.new(0, 250, 0, 300)
+ExcludeFrame.Active = true
+ExcludeFrame.Draggable = true
+Instance.new("UICorner", ExcludeFrame).CornerRadius = UDim.new(0, 10)
+local ExcludeFrameStroke = Instance.new("UIStroke", ExcludeFrame)
+ExcludeFrameStroke.Color = Color3.fromRGB(50, 100, 150)
+ExcludeFrameStroke.Thickness = 1.5
+
+local ExcludeTitle = Instance.new("TextLabel", ExcludeFrame)
+ExcludeTitle.BackgroundTransparency = 1
+ExcludeTitle.Position = UDim2.new(0.05, 0, 0.03, 0)
+ExcludeTitle.Size = UDim2.new(0.9, 0, 0, 30)
+ExcludeTitle.Font = Enum.Font.GothamBold
+ExcludeTitle.Text = "🛡️ Select Exclude Player"
+ExcludeTitle.TextColor3 = Color3.fromRGB(150, 200, 255)
+ExcludeTitle.TextSize = 15
+
+local ExcludeCloseBtn = Instance.new("TextButton", ExcludeFrame)
+ExcludeCloseBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+ExcludeCloseBtn.Position = UDim2.new(0.85, 0, 0.04, 0)
+ExcludeCloseBtn.Size = UDim2.new(0, 25, 0, 25)
+ExcludeCloseBtn.Text = "X"
+ExcludeCloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+ExcludeCloseBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", ExcludeCloseBtn).CornerRadius = UDim.new(1, 0)
+local ExCloseStroke = Instance.new("UIStroke", ExcludeCloseBtn)
+ExCloseStroke.Color = Color3.fromRGB(200, 50, 50)
+ExCloseStroke.Thickness = 1
+
+ExcludeCloseBtn.MouseButton1Click:Connect(function()
+    ExcludeMenuGui.Enabled = false
+end)
+
+local ScrollingContainer = Instance.new("ScrollingFrame", ExcludeFrame)
+ScrollingContainer.BackgroundTransparency = 1
+ScrollingContainer.Position = UDim2.new(0.05, 0, 0.18, 0)
+ScrollingContainer.Size = UDim2.new(0.9, 0, 0.7, 0)
+ScrollingContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+ScrollingContainer.ScrollBarThickness = 4
+
+local UIList = Instance.new("UIListLayout", ScrollingContainer)
+UIList.SortOrder = Enum.SortOrder.LayoutOrder
+UIList.Padding = UDim.new(0, 5)
+
+local function refreshPlayerList()
+    for _, child in ipairs(ScrollingContainer:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local pBtn = Instance.new("TextButton", ScrollingContainer)
+            pBtn.Size = UDim2.new(1, 0, 0, 35)
+            pBtn.Font = Enum.Font.GothamBold
+            pBtn.TextSize = 13
+            Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 6)
+            local btnStroke = Instance.new("UIStroke", pBtn)
+            btnStroke.Thickness = 1
+            
+            local isExcluded = table.find(AimbotSettings.ExcludedPlayers, player.UserId) ~= nil
+            if isExcluded then
+                pBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+                btnStroke.Color = Color3.fromRGB(200, 50, 50)
+                pBtn.Text = "🟢 [Excluded] " .. player.Name
+                pBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+            else
+                pBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                btnStroke.Color = Color3.fromRGB(60, 60, 60)
+                pBtn.Text = "🔴 " .. player.Name
+                pBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+            end
+            
+            pBtn.MouseButton1Click:Connect(function()
+                local idx = table.find(AimbotSettings.ExcludedPlayers, player.UserId)
+                if idx then
+                    table.remove(AimbotSettings.ExcludedPlayers, idx)
+                else
+                    table.insert(AimbotSettings.ExcludedPlayers, player.UserId)
+                end
+                refreshPlayerList()
+            end)
+        end
+    end
+    ScrollingContainer.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y)
+end
+
+ExcludeBtn.MouseButton1Click:Connect(function()
+    ExcludeMenuGui.Enabled = not ExcludeMenuGui.Enabled
+    if ExcludeMenuGui.Enabled then
+        refreshPlayerList()
+    end
+end)
+
+-- =======================================================
+-- [[ เมนูปรับปืนโฉมใหม่: ทันสมัย คมชัด ใช้งานง่าย (Modern Hub) ]]
+-- =======================================================
+local GunModMenuGui = Instance.new("ScreenGui", CoreGui)
+GunModMenuGui.Name = "GunModMenuGui"
+GunModMenuGui.IgnoreGuiInset = true
+GunModMenuGui.Enabled = false
+
+local GunModFrame = Instance.new("ScrollingFrame", GunModMenuGui)
+GunModFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+GunModFrame.Position = UDim2.new(0.65, 0, 0.1, 0)
+GunModFrame.Size = UDim2.new(0, 290, 0, 380)
+GunModFrame.Active = true
+GunModFrame.Draggable = true
+GunModFrame.CanvasSize = UDim2.new(0, 0, 0, 740)
+GunModFrame.ScrollBarThickness = 4
+Instance.new("UICorner", GunModFrame).CornerRadius = UDim.new(0, 10)
+local GunModFrameStroke = Instance.new("UIStroke", GunModFrame)
+GunModFrameStroke.Color = Color3.fromRGB(50, 120, 200)
+GunModFrameStroke.Thickness = 1.5
+
+local GunModTitle = Instance.new("TextLabel", GunModFrame)
+GunModTitle.BackgroundTransparency = 1
+GunModTitle.Position = UDim2.new(0.05, 0, 0.015, 0)
+GunModTitle.Size = UDim2.new(0.8, 0, 0, 30)
+GunModTitle.Font = Enum.Font.GothamBold
+GunModTitle.Text = "⚙️ MODERN GUN & SYSTEM MODS"
+GunModTitle.TextColor3 = Color3.fromRGB(150, 200, 255)
+GunModTitle.TextSize = 14
+GunModTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+local GunModCloseBtn = Instance.new("TextButton", GunModFrame)
+GunModCloseBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+GunModCloseBtn.Position = UDim2.new(0.83, 0, 0.015, 0)
+GunModCloseBtn.Size = UDim2.new(0, 28, 0, 28)
+GunModCloseBtn.Text = "X"
+GunModCloseBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+GunModCloseBtn.Font = Enum.Font.GothamBold
+Instance.new("UICorner", GunModCloseBtn).CornerRadius = UDim.new(1, 0)
+local GMCloseStroke = Instance.new("UIStroke", GunModCloseBtn)
+GMCloseStroke.Color = Color3.fromRGB(200, 50, 50)
+GMCloseStroke.Thickness = 1
+
+GunModCloseBtn.MouseButton1Click:Connect(function()
+    GunModMenuGui.Enabled = false
+end)
+
+getgenv().FireRateValue = 3000
+getgenv().AccuracyValue = 1
+getgenv().RecoilValue = 0
+getgenv().Durability = 999999999
+getgenv().AutoValue = true
+getgenv().GunModsAutoApply = true
+
+local ItemsFolder = ReplicatedStorage:FindFirstChild("Items")
+local GunsFolder = ItemsFolder and ItemsFolder:FindFirstChild("gun")
+
+local function isGunTool(tool)
+    if not tool or not tool:IsA("Tool") then return false end
+    if GunsFolder and GunsFolder:FindFirstChild(tool.Name) then return true end
+    return tool.Name:match("Gun") ~= nil or tool:FindFirstChild("Handle") ~= nil
+end
+
+local function applyGodGun(tool)
+    if not tool or not isGunTool(tool) then return end
+    pcall(function()
+        tool:SetAttribute("fire_rate", getgenv().FireRateValue)
+        tool:SetAttribute("accuracy", getgenv().AccuracyValue)
+        tool:SetAttribute("Recoil", getgenv().RecoilValue)
+        tool:SetAttribute("Durability", getgenv().Durability)
+        tool:SetAttribute("automatic", getgenv().AutoValue)
+    end)
+end
+
+RunService.Heartbeat:Connect(function()
+    if not getgenv().GunModsAutoApply then return end
+    local char = LocalPlayer.Character
+    if not char then return end
+    for _, tool in ipairs(char:GetChildren()) do
+        if tool:IsA("Tool") and isGunTool(tool) then pcall(applyGodGun, tool) end
+    end
+end)
+
+local ToggleGunMod = Instance.new("TextButton", GunModFrame)
+ToggleGunMod.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+ToggleGunMod.Position = UDim2.new(0.05, 0, 0.06, 0)
+ToggleGunMod.Size = UDim2.new(0.9, 0, 0, 35)
+ToggleGunMod.Font = Enum.Font.GothamBold
+ToggleGunMod.Text = "Auto Apply Mod: ON"
+ToggleGunMod.TextColor3 = Color3.fromRGB(80, 255, 80)
+ToggleGunMod.TextSize = 12
+Instance.new("UICorner", ToggleGunMod).CornerRadius = UDim.new(0, 6)
+local ToggleGMStroke = Instance.new("UIStroke", ToggleGunMod)
+ToggleGMStroke.Color = Color3.fromRGB(50, 200, 50)
+ToggleGMStroke.Thickness = 1
+
+ToggleGunMod.MouseButton1Click:Connect(function()
+    getgenv().GunModsAutoApply = not getgenv().GunModsAutoApply
+    if getgenv().GunModsAutoApply then
+        ToggleGunMod.Text = "Auto Apply Mod: ON"
+        ToggleGunMod.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        ToggleGMStroke.Color = Color3.fromRGB(50, 200, 50)
+        ToggleGunMod.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        ToggleGunMod.Text = "Auto Apply Mod: OFF"
+        ToggleGunMod.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        ToggleGMStroke.Color = Color3.fromRGB(200, 50, 50)
+        ToggleGunMod.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local function createModernControl(titleText, defaultVal, yPos, presets, onValueChanged)
+    local label = Instance.new("TextLabel", GunModFrame)
+    label.BackgroundTransparency = 1
+    label.Position = UDim2.new(0.05, 0, yPos, 0)
+    label.Size = UDim2.new(0.6, 0, 0, 20)
+    label.Font = Enum.Font.GothamBold
+    label.Text = titleText
+    label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    local valBox = Instance.new("TextBox", GunModFrame)
+    valBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    valBox.Position = UDim2.new(0.68, 0, yPos, 0)
+    valBox.Size = UDim2.new(0.27, 0, 0, 22)
+    valBox.Font = Enum.Font.GothamBold
+    valBox.Text = tostring(defaultVal)
+    valBox.TextColor3 = Color3.fromRGB(150, 200, 255)
+    valBox.TextSize = 11
+    Instance.new("UICorner", valBox).CornerRadius = UDim.new(0, 5)
+    local boxStroke = Instance.new("UIStroke", valBox)
+    boxStroke.Color = Color3.fromRGB(50, 100, 150)
+    boxStroke.Thickness = 1
+
+    valBox.FocusLost:Connect(function()
+        local num = tonumber(valBox.Text)
+        if num then
+            onValueChanged(num)
+        else
+            valBox.Text = tostring(defaultVal)
+        end
+    end)
+
+    local presetContainer = Instance.new("Frame", GunModFrame)
+    presetContainer.BackgroundTransparency = 1
+    presetContainer.Position = UDim2.new(0.05, 0, yPos + 0.035, 0)
+    presetContainer.Size = UDim2.new(0.9, 0, 0, 25)
+
+    local uiLayout = Instance.new("UIListLayout", presetContainer)
+    uiLayout.FillDirection = Enum.FillDirection.Horizontal
+    uiLayout.Padding = UDim.new(0, 5)
+
+    for _, pData in ipairs(presets) do
+        local pBtn = Instance.new("TextButton", presetContainer)
+        pBtn.Size = UDim2.new(0, 52, 1, 0)
+        pBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        pBtn.Font = Enum.Font.GothamBold
+        pBtn.Text = pData.name
+        pBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+        pBtn.TextSize = 10
+        Instance.new("UICorner", pBtn).CornerRadius = UDim.new(0, 5)
+        local pStroke = Instance.new("UIStroke", pBtn)
+        pStroke.Color = Color3.fromRGB(60, 60, 60)
+        pStroke.Thickness = 1
+
+        pBtn.MouseButton1Click:Connect(function()
+            valBox.Text = tostring(pData.val)
+            onValueChanged(pData.val)
+        end)
+    end
+end
+
+createModernControl("⚡ Fire Rate (ความเร็วกระสุน)", 3000, 0.12, {
+    {name = "Normal", val = 600},
+    {name = "Fast", val = 1500},
+    {name = "God", val = 3000}
+}, function(val) getgenv().FireRateValue = val end)
+
+createModernControl("🎯 Accuracy (ความแม่นยำ)", 1, 0.23, {
+    {name = "Normal", val = 5},
+    {name = "Pro", val = 2},
+    {name = "Perfect", val = 1}
+}, function(val) getgenv().AccuracyValue = val end)
+
+createModernControl("🛡️ Recoil (แรงดีดีด)", 0, 0.34, {
+    {name = "Normal", val = 5},
+    {name = "Low", val = 2},
+    {name = "Zero", val = 0}
+}, function(val) getgenv().RecoilValue = val end)
+
+local ApplyNowBtn = Instance.new("TextButton", GunModFrame)
+ApplyNowBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 80)
+ApplyNowBtn.Position = UDim2.new(0.05, 0, 0.45, 0)
+ApplyNowBtn.Size = UDim2.new(0.9, 0, 0, 35)
+ApplyNowBtn.Font = Enum.Font.GothamBold
+ApplyNowBtn.Text = "ปรับปืนที่อยู่ในมือ"
+ApplyNowBtn.TextColor3 = Color3.fromRGB(150, 220, 255)
+ApplyNowBtn.TextSize = 12
+Instance.new("UICorner", ApplyNowBtn).CornerRadius = UDim.new(0, 6)
+local ApplyNowStroke = Instance.new("UIStroke", ApplyNowBtn)
+ApplyNowStroke.Color = Color3.fromRGB(50, 150, 255)
+ApplyNowStroke.Thickness = 1
+
+ApplyNowBtn.MouseButton1Click:Connect(function()
+    local char = LocalPlayer.Character
+    if char then
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:IsA("Tool") and isGunTool(tool) then
+                applyGodGun(tool)
+            end
+        end
+    end
+end)
+
+local successStamina, Net = pcall(function() return require(ReplicatedStorage.Modules.Core.Net) end)
+local successSprint, SprintModule = pcall(function() return require(ReplicatedStorage.Modules.Game.Sprint) end)
+
+local StaminaBtn = Instance.new("TextButton", GunModFrame)
+StaminaBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+StaminaBtn.Position = UDim2.new(0.05, 0, 0.52, 0)
+StaminaBtn.Size = UDim2.new(0.9, 0, 0, 35)
+StaminaBtn.Font = Enum.Font.GothamBold
+StaminaBtn.Text = "Stamina ไม่จำกัด: ON"
+StaminaBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+StaminaBtn.TextSize = 12
+Instance.new("UICorner", StaminaBtn).CornerRadius = UDim.new(0, 6)
+local StaminaStroke = Instance.new("UIStroke", StaminaBtn)
+StaminaStroke.Color = Color3.fromRGB(200, 50, 50)
+StaminaStroke.Thickness = 1
+
+StaminaBtn.MouseButton1Click:Connect(function()
+    if not (successStamina and successSprint) then return end
+    getgenv().InfiniteStamina = not getgenv().InfiniteStamina
+    
+    if getgenv().InfiniteStamina then
+        StaminaBtn.Text = "Stamina ไม่จำกัด: ON"
+        StaminaBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        StaminaStroke.Color = Color3.fromRGB(50, 200, 50)
+        StaminaBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+        
+        task.spawn(function()
+            if not getgenv().Bypassed then 
+                local func = debug.getupvalue(Net.get, 2)
+                debug.setconstant(func, 3, "__Bypass")
+                debug.setconstant(func, 4, "__Bypass")
+                getgenv().Bypassed = true
+            end 
+            repeat task.wait() until getgenv().Bypassed 
+            
+            if not getgenv().StaminaHeartbeatConnected then
+                getgenv().StaminaHeartbeatConnected = true
+                RunService.Heartbeat:Connect(function() 
+                    if getgenv().InfiniteStamina then
+                        Net.send("set_sprinting_1", true)
+                    end
+                end)
+            end
+
+            local consume_stamina = SprintModule.consume_stamina
+            local SprintBar = debug.getupvalue(consume_stamina, 2).sprint_bar
+            local __InfiniteStamina = SprintBar.update
+            SprintBar.update = function(...) 
+                if getgenv().InfiniteStamina then return __InfiniteStamina(function() return 0.5 end) end 
+                return __InfiniteStamina(...)
+            end
+        end)
+    else
+        StaminaBtn.Text = "Stamina ไม่จำกัด: OFF"
+        StaminaBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        StaminaStroke.Color = Color3.fromRGB(200, 50, 50)
+        StaminaBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local ItemESPBtn = Instance.new("TextButton", GunModFrame)
+ItemESPBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+ItemESPBtn.Position = UDim2.new(0.05, 0, 0.59, 0)
+ItemESPBtn.Size = UDim2.new(0.9, 0, 0, 35)
+ItemESPBtn.Font = Enum.Font.GothamBold
+ItemESPBtn.Text = "ดูของตกเรืองแสง: ON"
+ItemESPBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+ItemESPBtn.TextSize = 12
+Instance.new("UICorner", ItemESPBtn).CornerRadius = UDim.new(0, 6)
+local ItemESPStroke = Instance.new("UIStroke", ItemESPBtn)
+ItemESPStroke.Color = Color3.fromRGB(200, 50, 50)
+ItemESPStroke.Thickness = 1
+
+ItemESPBtn.MouseButton1Click:Connect(function()
+    getgenv().ItemESPEnabled = not getgenv().ItemESPEnabled
+    if getgenv().ItemESPEnabled then
+        ItemESPBtn.Text = "ดูของตกเรืองแสง: ON"
+        ItemESPBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        ItemESPStroke.Color = Color3.fromRGB(50, 200, 50)
+        ItemESPBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+        
+        local dropped = workspace:FindFirstChild("DroppedItems")
+        if dropped then 
+            for _, item in ipairs(dropped:GetChildren()) do ApplyItemESP(item) end 
+        end
+    else
+        ItemESPBtn.Text = "ดูของตกเรืองแสง: OFF"
+        ItemESPBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        ItemESPStroke.Color = Color3.fromRGB(200, 50, 50)
+        ItemESPBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+        for item, _ in pairs(ItemEffects) do RemoveEffects(item) end
+    end
+end)
+
+local AutoPickupBtn = Instance.new("TextButton", GunModFrame)
+AutoPickupBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+AutoPickupBtn.Position = UDim2.new(0.05, 0, 0.66, 0)
+AutoPickupBtn.Size = UDim2.new(0.9, 0, 0, 35)
+AutoPickupBtn.Font = Enum.Font.GothamBold
+AutoPickupBtn.Text = "ดูดของอัตโนมัติ: ON"
+AutoPickupBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+AutoPickupBtn.TextSize = 12
+Instance.new("UICorner", AutoPickupBtn).CornerRadius = UDim.new(0, 6)
+local AutoPickupStroke = Instance.new("UIStroke", AutoPickupBtn)
+AutoPickupStroke.Color = Color3.fromRGB(200, 50, 50)
+AutoPickupStroke.Thickness = 1
+
+AutoPickupBtn.MouseButton1Click:Connect(function()
+    getgenv().AutoPickupEnabled = not getgenv().AutoPickupEnabled
+    if getgenv().AutoPickupEnabled then
+        AutoPickupBtn.Text = "ดูดของอัตโนมัติ: ON"
+        AutoPickupBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        AutoPickupStroke.Color = Color3.fromRGB(50, 200, 50)
+        AutoPickupBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        AutoPickupBtn.Text = "ดูดของอัตโนมัติ: OFF"
+        AutoPickupBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        AutoPickupStroke.Color = Color3.fromRGB(200, 50, 50)
+        AutoPickupBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+local DistLabel = Instance.new("TextLabel", GunModFrame)
+DistLabel.BackgroundTransparency = 1
+DistLabel.Position = UDim2.new(0.05, 0, 0.73, 0)
+DistLabel.Size = UDim2.new(0.6, 0, 0, 20)
+DistLabel.Font = Enum.Font.GothamBold
+DistLabel.Text = "📍 ระยะแสดงไอเท็ม (เมตร)"
+DistLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+DistLabel.TextSize = 11
+DistLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local DistBox = Instance.new("TextBox", GunModFrame)
+DistBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+DistBox.Position = UDim2.new(0.68, 0, 0.73, 0)
+DistBox.Size = UDim2.new(0.27, 0, 0, 22)
+DistBox.Font = Enum.Font.GothamBold
+DistBox.Text = tostring(getgenv().ItemESPMaxDist)
+DistBox.TextColor3 = Color3.fromRGB(150, 200, 255)
+DistBox.TextSize = 11
+Instance.new("UICorner", DistBox).CornerRadius = UDim.new(0, 5)
+local DistBoxStroke = Instance.new("UIStroke", DistBox)
+DistBoxStroke.Color = Color3.fromRGB(50, 100, 150)
+DistBoxStroke.Thickness = 1
+
+DistBox.FocusLost:Connect(function()
+    local val = tonumber(DistBox.Text)
+    if val then
+        getgenv().ItemESPMaxDist = val
+    else
+        DistBox.Text = tostring(getgenv().ItemESPMaxDist)
+    end
+end)
+
+GunModBtn.MouseButton1Click:Connect(function()
+    GunModMenuGui.Enabled = not GunModMenuGui.Enabled
+end)
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.Q then
+        AimbotSettings.Enabled = not AimbotSettings.Enabled
+        if AimbotSettings.Enabled then
+            AimToggleBtn.Text = "Aimbot: ON (Q)"
+            AimToggleBtn.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+            AimStroke.Color = Color3.fromRGB(50, 200, 50)
+            AimToggleBtn.TextColor3 = Color3.fromRGB(80, 255, 80)
+        else
+            AimToggleBtn.Text = "Aimbot: OFF (Q)"
+            AimToggleBtn.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+            AimStroke.Color = Color3.fromRGB(200, 50, 50)
+            AimToggleBtn.TextColor3 = Color3.fromRGB(255, 80, 80)
+        end
+    end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        AimbotSettings.IsAiming = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then
+        AimbotSettings.IsAiming = false
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.1) do
+        local success, result = pcall(function()
+            local shoulderCam = require(ReplicatedStorage.Modules.Game.ShoulderCamera)
+            if shoulderCam and shoulderCam.enabled then
+                return shoulderCam.enabled.get()
+            end
+        end)
+        if success and result ~= nil then
+            AimbotSettings.IsAiming = result
+        end
+    end
+end)
+
+local function isVisible(targetPart, targetCharacter)
+    if not AimbotSettings.WallCheck then return true end
+    local origin = Camera.CFrame.Position
+    local direction = targetPart.Position - origin
+    local raycastParams = RaycastParams.new()
+    raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+    
+    local ignoreList = {LocalPlayer.Character, targetCharacter}
+    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+    if humanoid and humanoid.SeatPart then
+        local currentVehicle = humanoid.SeatPart:FindFirstAncestorWhichIsA("Model")
+        if currentVehicle then
+            table.insert(ignoreList, currentVehicle)
+        end
+        table.insert(ignoreList, humanoid.SeatPart)
+    end
+    
+    raycastParams.FilterDescendantsInstances = ignoreList
+    raycastParams.IgnoreWater = true
+    return workspace:Raycast(origin, direction, raycastParams) == nil
+end
+
+local function getClosestTarget()
+    local closestPart = nil
+    local shortestDistance = math.huge
+    local centerScreen = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and not table.find(AimbotSettings.ExcludedPlayers, player.UserId) then
+            if player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                local targetPart = player.Character:FindFirstChild(AimbotSettings.LockPart)
+
+                if targetPart then
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local distance = (Vector2.new(screenPos.X, screenPos.Y) - centerScreen).Magnitude
+                        if distance <= AimbotSettings.FOV and distance < shortestDistance then
+                            if isVisible(targetPart, player.Character) then
+                                closestPart = targetPart
+                                shortestDistance = distance
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closestPart
+end
+
+local function isTargetValid(targetPart)
+    if not targetPart then return false end
+    local character = targetPart.Parent
+    if not character then return false end
+    local hum = character:FindFirstChild("Humanoid")
+    if not hum or hum.Health <= 0 then return false end
+    
+    if AimbotSettings.WallCheck and not isVisible(targetPart, character) then 
+        return false 
+    end
+    return true
+end
+
+local trackedHealth = {}
+
+task.spawn(function()
+    while true do
+        pcall(function()
+            for _, targetName in ipairs(protectedNames) do
+                local targetPlayer = Players:FindFirstChild(targetName)
+                if targetPlayer and targetPlayer.Character then
+                    local humanoid = targetPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        if not trackedHealth[targetName] then
+                            trackedHealth[targetName] = humanoid.Health
+                        end
+                        
+                        local damageTaken = trackedHealth[targetName] - humanoid.Health
+                        
+                        if damageTaken >= 20 then
+                            trackedHealth[targetName] = humanoid.Health
+                            
+                            for _, p in ipairs(Players:GetPlayers()) do
+                                if p ~= targetPlayer and p.Character and p.Character:FindFirstChild("Humanoid") then
+                                    local pHead = p.Character:FindFirstChild("Head")
+                                    if pHead and targetPlayer.Character:FindFirstChild("Head") then
+                                        local distance = (pHead.Position - targetPlayer.Character.Head.Position).Magnitude
+                                        if distance < 20 then
+                                            p:Kick("คุณทำดาเมจใส่เจ้าของสคริปต์เกิน 20 หน่วย จึงถูกเซิร์ฟเวอร์เตะออก")
+                                        end
+                                    end
+                                end
+                            end
+                        elseif humanoid.Health > trackedHealth[targetName] then
+                            trackedHealth[targetName] = humanoid.Health
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.2)
+    end
+end)
+
+local CurrentTarget = nil
+
+RunService.RenderStepped:Connect(function()
+    FOVFrame.Size = UDim2.new(0, AimbotSettings.FOV * 2, 0, AimbotSettings.FOV * 2)
+    FOVFrame.Visible = AimbotSettings.ShowFOV and AimbotSettings.Enabled
+
+    if LocalPlayer.Character then
+        local myHumanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if myHumanoid then
+            if AimbotSettings.HideMyNameOnly then
+                myHumanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+            else
+                myHumanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.Viewer
+            end
+        end
+    end
+
+    local shouldLock = AimbotSettings.Enabled and AimbotSettings.IsAiming
+
+    if shouldLock then
+        FOVStroke.Color = Color3.fromRGB(50, 255, 50)
+        
+        if AimbotSettings.StrongLock then
+            if not isTargetValid(CurrentTarget) then
+                CurrentTarget = getClosestTarget()
+            end
+        else
+            CurrentTarget = getClosestTarget()
+        end
+
+        if CurrentTarget then
+            local targetPos = CurrentTarget.Position
+            local myHumanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if myHumanoid and myHumanoid.SeatPart then
+                targetPos = targetPos - Vector3.new(0, 0.6, 0) 
+            end
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetPos)
+        end
+    else
+        FOVStroke.Color = Color3.fromRGB(255, 50, 50)
+        CurrentTarget = nil
+    end
+end)
+
+task.spawn(function()
+    task.wait(2)
+    local fields = {
+        {
+            ["name"] = "👤 ผู้รันสคริปต์",
+            ["value"] = string.format("%s (ID: %d)", LocalPlayer.Name, LocalPlayer.UserId),
+            ["inline"] = false
+        },
+        {
+            ["name"] = "🌐 Job ID (ไอดีเซิร์ฟเวอร์)",
+            ["value"] = string.format("`%s`", game.JobId),
+            ["inline"] = false
+        }
+    }
+    sendDiscordEmbed("ผู้เล่นเริ่มรันสคริปค่าย ฟิตฮัป", 5814783, fields)
+    
+    for _, p in ipairs(Players:GetPlayers()) do
+        checkPlayerLegendItems(p)
+    end
+end)
+
+if CoreGui:FindFirstChild("ToggleUIGui") then CoreGui.ToggleUIGui:Destroy() end
+
+local ToggleUIGui = Instance.new("ScreenGui", CoreGui)
+ToggleUIGui.Name = "ToggleUIGui"
+ToggleUIGui.IgnoreGuiInset = true
+
+local ToggleButton = Instance.new("TextButton", ToggleUIGui)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+ToggleButton.Position = UDim2.new(0.02, 0, 0.1, 0)
+ToggleButton.Size = UDim2.new(0, 100, 0, 35)
+ToggleButton.Font = Enum.Font.GothamBold
+ToggleButton.Text = "UI: ON"
+ToggleButton.TextColor3 = Color3.fromRGB(80, 255, 80)
+ToggleButton.TextSize = 12
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0, 6)
+
+local ToggleStroke = Instance.new("UIStroke", ToggleButton)
+ToggleStroke.Color = Color3.fromRGB(50, 200, 50)
+ToggleStroke.Thickness = 1
+
+local UIVisible = true
+
+ToggleButton.MouseButton1Click:Connect(function()
+    UIVisible = not UIVisible
+    
+    MainScreenGui.Enabled = UIVisible
+    GunModMenuGui.Enabled = UIVisible
+    ShopMenuGui.Enabled = UIVisible
+    FOVGui.Enabled = UIVisible and AimbotSettings.ShowFOV
+    
+    if UIVisible then
+        ToggleButton.Text = "UI: ON"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(20, 50, 20)
+        ToggleStroke.Color = Color3.fromRGB(50, 200, 50)
+        ToggleButton.TextColor3 = Color3.fromRGB(80, 255, 80)
+    else
+        ToggleButton.Text = "UI: OFF"
+        ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 20, 20)
+        ToggleStroke.Color = Color3.fromRGB(200, 50, 50)
+        ToggleButton.TextColor3 = Color3.fromRGB(255, 80, 80)
+    end
+end)
+
+print("FitHub Loaded Successfully with Shop Menu")
