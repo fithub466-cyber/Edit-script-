@@ -618,7 +618,7 @@ end
 -- [[ ระบบ Auto Pickup Items (ดูดของอัตโนมัติ) ]]
 -- =======================================================
 getgenv().AutoPickupEnabled = true
-local scanRadius = 20
+local scanRadius =10
 local lastPickupTimes = {}
 
 local CounterTable = nil
