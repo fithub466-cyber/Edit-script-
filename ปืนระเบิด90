@@ -1,0 +1,178 @@
+local player = game.Players.LocalPlayer
+local backpack = player:WaitForChild("Backpack")
+local runService = game:GetService("RunService")
+local lighting = game:GetService("Lighting")
+
+-- // --- ตัวแปรสถานะ --- // --
+local selectedTools = {}
+local minigunEnabled = false
+local explosiveEnabled = false
+local originalStats = {}
+
+-- // --- สร้าง UI --- // --
+local sg = Instance.new("ScreenGui", game:GetService("CoreGui"))
+local main = Instance.new("Frame", sg)
+main.Size = UDim2.new(0, 520, 0, 820) -- เพิ่มความสูงเล็กน้อย
+main.Position = UDim2.new(0.5, -260, 0.5, -410)
+main.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+main.Visible = false
+main.Active = true
+main.Draggable = true
+Instance.new("UICorner", main)
+local stroke = Instance.new("UIStroke", main)
+stroke.Color = Color3.fromRGB(0, 255, 150)
+stroke.Thickness = 2
+
+-- ส่วนหัว
+local title = Instance.new("TextLabel", main)
+title.Size = UDim2.new(1, 0, 0, 50)
+title.Text = "🔫 GUN MOD V6.9: SPREAD CONTROL"
+title.TextColor3 = Color3.new(1,1,1); title.Font = Enum.Font.GothamBold; title.TextSize = 22; title.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+
+-- [ช่องค้นหา]
+local searchBox = Instance.new("TextBox", main)
+searchBox.Size = UDim2.new(0.45, 0, 0, 35); searchBox.Position = UDim2.new(0.03, 0, 0, 60); searchBox.PlaceholderText = "🔍 ค้นหาชื่อปืน..."; searchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30); searchBox.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", searchBox)
+
+-- [รายการปืน]
+local listScroll = Instance.new("ScrollingFrame", main)
+listScroll.Size = UDim2.new(0.45, 0, 0, 480); listScroll.Position = UDim2.new(0.03, 0, 0, 105); listScroll.BackgroundColor3 = Color3.fromRGB(20, 20, 20); listScroll.CanvasSize = UDim2.new(0, 0, 5, 0); Instance.new("UIListLayout", listScroll)
+
+local function updateList(filter)
+    listScroll:ClearAllChildren()
+    Instance.new("UIListLayout", listScroll)
+    for _, tool in pairs(lighting:GetChildren()) do
+        if tool:IsA("Tool") then
+            if not filter or string.find(string.lower(tool.Name), string.lower(filter)) then
+                local btn = Instance.new("TextButton", listScroll)
+                btn.Size = UDim2.new(1, -10, 0, 35); btn.Text = tool.Name; btn.BackgroundColor3 = selectedTools[tool.Name] and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(40, 40, 40); btn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", btn)
+                btn.MouseButton1Click:Connect(function()
+                    selectedTools[tool.Name] = not selectedTools[tool.Name]
+                    btn.BackgroundColor3 = selectedTools[tool.Name] and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(40, 40, 40)
+                end)
+            end
+        end
+    end
+end
+searchBox:GetPropertyChangedSignal("Text"):Connect(function() updateList(searchBox.Text) end)
+updateList()
+
+-- [แผงตั้งค่า]
+local settingsFrame = Instance.new("Frame", main)
+settingsFrame.Size = UDim2.new(0.45, 0, 0, 550); settingsFrame.Position = UDim2.new(0.52, 0, 0, 60); settingsFrame.BackgroundTransparency = 1
+
+local inputs = {}
+local function createInput(name, def, y, labelText)
+    local lab = Instance.new("TextLabel", settingsFrame); lab.Text = "➤ " .. labelText; lab.Size = UDim2.new(1,0,0,20); lab.Position = UDim2.new(0,0,0,y); lab.TextColor3 = Color3.new(0.8,0.8,0.8); lab.BackgroundTransparency = 1; lab.TextXAlignment = "Left"; lab.Font = Enum.Font.GothamBold
+    local box = Instance.new("TextBox", settingsFrame); box.Size = UDim2.new(1,0,0,30); box.Position = UDim2.new(0,0,0,y+20); box.Text = def; box.BackgroundColor3 = Color3.fromRGB(30,30,30); box.TextColor3 = Color3.new(0,255,150); Instance.new("UICorner", box)
+    inputs[name] = box
+end
+
+createInput("Damage", "99999999", 0, "ดาเมจ")
+createInput("Ammo", "inf",60, "ล็อคกระสุน/แม็ก")
+createInput("FireRate", "0.02", 120, "ความเร็วการยิง")
+createInput("ReloadSpeed", "0.01", 180, "รีโหลดไว")
+createInput("Radius","999999999999999999999999999999999999999999999999999999999999999999999999999999", 240, "รัศมีระเบิด")
+createInput("Spread", "0.1", 300, "การกระจายกระสุน (Spread)") -- 🎯 เพิ่มช่องปรับ Spread
+
+-- // --- ฟังก์ชันจัดการค่าปืน --- // --
+local function modifyGun(t)
+    if not t:FindFirstChild("Setting") then return end
+    local config = t.Setting:FindFirstChildOfClass("ModuleScript")
+    if config then
+        pcall(function()
+            local h = require(config)
+            if not originalStats[t.Name] then
+                originalStats[t.Name] = {}
+                for k, v in pairs(h) do originalStats[t.Name][k] = v end
+            end
+            
+            local val = tonumber(inputs.Ammo.Text) or 999999
+            h["Ammo"] = val
+            h["MaxAmmo"] = val
+            h["AmmoPerMag"] = val
+            h["BaseDamage"] = tonumber(inputs.Damage.Text) or 99999
+            h["ReloadTime"] = tonumber(inputs.ReloadSpeed.Text) or 0.01
+            h["Spread"] = tonumber(inputs.Spread.Text) or 0.1 -- 🎯 ใช้ค่าจากช่องกรอก
+            h["LimitedAmmoEnabled"] = false
+            h["Recoil"] = 0
+            h["Auto"] = true
+
+            if minigunEnabled then
+                h["FireRate"] = 0.0001; h["BulletPerShot"] = 10
+            else
+                h["FireRate"] = tonumber(inputs.FireRate.Text) or 0.02
+                h["BulletPerShot"] = 1
+            end
+
+            h["ExplosiveEnabled"] = explosiveEnabled; h["Explosive"] = explosiveEnabled; h["ExplosionRadius"] = tonumber(inputs.Radius.Text) or 15
+        end)
+    end
+end
+
+-- สวิตช์
+local function createTog(name, y, callback)
+    local btn = Instance.new("TextButton", settingsFrame)
+    btn.Size = UDim2.new(1,0,0,35); btn.Position = UDim2.new(0,0,0,y); btn.Text = name .. ": ปิด"; btn.BackgroundColor3 = Color3.fromRGB(150,0,0); btn.TextColor3 = Color3.new(1,1,1); btn.Font = Enum.Font.GothamBold; Instance.new("UICorner", btn)
+    btn.MouseButton1Click:Connect(function()
+        local s = callback()
+        btn.Text = name .. (s and ": เปิด" or ": ปิด")
+        btn.BackgroundColor3 = s and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(150, 0, 0)
+    end)
+end
+
+createTog("โหมดมินิกัน", 370, function() minigunEnabled = not minigunEnabled return minigunEnabled end)
+createTog("กระสุนระเบิด", 415, function() explosiveEnabled = not explosiveEnabled return explosiveEnabled end)
+
+-- [ปุ่มควบคุม]
+local applyBtn = Instance.new("TextButton", main); applyBtn.Size = UDim2.new(0.94, 0, 0, 50); applyBtn.Position = UDim2.new(0.03, 0, 0, 600); applyBtn.Text = "🔥 เริ่มมอดปืน (ล็อคค่าทั้งหมด)"; applyBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 80); applyBtn.TextColor3 = Color3.new(1,1,1); applyBtn.Font = Enum.Font.GothamBold; Instance.new("UICorner", applyBtn)
+local fetchBtn = Instance.new("TextButton", main); fetchBtn.Size = UDim2.new(0.45, 0, 0, 45); fetchBtn.Position = UDim2.new(0.03, 0, 0, 660); fetchBtn.Text = "📦 ดึงปืนที่เลือก"; fetchBtn.BackgroundColor3 = Color3.fromRGB(0, 100, 255); Instance.new("UICorner", fetchBtn)
+local refreshBtn = Instance.new("TextButton", main); refreshBtn.Size = UDim2.new(0.45, 0, 0, 45); refreshBtn.Position = UDim2.new(0.52, 0, 0, 660); refreshBtn.Text = "🔄 อัปเดตรายชื่อ"; refreshBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60); Instance.new("UICorner", refreshBtn)
+local resetBtn = Instance.new("TextButton", main); resetBtn.Size = UDim2.new(0.94, 0, 0, 45); resetBtn.Position = UDim2.new(0.03, 0, 0, 715); resetBtn.Text = "🔄 คืนค่าปืนเดิมทั้งหมด"; resetBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0); Instance.new("UICorner", resetBtn)
+
+applyBtn.MouseButton1Click:Connect(function()
+    for _, t in pairs(backpack:GetChildren()) do modifyGun(t) end
+    if player.Character:FindFirstChildOfClass("Tool") then modifyGun(player.Character:FindFirstChildOfClass("Tool")) end
+end)
+
+fetchBtn.MouseButton1Click:Connect(function()
+    local bankUI = player.PlayerGui:FindFirstChild("BankUI", true)
+    if bankUI then
+        local remote = bankUI:FindFirstChild("Withdraw", true) or bankUI:FindFirstChild("Handler", true):FindFirstChild("Withdraw")
+        for name, ok in pairs(selectedTools) do if ok then remote:FireServer(name); task.wait(0.1) end end
+    end
+end)
+
+refreshBtn.MouseButton1Click:Connect(function() updateList(searchBox.Text) end)
+
+resetBtn.MouseButton1Click:Connect(function()
+    for _, t in pairs(backpack:GetChildren()) do
+        local config = t:FindFirstChild("Setting") and t.Setting:FindFirstChildOfClass("ModuleScript")
+        if config and originalStats[t.Name] then
+            pcall(function()
+                local h = require(config)
+                for k, v in pairs(originalStats[t.Name]) do h[k] = v end
+            end)
+        end
+    end
+end)
+
+-- // --- ระบบล็อคค่าระดับสูงสุด (Heartbeat) --- // --
+runService.Heartbeat:Connect(function()
+    if player.Character then
+        local t = player.Character:FindFirstChildOfClass("Tool")
+        if t and t:FindFirstChild("Setting") then
+            pcall(function()
+                local h = require(t.Setting:FindFirstChildOfClass("ModuleScript"))
+                local val = tonumber(inputs.Ammo.Text) or 999999
+                h["Ammo"] = val
+                h["MaxAmmo"] = val
+                h["AmmoPerMag"] = val
+                h["Auto"] = true
+                h["Spread"] = tonumber(inputs.Spread.Text) or 0.1 -- 🎯 ล็อคค่า Spread ตลอดเวลา
+            end)
+        end
+    end
+end)
+
+local menuBtn = Instance.new("TextButton", sg); menuBtn.Size = UDim2.new(0, 70, 0, 70); menuBtn.Position = UDim2.new(0, 10, 0.5, -35); menuBtn.Text = "เมนู"; menuBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 150); Instance.new("UICorner", menuBtn).CornerRadius = UDim.new(1,0)
+menuBtn.MouseButton1Click:Connect(function() main.Visible = not main.Visible end)
