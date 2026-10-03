@@ -1,0 +1,569 @@
+-- [ LeakD ] Lua Ѕcrірt Dеоbfuѕсаtеԁ By LеаκD
+-- [ Source ] https://discord.gg/AwGHNh7Z7T
+
+local coreGui = game:GetService("CoreGui")
+local httpService = game:GetService("HttpService")
+local tweenService = game:GetService("TweenService")
+local rbxAnalyticsService = game:GetService("RbxAnalyticsService")
+local players = game:GetService("Players")
+local rbxassetFontsFamiliesFredokaOneJson = Font.new("rbxasset://fonts/families/FredokaOne.json")
+
+local function f1()
+  for index, value in ipairs({
+    function() return request end, function() return http_request end,
+    function() return http and http.request end, function() return syn and syn.request end,
+    function() return fluxus and fluxus.request end,
+  }) do
+    local v1, v2 = pcall(value)
+
+    if v1 and type(v2) == "function" then
+      return v2
+    end
+  end
+
+  local v3, v4 = pcall(getgenv)
+
+  if v3 and type(v4) == "table" and type(v4.request) == "function" then
+    return v4.request
+  end
+
+  return nil
+end
+
+local v5 = f1()
+
+local function f2()
+  local v6, v7 = pcall(gethwid)
+
+  if v6 and v7 and v7 ~= "" then
+    return tostring(v7)
+  else
+    local v8, v9 = pcall(function() return rbxAnalyticsService:GetClientId() end)
+
+    if v8 and v9 and v9 ~= "" then
+      return tostring(v9):gsub("-", "")
+    end
+
+    return "UNKNOWN_HWID"
+  end
+end
+
+local v10 = {
+  flick = {
+    Names = { "flick" },
+    GameIds = { 136801880565840 },
+    Url = "https://merqury.xyz/s/flick.txt",
+  },
+  blindshot = {
+    Names = { "blind shot", "blindshot", "bs" },
+    GameIds = { 118614517739520 },
+    Url = "https://pandadevelopment.net/virtual/file/d1f821d7fc3c22f1",
+  },
+  drivingempire = {
+    Names = { "drivingempire", "driving empire", "de" },
+    GameIds = { 3351674303 },
+    Url = "https://merqury.xyz/s/driving.txt",
+  },
+  rivals = { Names = { "rivals" }, GameIds = { 0 }, Url = nil },
+  basketballlegends = {
+    Names = { "bbl", "basketballlegends", "basket ball legends" },
+    GameIds = { 0 },
+    GroupCreatorId = 32333865,
+    Url = "https://merqury.xyz/s/bl.txt",
+  },
+  mm2 = {
+    Names = { "mm2", "murdermystery2", "murder mystery 2" },
+    GameIds = { 142823291 },
+    Url = "https://merqury.xyz/s/mm2.txt",
+  },
+  ghostdriver = {
+    Names = { "ghost driver", "ghostdriver", "gd" },
+    GameIds = { 137228775846000, 10173311467 },
+    Url = "https://merqury.xyz/s/ghostdriver",
+  },
+}
+
+local v11 = {}
+
+for key, value2 in pairs(v10) do
+  v11[key] = key
+
+  if value2.Names then
+    for index2, value3 in ipairs(value2.Names) do
+      v11[value3:lower()] = key
+    end
+  end
+end
+
+local f3
+
+local function f4(p1)
+  local v12 = v10[p1:lower()]
+
+  if v12 and v12.Url then
+    f3(v12.Url)
+  end
+end
+
+function f3(p2)
+  if not p2 or p2 == "" then
+    return
+  end
+
+  task.defer(function()
+    local v13, v14 = pcall(function() return game:HttpGet(p2) end)
+
+    if v13 and v14 and v14 ~= "" then
+      local v15, v16 = loadstring(v14)
+
+      if v15 then
+        v15()
+      else
+        warn("[MerquryHub] Failed to compile payload:", v16)
+      end
+    else
+      warn("[MerquryHub] Failed to download payload from:", p2)
+    end
+  end)
+end
+
+local function f5(p3)
+  if type(p3) ~= "table" then
+    return false
+  else
+    local v17 = tonumber(game.PlaceId)
+    local v18 = tonumber(game.GameId)
+
+    for index3, value4 in ipairs({
+      p3.GameIds, p3.GameId, p3.PlaceIds, p3.PlaceId, p3.UniverseId,
+    }) do
+      if value4 then
+        if type(value4) == "table" then
+          for index4, value5 in ipairs(value4) do
+            local v19 = tonumber(value5)
+
+            if v19 and v19 ~= 0 and (v19 == v17 or v19 == v18) then
+              return true
+            end
+          end
+        else
+          local v20 = tonumber(value4)
+
+          if v20 and v20 ~= 0 and (v20 == v17 or v20 == v18) then
+            return true
+          end
+        end
+      end
+    end
+
+    return false
+  end
+end
+
+local function f6(parent, p4)
+  local textLabel = Instance.new("TextLabel")
+  textLabel.TextWrapped = true
+  textLabel.BorderSizePixel = 0
+  textLabel.BackgroundTransparency = 1
+  textLabel.FontFace = rbxassetFontsFamiliesFredokaOneJson
+  textLabel.TextColor3 = p4.Color or Color3.new(1, 1, 1)
+  textLabel.Size = p4.Size
+  textLabel.Position = p4.Position
+  textLabel.Text = p4.Text
+  textLabel.TextScaled = true
+
+  if p4.Alignment then
+    textLabel.TextXAlignment = p4.Alignment
+  end
+
+  if p4.Name then
+    textLabel.Name = p4.Name
+  end
+
+  textLabel.Parent = parent
+  return textLabel
+end
+
+local f7
+
+local function f8()
+  local findGame = Instance.new("ScreenGui")
+  findGame.Name = "FindGame"
+  findGame.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+  findGame.ResetOnSpawn = false
+  findGame.Parent = coreGui
+
+  local merqury = Instance.new("Frame")
+  merqury.Name = "Merqury"
+  merqury.BorderSizePixel = 0
+  merqury.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+  merqury.Size = UDim2.new(0, 360, 0, 184)
+  merqury.Position = UDim2.new(0.5, -180, 0.5, -92)
+  merqury.Active = true
+  merqury.Draggable = true
+  merqury.Parent = findGame
+
+  local uiCorner = Instance.new("UICorner")
+  uiCorner.CornerRadius = UDim.new(0, 13)
+  uiCorner.Parent = merqury
+
+  local scriptLogo = Instance.new("ImageButton")
+  scriptLogo.Name = "ScriptLogo"
+  scriptLogo.BorderSizePixel = 0
+  scriptLogo.BackgroundTransparency = 1
+  scriptLogo.Image = "rbxassetid://100627880926898"
+  scriptLogo.Size = UDim2.new(0, 49, 0, 50)
+  scriptLogo.Position = UDim2.new(0.01795, -5, -0.00372, 0)
+  scriptLogo.Parent = merqury
+
+  f6(merqury, {
+    Name = "Title",
+    Size = UDim2.new(0, 197, 0, 30),
+    Position = UDim2.new(0.22488, 1, 0.17318, -6),
+    Text = "failed to find game",
+    Alignment = Enum.TextXAlignment.Left,
+  })
+
+  f6(merqury, {
+    Name = "SubTitle",
+    Size = UDim2.new(0, 291, 0, 26),
+    Position = UDim2.new(0.10265, -2, 0.36884, -12),
+    Text = "if it doesnt work msg mh from the discord server",
+    Color = Color3.fromRGB(106, 106, 106),
+    Alignment = Enum.TextXAlignment.Left,
+  })
+
+  local gameBox = Instance.new("TextBox")
+  gameBox.Name = "GameBox"
+  gameBox.BorderSizePixel = 0
+  gameBox.TextSize = 17
+  gameBox.TextColor3 = Color3.new(1, 1, 1)
+  gameBox.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+  gameBox.FontFace = rbxassetFontsFamiliesFredokaOneJson
+  gameBox.PlaceholderText = "enter game name in all lowercase"
+  gameBox.Size = UDim2.new(0, 342, 0, 37)
+  gameBox.Position = UDim2.new(0.02716, 0, 0.50543, 0)
+  gameBox.Text = ""
+  gameBox.Parent = merqury
+
+  Instance.new("UICorner").Parent = gameBox
+
+  local v21, v22 = f7(merqury, UDim2.new(0, 73, 0, 33), "ExitUibtn")
+  v21.Position = UDim2.new(0.02716, 0, 0.79058, 0)
+
+  f6(v21, {
+    Size = UDim2.new(0, 57, 0, 22),
+    Position = UDim2.new(0.16438, -4, 0.32865, -6),
+    Text = "Exit",
+  })
+
+  local v23, v24 = f7(merqury, UDim2.new(0, 73, 0, 33), "SubmitBtn")
+  v23.Position = UDim2.new(0.22469, 198, 0.79058, 0)
+
+  f6(v23, {
+    Size = UDim2.new(0, 57, 0, 22),
+    Position = UDim2.new(0.34247, -17, 0.32865, -6),
+    Text = "Submit",
+  })
+
+  local function f9()
+    findGame:Destroy()
+  end
+
+  v22.MouseButton1Click:Connect(f9)
+
+  v24.MouseButton1Click:Connect(function()
+    local lower = (gameBox.Text or ""):match("^%s*(.-)%s*$"):lower()
+
+    if lower == "" then
+      return
+    else
+      local v25 = v11[lower]
+
+      if v25 then
+        f9()
+        f4(v25)
+        return
+      end
+
+-- https://discord.gg/AwGHNh7Z7T
+      for key2, value6 in pairs(v10) do
+        if value6.GameIds then
+          for index5, value7 in ipairs(value6.GameIds) do
+            if tostring(value7) == lower then
+              f9()
+              f4(key2)
+              return
+            end
+          end
+        end
+      end
+
+      gameBox.Text = ""
+      gameBox.PlaceholderText = "game not found try again"
+
+      return
+    end
+  end)
+end
+
+function f7(parent2, p5, p6)
+  local frame = Instance.new("Frame")
+  frame.BorderSizePixel = 0
+  frame.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+  frame.Size = p5 or UDim2.new(0, 73, 0, 33)
+  frame.Parent = parent2
+
+  Instance.new("UICorner").Parent = frame
+
+  local textButton = Instance.new("TextButton")
+  textButton.Name = p6 or "Btn"
+  textButton.TextWrapped = true
+  textButton.BorderSizePixel = 0
+  textButton.BackgroundTransparency = 1
+  textButton.FontFace = rbxassetFontsFamiliesFredokaOneJson
+  textButton.TextColor3 = Color3.new(1, 1, 1)
+  textButton.Size = UDim2.new(1, 0, 1, 0)
+  textButton.Text = ""
+  textButton.Parent = frame
+
+  return frame, textButton
+end
+
+local function f10()
+  if game.CreatorType == Enum.CreatorType.Group and game.CreatorId == 32333865 then
+    f4("basketballlegends")
+    return
+  end
+
+  for key3, value8 in pairs(v10) do
+    if f5(value8) then
+      f4(key3)
+      return
+    end
+  end
+
+  f8()
+end
+
+local f11
+
+local function f12()
+  local merquryKeysystem = Instance.new("ScreenGui")
+  merquryKeysystem.Name = "MerquryKeysystem"
+  merquryKeysystem.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+  merquryKeysystem.ResetOnSpawn = false
+  merquryKeysystem.Parent = coreGui
+
+  local merqury2 = Instance.new("Frame")
+  merqury2.Name = "Merqury"
+  merqury2.BorderSizePixel = 0
+  merqury2.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+  merqury2.Size = UDim2.new(0, 360, 0, 184)
+  merqury2.Position = UDim2.new(0.5, -180, 0.5, -92)
+  merqury2.Active = true
+  merqury2.Draggable = true
+  merqury2.Parent = merquryKeysystem
+
+  local uiCorner2 = Instance.new("UICorner")
+  uiCorner2.CornerRadius = UDim.new(0, 13)
+  uiCorner2.Parent = merqury2
+
+  local scriptLogo2 = Instance.new("ImageButton")
+  scriptLogo2.Name = "ScriptLogo"
+  scriptLogo2.BorderSizePixel = 0
+  scriptLogo2.BackgroundTransparency = 1
+  scriptLogo2.Image = "rbxassetid://100627880926898"
+  scriptLogo2.Size = UDim2.new(0, 49, 0, 50)
+  scriptLogo2.Position = UDim2.new(0.01795, -5, -0.00372, 0)
+  scriptLogo2.Parent = merqury2
+
+  f6(merqury2, {
+    Name = "Title",
+    Size = UDim2.new(0, 234, 0, 22),
+    Position = UDim2.new(0.13043, 1, 0.08623, -6),
+    Text = "Merqury Hub | Keysystem",
+    Alignment = Enum.TextXAlignment.Left,
+  })
+
+  f6(merqury2, {
+    Name = "SubTitle",
+    Size = UDim2.new(0, 221, 0, 19),
+    Position = UDim2.new(0.04432, -2, 0.26014, -12),
+    Text = "Join our discord for support",
+    Color = Color3.fromRGB(106, 106, 106),
+    Alignment = Enum.TextXAlignment.Left,
+  })
+
+  local keybox = Instance.new("TextBox")
+  keybox.Name = "Keybox"
+  keybox.BorderSizePixel = 0
+  keybox.TextSize = 17
+  keybox.TextColor3 = Color3.new(1, 1, 1)
+  keybox.BackgroundColor3 = Color3.fromRGB(27, 27, 27)
+  keybox.FontFace = rbxassetFontsFamiliesFredokaOneJson
+  keybox.PlaceholderText = "Enter Key"
+  keybox.Size = UDim2.new(0, 342, 0, 37)
+  keybox.Position = UDim2.new(0.02716, 0, 0.50543, 0)
+  keybox.Text = ""
+  keybox.Parent = merqury2
+
+  Instance.new("UICorner").Parent = keybox
+
+  local v26, v27 = f7(merqury2, UDim2.new(0, 73, 0, 33), "ExitUibtn")
+  v26.Position = UDim2.new(0.02716, 0, 0.79058, 0)
+
+  f6(v26, {
+    Size = UDim2.new(0, 57, 0, 22),
+    Position = UDim2.new(0.16438, -4, 0.32865, -6),
+    Text = "Exit",
+  })
+
+  local v28, v29 = f7(merqury2, UDim2.new(0, 73, 0, 33), "GetKeyBtn")
+  v28.Position = UDim2.new(0.22469, 10, 0.79058, 0)
+
+  local v30 = f6(v28, {
+    Size = UDim2.new(0, 57, 0, 22),
+    Position = UDim2.new(0.16438, -4, 0.32865, -6),
+    Text = "Get Key",
+  })
+
+  local v31, v32 = f7(merqury2, UDim2.new(0, 73, 0, 33), "SubmitBtn")
+  v31.Position = UDim2.new(0.22469, 198, 0.79058, 0)
+
+  local v33 = f6(v31, {
+    Size = UDim2.new(0, 57, 0, 22),
+    Position = UDim2.new(0.34247, -17, 0.32865, -6),
+    Text = "Submit",
+  })
+
+  local function f13()
+    merquryKeysystem:Destroy()
+  end
+
+  v27.MouseButton1Click:Connect(f13)
+
+  v29.MouseButton1Click:Connect(function()
+    task.spawn(function()
+      local v34 = setclipboard or syn and syn.set_clipboard or Clipboard and Clipboard.set
+
+      if v34 then
+        v34("https://merqury.xyz/keys")
+      end
+
+      v30.Text = "Copied"
+      task.wait(2)
+
+      if v30 and v30.Parent then
+        v30.Text = "Get Key"
+      end
+    end)
+  end)
+
+  local v35 = false
+
+  v32.MouseButton1Click:Connect(function()
+    if v35 then
+      return
+    end
+
+    local text = keybox.Text
+
+    if text == "" then
+      return
+    end
+
+    v35 = true
+
+    task.spawn(function()
+      v33.Text = "..."
+      local v36, v37 = f11(text)
+
+      if v36 then
+        pcall(writefile, "MerquryHub_Key.txt", text)
+        f13()
+        f10()
+      else
+        keybox.Text = ""
+        keybox.PlaceholderText = v37 or "Invalid Key"
+
+        v33.Text = "Submit"
+        v35 = false
+        task.wait(2)
+
+        if keybox and keybox.Parent then
+          keybox.PlaceholderText = "Enter Key"
+        end
+      end
+    end)
+  end)
+end
+
+function f11(p7)
+  local sS = tostring(p7):match("^%s*(.-)%s*$")
+
+  if sS == "" then
+    return false, "Key is empty"
+  elseif not v5 then
+    return false, "HTTP not supported by this executor"
+  else
+    local v38, body = pcall(httpService.JSONEncode, httpService, {
+      key_string = sS,
+      hwid = f2(),
+    })
+
+    if not v38 then
+      return false, "Failed to encode request"
+    else
+      local v39, v40 = pcall(v5, {
+        Url = "https://sskgujtorprdelkjaupf.supabase.co/functions/v1/key-api?action=validate",
+        Method = "POST",
+        Headers = { ["Content-Type"] = "application/json" },
+        Body = body,
+      })
+
+      if not v39 then
+        return false, "Network request failed"
+      end
+
+      if not v40 or type(v40) ~= "table" then
+        return false, "No response received"
+      end
+
+      if not v40.Body or v40.Body == "" then
+        return false, "Empty server response"
+      else
+        local v41, v42 = pcall(httpService.JSONDecode, httpService, v40.Body)
+
+        if not v41 or type(v42) ~= "table" then
+          return false, "Could not parse server response"
+        else
+          local v43 = v42.valid == true
+          return v43, (tostring(v42.error or v43 and "Authenticated" or "Invalid key"))
+        end
+      end
+    end
+  end
+end
+
+local function f14()
+  if isfile and isfile("MerquryHub_Key.txt") then
+    local v44, v45 = pcall(readfile, "MerquryHub_Key.txt")
+
+    if v44 and v45 and v45 ~= "" then
+      if f11(v45) then
+        f10()
+        return
+      end
+    end
+
+    f12()
+    return
+  end
+
+  f12()
+end
+
+f14()
+
+-- https://discord.gg/AwGHNh7Z7T
