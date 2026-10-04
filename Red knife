@@ -1,0 +1,336 @@
+-- ==========================================
+-- LrapX By Fit (Human-like E Simulation)
+-- THEME: RED & BLACK (สีแดงและสีดำ)
+-- KEY: LrapX
+-- ==========================================
+
+local KEY_CORRECT = "LrapX"
+
+-- Services
+local Players = game:GetService("Players")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    Character = char
+    Humanoid = char:WaitForChild("Humanoid")
+    RootPart = char:WaitForChild("HumanoidRootPart")
+end)
+
+if CoreGui:FindFirstChild("MadaraScriptUI") then
+    CoreGui.MadaraScriptUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "MadaraScriptUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- ==========================================
+-- 1. KEY SYSTEM UI
+-- ==========================================
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Name = "KeyFrame"
+KeyFrame.Size = UDim2.new(0, 320, 0, 200)
+KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -100)
+KeyFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+KeyFrame.BorderSizePixel = 0
+KeyFrame.Active = true
+KeyFrame.Draggable = true
+KeyFrame.Parent = ScreenGui
+
+local KeyUICorner = Instance.new("UICorner", KeyFrame)
+KeyUICorner.CornerRadius = UDim.new(0, 10)
+
+local KeyUIStroke = Instance.new("UIStroke", KeyFrame)
+KeyUIStroke.Color = Color3.fromRGB(220, 20, 60)
+KeyUIStroke.Thickness = 2
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Size = UDim2.new(1, 0, 0, 45)
+KeyTitle.BackgroundColor3 = Color3.fromRGB(35, 0, 0)
+KeyTitle.Text = "มาดาระเทพเจ้าแห่งทำสคริป [KEY]"
+KeyTitle.TextColor3 = Color3.fromRGB(255, 40, 40)
+KeyTitle.TextSize = 15
+KeyTitle.Font = Enum.Font.SourceSansBold
+KeyTitle.Parent = KeyFrame
+
+local KeyTitleCorner = Instance.new("UICorner", KeyTitle)
+KeyTitleCorner.CornerRadius = UDim.new(0, 10)
+
+local KeyInput = Instance.new("TextBox")
+KeyInput.Size = UDim2.new(0.8, 0, 0, 40)
+KeyInput.Position = UDim2.new(0.1, 0, 0.35, 0)
+KeyInput.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+KeyInput.PlaceholderText = "กรอก Key (LrapX)..."
+KeyInput.Text = ""
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+KeyInput.TextSize = 14
+KeyInput.Font = Enum.Font.SourceSans
+KeyInput.Parent = KeyFrame
+
+local KeyInputCorner = Instance.new("UICorner", KeyInput)
+KeyInputCorner.CornerRadius = UDim.new(0, 6)
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0.8, 0, 0, 40)
+SubmitBtn.Position = UDim2.new(0.1, 0, 0.68, 0)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+SubmitBtn.Text = "ยืนยัน KEY"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.TextSize = 16
+SubmitBtn.Font = Enum.Font.SourceSansBold
+SubmitBtn.Parent = KeyFrame
+
+local SubmitBtnCorner = Instance.new("UICorner", SubmitBtn)
+SubmitBtnCorner.CornerRadius = UDim.new(0, 6)
+
+-- ==========================================
+-- 2. MAIN SCRIPT UI
+-- ==========================================
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 360, 0, 220)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -110)
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local MainUICorner = Instance.new("UICorner", MainFrame)
+MainUICorner.CornerRadius = UDim.new(0, 12)
+
+local MainUIStroke = Instance.new("UIStroke", MainFrame)
+MainUIStroke.Color = Color3.fromRGB(255, 0, 0)
+MainUIStroke.Thickness = 2
+
+local MainTitle = Instance.new("TextLabel")
+MainTitle.Size = UDim2.new(1, 0, 0, 45)
+MainTitle.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+MainTitle.Text = "LrapX by Fit"
+MainTitle.TextColor3 = Color3.fromRGB(255, 50, 50)
+MainTitle.TextSize = 18
+MainTitle.Font = Enum.Font.SourceSansBold
+MainTitle.Parent = MainFrame
+
+local MainTitleCorner = Instance.new("UICorner", MainTitle)
+MainTitleCorner.CornerRadius = UDim.new(0, 12)
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -38, 0, 7)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize = 16
+CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Parent = MainFrame
+
+local CloseBtnCorner = Instance.new("UICorner", CloseBtn)
+CloseBtnCorner.CornerRadius = UDim.new(0, 6)
+
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0.85, 0, 0, 50)
+ToggleBtn.Position = UDim2.new(0.075, 0, 0.3, 0)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+ToggleBtn.Text = "ฟังก์ชัน Autofarm: ปิดอยู่ (OFF)"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+ToggleBtn.TextSize = 16
+ToggleBtn.Font = Enum.Font.SourceSansBold
+ToggleBtn.Parent = MainFrame
+
+local ToggleBtnCorner = Instance.new("UICorner", ToggleBtn)
+ToggleBtnCorner.CornerRadius = UDim.new(0, 8)
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0.9, 0, 0, 40)
+StatusLabel.Position = UDim2.new(0.05, 0, 0.68, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "สถานะ: รอการเปิดใช้งาน..."
+StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+StatusLabel.TextSize = 14
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.Parent = MainFrame
+
+-- ==========================================
+-- 3. CIRCULAR TOGGLE BUTTON
+-- ==========================================
+local OpenCircleBtn = Instance.new("TextButton")
+OpenCircleBtn.Name = "OpenCircleBtn"
+OpenCircleBtn.Size = UDim2.new(0, 50, 0, 50)
+OpenCircleBtn.Position = UDim2.new(0, 20, 0.5, -25)
+OpenCircleBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+OpenCircleBtn.Text = "L"
+OpenCircleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+OpenCircleBtn.TextSize = 24
+OpenCircleBtn.Font = Enum.Font.SourceSansBold
+OpenCircleBtn.Visible = false
+OpenCircleBtn.Active = true
+OpenCircleBtn.Draggable = true
+OpenCircleBtn.Parent = ScreenGui
+
+local CircleCorner = Instance.new("UICorner", OpenCircleBtn)
+CircleCorner.CornerRadius = UDim.new(1, 0)
+
+local CircleStroke = Instance.new("UIStroke", OpenCircleBtn)
+CircleStroke.Color = Color3.fromRGB(0, 0, 0)
+CircleStroke.Thickness = 2.5
+
+-- ==========================================
+-- HUMAN-LIKE LOGIC (ระบบจำลองการกดแบบมนุษย์)
+-- ==========================================
+local IsRunning = false
+local IsExecutingE = false
+
+local function GetTargetPrompt()
+    local closestPrompt = nil
+    local closestPart = nil
+    local shortestDistance = math.huge
+    
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") then
+            local objText = tostring(obj.ObjectText or "")
+            local actText = tostring(obj.ActionText or "")
+            local parentName = obj.Parent and tostring(obj.Parent.Name or "") or ""
+            
+            local isMatch = string.find(objText, "รับเงิน") 
+                or string.find(actText, "รับเงิน") 
+                or string.find(parentName, "รับเงิน")
+            
+            if isMatch and obj.Enabled then
+                local parentPart = obj:FindFirstAncestorWhichIsA("BasePart") or obj.Parent
+                if parentPart and parentPart:IsA("BasePart") then
+                    local dist = (RootPart.Position - parentPart.Position).Magnitude
+                    if dist < shortestDistance then
+                        shortestDistance = dist
+                        closestPrompt = obj
+                        closestPart = parentPart
+                    end
+                end
+            end
+        end
+    end
+    return closestPrompt, closestPart
+end
+
+-- ฟังก์ชันจำลองมนุษย์กดปุ่ม E
+local function SimulateHumanKeyPress(prompt)
+    if IsExecutingE then return end
+    IsExecutingE = true
+    
+    StatusLabel.Text = "สถานะ: กำลังจำลองการกด E แบบมนุษย์..."
+    StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+    
+    -- 1. หน่วงเวลาการตอบสนองของมนุษย์ (Human Reaction Time) ก่อนเริ่มกด
+    local humanReaction = math.random(15, 35) / 100 -- 0.15 ถึง 0.35 วินาที
+    task.wait(humanReaction)
+    
+    -- 2. จำลองการกดปุ่ม E ลงไป (Key Down)
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+    
+    -- 3. คำนวณระยะเวลาถือค้างปุ่ม ตามค่า HoldDuration ของ ProximityPrompt นั้นๆ
+    local holdDuration = prompt.HoldDuration or 0.5
+    if holdDuration < 0.1 then 
+        holdDuration = 0.2 
+    end
+    
+    -- สุ่มเวลาปล่อยปุ่มให้เหลื่อมจากเวลาค้างจริงเล็กน้อย (Human Imperfection)
+    local humanHoldOffset = math.random(8, 18) / 100 -- สุ่มค้างเกินมาอีกนิดหน่อย
+    task.wait(holdDuration + humanHoldOffset)
+    
+    -- 4. จำลองการปล่อยปุ่ม E (Key Up)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+    
+    StatusLabel.Text = "สถานะ: กด E สำเร็จแล้ว!"
+    StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+    
+    -- 5. ระยะเวลาพักก่อนกดครั้งถัดไป (ป้องกันสแปมที่ถี่เกินไป)
+    local coolDown = math.random(4, 8) / 10
+    task.wait(coolDown)
+    
+    IsExecutingE = false
+end
+
+-- Main Loop
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        if IsRunning and Character and RootPart and Humanoid then
+            local prompt, targetPart = GetTargetPrompt()
+            
+            if prompt and targetPart then
+                local distance = (RootPart.Position - targetPart.Position).Magnitude
+                
+                -- ระยะเข้าใกล้ปุ่มที่เหมาะสม
+                local stopDistance = prompt.MaxActivationDistance or 5.0
+                if stopDistance > 3.5 then
+                    stopDistance = 3.0
+                end
+                
+                if distance > stopDistance then
+                    StatusLabel.Text = "สถานะ: กำลังเดินเข้าใกล้จุดรับเงิน..."
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 180, 0)
+                    Humanoid:MoveTo(targetPart.Position)
+                else
+                    -- หยุดเดินแล้วทำการกดปุ่มแบบมนุษย์
+                    Humanoid:MoveTo(RootPart.Position) -- หยุดเดินให้อยู่นิ่งๆ ก่อนกด
+                    SimulateHumanKeyPress(prompt)
+                end
+            else
+                StatusLabel.Text = "สถานะ: ไม่พบปุ่ม 'รับเงิน'..."
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+            end
+        end
+    end
+end)
+
+-- ==========================================
+-- EVENT HANDLERS
+-- ==========================================
+SubmitBtn.MouseButton1Click:Connect(function()
+    if KeyInput.Text == KEY_CORRECT then
+        KeyFrame:Destroy()
+        MainFrame.Visible = true
+        OpenCircleBtn.Visible = true
+    else
+        KeyInput.Text = ""
+        KeyInput.PlaceholderText = "KEY ไม่ถูกต้อง!"
+        KeyInput.PlaceholderColor3 = Color3.fromRGB(255, 50, 50)
+    end
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    IsRunning = not IsRunning
+    
+    if IsRunning then
+        ToggleBtn.Text = "ฟังก์ชัน มาดาระ: เปิดอยู่ (ON)"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(220, 0, 0)
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        StatusLabel.Text = "สถานะ: เริ่มทำงานแล้ว..."
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    else
+        ToggleBtn.Text = "ฟังก์ชัน มาดาระ: ปิดอยู่ (OFF)"
+        ToggleBtn.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+        ToggleBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+        StatusLabel.Text = "สถานะ: หยุดการทำงาน"
+        StatusLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
+        
+        IsExecutingE = false
+    end
+end)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+end)
+
+OpenCircleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = not MainFrame.Visible
+end)
