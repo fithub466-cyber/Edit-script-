@@ -1,0 +1,198 @@
+-- [[ FIT HUB - ONLY SIT SYSTEM EDITION ]] --
+do 
+    local CoreGui = game:GetService("CoreGui")
+    local TweenService = game:GetService("TweenService")
+    
+    if CoreGui:FindFirstChild("FitHubLoad") then CoreGui.FitHubLoad:Destroy() end
+    
+    local DownloadGui = Instance.new("ScreenGui")
+    DownloadGui.Name = "FitHubLoad"
+    DownloadGui.Parent = CoreGui
+    DownloadGui.ResetOnSpawn = false
+    DownloadGui.IgnoreGuiInset = true
+    
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(1,0,1,0)
+    MainFrame.BackgroundTransparency = 1
+    MainFrame.Parent = DownloadGui
+    
+    local CharImage = Instance.new("ImageLabel")
+    CharImage.Size = UDim2.new(0,300,0,300)
+    CharImage.Position = UDim2.new(0.5, -150,0.5, -170)
+    CharImage.BackgroundTransparency = 1
+    CharImage.Image = "rbxassetid://117924028123190"
+    CharImage.ImageTransparency = 1
+    CharImage.Parent = MainFrame
+    
+    local CampName = Instance.new("TextLabel")
+    CampName.Size = UDim2.new(1,0,0,70)
+    CampName.Position = UDim2.new(0,0,0.5,140)
+    CampName.BackgroundTransparency = 1
+    CampName.Text = "FIT HUB"
+    CampName.TextColor3 = Color3.fromRGB(0,200,255)
+    CampName.TextScaled = true
+    CampName.Font = Enum.Font.GothamBold
+    CampName.TextTransparency = 1
+    CampName.Parent = MainFrame
+    
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0,Color3.fromRGB(0,150,255)),ColorSequenceKeypoint.new(0.5,Color3.fromRGB(100,200,255)),ColorSequenceKeypoint.new(1,Color3.fromRGB(0,150,255))})
+    Gradient.Rotation = 45
+    Gradient.Parent = CampName
+    
+    task.spawn(function() 
+        local fadeInImage = TweenService:Create(CharImage,TweenInfo.new(1.2),{ImageTransparency=0})
+        fadeInImage:Play()
+        fadeInImage.Completed:Wait()
+        task.wait(0.3)
+        local fadeInText = TweenService:Create(CampName,TweenInfo.new(1.5),{TextTransparency=0})
+        fadeInText:Play()
+        local angle = 45
+        while CampName.TextTransparency < 0.1 do 
+            angle = (angle + 1)%360 
+            Gradient.Rotation = angle
+            task.wait(0.03)
+        end 
+        fadeInText.Completed:Wait()
+        task.wait(0.5)
+        local fadeOutImage = TweenService:Create(CharImage,TweenInfo.new(0.8),{ImageTransparency=1})
+        local fadeOutText = TweenService:Create(CampName,TweenInfo.new(0.8),{TextTransparency=1})
+        fadeOutImage:Play()
+        fadeOutText:Play()
+        fadeOutImage.Completed:Wait()
+        DownloadGui:Destroy()
+    end)
+    
+    repeat task.wait() until not CoreGui:FindFirstChild("FitHubLoad") 
+    
+    local Players = game:GetService("Players")
+    local RunService = game:GetService("RunService")
+    local UserInputService = game:GetService("UserInputService")
+    local LocalPlayer = Players.LocalPlayer
+    
+    local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+    local Window = WindUI:CreateWindow({
+        Title = "FIT HUB",
+        Icon = "rbxassetid://89740764807055",
+        Author = "Fit Solo",
+        Folder = "FIT HUB",
+        Size = UDim2.fromOffset(580,350),
+        MinSize = Vector2.new(560,300),
+        MaxSize = Vector2.new(850,500),
+        Transparent = true,
+        Theme = "Dark",
+        Resizable = true,
+        SideBarWidth = 200,
+        HideSearchBar = true,
+        ScrollBarEnabled = false,
+        User = {Enabled = true, Name = LocalPlayer.Name, Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId}
+    })
+    Window:EditOpenButton({Enabled = false})
+    
+    if CoreGui:FindFirstChild("WindUI_Toggle") then CoreGui.WindUI_Toggle:Destroy() end
+    local ScreenGui = Instance.new("ScreenGui", CoreGui)
+    ScreenGui.Name = "WindUI_Toggle"
+    ScreenGui.ResetOnSpawn = false
+    
+    local ToggleBtn = Instance.new("ImageButton", ScreenGui)
+    ToggleBtn.Size = UDim2.new(0,50,0,50)
+    ToggleBtn.Position = UDim2.new(0,20,0.5, -25)
+    ToggleBtn.BackgroundTransparency = 1
+    ToggleBtn.Image = "rbxassetid://89740764807055"
+    ToggleBtn.Active = true
+    ToggleBtn.Draggable = true
+    
+    local function ToggleUI() 
+        if Window.Toggle then Window:Toggle() else Window.UI.Enabled = not Window.UI.Enabled end 
+    end 
+    ToggleBtn.MouseButton1Click:Connect(ToggleUI)
+    
+    -- คีย์ลัด UI ปุ่ม T
+    UserInputService.InputBegan:Connect(function(i, gp) 
+        if not gp and i.KeyCode == Enum.KeyCode.T then 
+            ToggleUI() 
+        end 
+    end)
+    
+    local MainTab = Window:Tab({Title = "Main Features", Icon = "home"})
+    
+    ---------------------------------------------------------
+    -- [ ระบบมุดดิน แบบล็อกแกน Y คงที่ ]
+    ---------------------------------------------------------
+    MainTab:Section({Title = "ระบบมุดดิน (Sit System)"})
+    local sit = false
+    local sitHeight = 0
+    local sitConn
+    local baseSitY = nil 
+
+    local function SetSitStatus(status)
+        sit = status
+        if sitConn then sitConn:Disconnect() end 
+        
+        local c = LocalPlayer.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
+        local hum = c and c:FindFirstChild("Humanoid")
+        
+        -- เช็คสถานะหากนั่งอยู่บนรถ จะไม่ฝืนเซ็ตค่าให้นั่งมุดดิน
+        if hum and not hum.SeatPart then 
+            hum.Sit = status 
+        end
+        
+        if status and hrp and hum then 
+            if not hum.SeatPart then
+                baseSitY = hrp.Position.Y
+            end
+            
+            sitConn = RunService.Heartbeat:Connect(function() 
+                -- ถ้าผู้เล่นขึ้นรถ จะหยุดล็อกแกน Y ชั่วคราวทันทีเพื่อให้รถขับได้
+                if hum and hum.SeatPart then return end 
+                
+                if c and hrp and hrp.Parent and baseSitY then 
+                    hrp.CFrame = CFrame.new(hrp.Position.X, baseSitY + sitHeight, hrp.Position.Z)
+                    hrp.Velocity = Vector3.new(hrp.Velocity.X, 0, hrp.Velocity.Z)
+                    hrp.AssemblyLinearVelocity = Vector3.new(hrp.AssemblyLinearVelocity.X, 0, hrp.AssemblyLinearVelocity.Z)
+                end 
+            end)
+        else
+            baseSitY = nil
+        end 
+    end
+
+    local SitToggle = MainTab:Toggle({
+        Title = "เปิดระบบมุดดิน / เก็บของใต้ดิน [คีย์ลัด X]",
+        Default = false,
+        Callback = function(v) 
+            SetSitStatus(v)
+        end
+    })
+    
+    -- คีย์ลัด มุดดิน ปุ่ม X
+    UserInputService.InputBegan:Connect(function(i, gp)
+        if not gp and i.KeyCode == Enum.KeyCode.X then
+            local nextState = not sit
+            SitToggle:Set(nextState)
+        end
+    end)
+    
+    -- ตรวจสอบการนั่งรถแบบ Real-time
+    task.spawn(function()
+        while task.wait(0.5) do
+            local c = LocalPlayer.Character
+            local hum = c and c:FindFirstChild("Humanoid")
+            if hum and hum.SeatPart and sit then
+                if sitConn then sitConn:Disconnect() end
+            elseif hum and not hum.SeatPart and sit and (not sitConn or not sitConn.Connected) then
+                SetSitStatus(true)
+            end
+        end
+    end)
+
+    MainTab:Slider({
+        Title = "ปรับระดับความลึก (Height)",
+        Step = 0.5,
+        Value = {Min = -15, Max = 5, Default = 0},
+        Callback = function(v) 
+            sitHeight = v 
+        end
+    })
+end
