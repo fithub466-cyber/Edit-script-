@@ -1,0 +1,574 @@
+local players = game:GetService("Players")
+local userInputService = game:GetService("UserInputService")
+local coreGui = game:GetService("CoreGui")
+local v1 = game
+local function f1()
+  local currentCamera = workspace.CurrentCamera
+  if not currentCamera then
+    currentCamera = workspace:FindFirstChildOfClass("Camera") or workspace.CurrentCamera
+  end
+  return currentCamera
+end
+local runService = v1:GetService("RunService")
+local localPlayer = players.LocalPlayer
+local color = Color3.fromRGB(255, 0, 0)
+local color2 = Color3.fromRGB(0, 0, 0)
+local v2 = 200
+local q = Enum.KeyCode.Q
+local function f2(p1)
+  if not p1 then
+    return nil, nil
+  else
+    local v3, v4, v5 = pcall(function() return p1:GetBoundingBox() end)
+    if v3 then
+      return v4, v5
+    end
+    return nil, nil
+  end
+end
+local e = Enum.KeyCode.E
+local v6 = false
+local v7 = false
+local v8 = true
+local v9 = "Head"
+local v10 = false
+local v11 = {}
+local function f3(p2)
+  return v11[p2] == true
+end
+local function f4(p3)
+  return p3 and p3.Character or nil
+end
+local v12 = {}
+local v13 = {}
+local v14 = 0
+local function f5(p4)
+  local v15 = f4(p4)
+  return v15 and v15:FindFirstChildOfClass("Humanoid") or nil
+end
+local function f6(p5)
+  local v16 = f4(p5)
+  if not v16 then
+    return nil
+  end
+  return v16:FindFirstChild(v9) or v16:FindFirstChild("Head")
+    or v16:FindFirstChild("HumanoidRootPart")
+end
+local function f7(p6)
+  local v17 = f5(p6)
+  return v17 and v17.Health > 0
+end
+local function f8()
+  local parent = f1()
+  local espHitboxInner = Instance.new("BoxHandleAdornment")
+  espHitboxInner.AlwaysOnTop = true
+  espHitboxInner.ZIndex = 10
+  espHitboxInner.Transparency = 0.35
+  espHitboxInner.Color3 = color
+  espHitboxInner.Name = "ESP_HitboxInner"
+  espHitboxInner.Parent = parent
+  local espHitboxOutline = Instance.new("BoxHandleAdornment")
+  espHitboxOutline.AlwaysOnTop = true
+  espHitboxOutline.ZIndex = 9
+  espHitboxOutline.Transparency = 0.75
+  espHitboxOutline.Color3 = color2
+  espHitboxOutline.Name = "ESP_HitboxOutline"
+  espHitboxOutline.Parent = parent
+  return { inner = espHitboxInner, outline = espHitboxOutline }
+end
+local function f9(p7)
+  local v18 = v12[p7]
+  if not v18 then
+    return
+  end
+  v18.inner.Adornee = nil
+  v18.outline.Adornee = nil
+  table.insert(v13, v18)
+  v12[p7] = nil
+end
+local function f10(p8)
+  if v12[p8] then
+    return v12[p8]
+  else
+    local v19 = table.remove(v13) or f8()
+    v12[p8] = v19
+    return v19
+  end
+end
+local function f11(p9)
+  local v20, v21, v22
+  if p9 == localPlayer then
+    return
+  elseif f3(p9) then
+    f9(p9)
+    return
+  elseif p9.Team and localPlayer.Team and p9.Team == localPlayer.Team then
+    f9(p9)
+    return
+  else
+    local character = p9.Character
+    if not character or not character.Parent or not f7(p9) then
+      f9(p9)
+      return
+    else
+      local humanoidRootPart = localPlayer.Character
+        and localPlayer.Character:FindFirstChild("HumanoidRootPart")
+      if humanoidRootPart then
+        local humanoidRootPart2 = character:FindFirstChild("HumanoidRootPart")
+          or character:FindFirstChild("Torso")
+        if humanoidRootPart2 then
+          if (humanoidRootPart.Position - humanoidRootPart2.Position).Magnitude > 500 then
+            f9(p9)
+            return
+          end
+        end
+        v21, v20 = f2(character)
+        v22 = not v21
+        if v22 or not v20 then
+          f9(p9)
+          return
+        else
+          local v23 = f10(p9)
+          local inner = v23.inner
+          local outline = v23.outline
+          inner.Adornee = character
+          inner.Size = v20
+          inner.CFrame = v21:ToObjectSpace(character:GetPivot())
+          outline.Adornee = character
+          outline.Size = v20 * 1.05
+          outline.CFrame = v21:ToObjectSpace(character:GetPivot())
+          return
+        end
+      else
+        v21, v20 = f2(character)
+        v22 = not v21
+        if v22 or not v20 then
+          f9(p9)
+          return
+        else
+          local v24 = f10(p9)
+          local inner2 = v24.inner
+          local outline2 = v24.outline
+          inner2.Adornee = character
+          inner2.Size = v20
+          inner2.CFrame = v21:ToObjectSpace(character:GetPivot())
+          outline2.Adornee = character
+          outline2.Size = v20 * 1.05
+          outline2.CFrame = v21:ToObjectSpace(character:GetPivot())
+          return
+        end
+      end
+    end
+  end
+end
+local aimbotUIV2 = Instance.new("ScreenGui")
+aimbotUIV2.Name = "LrapX Hub"
+aimbotUIV2.ResetOnSpawn = false
+pcall(function() aimbotUIV2.Parent = coreGui end)
+if not aimbotUIV2.Parent then
+  aimbotUIV2.Parent = localPlayer:WaitForChild("PlayerGui")
+end
+local instance = Instance.new("Frame", LrapX Hub)
+instance.Size = UDim2.new(0, 300, 0, 170)
+instance.Position = UDim2.new(0.6, 0, 0.32, 0)
+instance.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+instance.BorderSizePixel = 0
+instance.Active = true
+instance.Draggable = true
+Instance.new("UICorner", instance).CornerRadius = UDim.new(0, 8)
+local instance2 = Instance.new("TextLabel", instance)
+instance2.Size = UDim2.new(1, -20, 0, 24)
+instance2.Position = UDim2.new(0, 10, 0, 8)
+instance2.BackgroundTransparency = 1
+instance2.Text = "Aimbot (improved)"
+instance2.Font = Enum.Font.GothamBold
+instance2.TextSize = 15
+instance2.TextColor3 = Color3.fromRGB(230, 230, 230)
+instance2.TextXAlignment = Enum.TextXAlignment.Left
+local instance3 = Instance.new("TextButton", instance)
+instance3.Size = UDim2.new(0.48, -10, 0, 36)
+instance3.Position = UDim2.new(0, 10, 0, 36)
+instance3.Text = "Aimbot: OFF (Q)"
+instance3.Font = Enum.Font.GothamBold
+instance3.TextSize = 13
+instance3.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+Instance.new("UICorner", instance3).CornerRadius = UDim.new(0, 6)
+local instance4 = Instance.new("TextButton", instance)
+instance4.Size = UDim2.new(0.48, -10, 0, 36)
+instance4.Position = UDim2.new(0.52, 0, 0, 36)
+instance4.Text = "Strong Lock: OFF"
+instance4.Font = Enum.Font.Gotham
+instance4.TextSize = 13
+instance4.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+Instance.new("UICorner", instance4).CornerRadius = UDim.new(0, 6)
+local instance5 = Instance.new("TextButton", instance)
+instance5.Size = UDim2.new(0.48, -10, 0, 26)
+instance5.Position = UDim2.new(0, 10, 0, 84)
+instance5.Text = "Wallcheck: ON"
+instance5.Font = Enum.Font.Gotham
+instance5.TextSize = 12
+instance5.BackgroundColor3 = Color3.fromRGB(60, 160, 80)
+Instance.new("UICorner", instance5).CornerRadius = UDim.new(0, 6)
+local instance6 = Instance.new("TextButton", instance)
+instance6.Size = UDim2.new(0.48, -10, 0, 26)
+instance6.Position = UDim2.new(0.52, 0, 0, 84)
+instance6.Text = "Aim: Head"
+instance6.Font = Enum.Font.Gotham
+instance6.TextSize = 12
+instance6.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+Instance.new("UICorner", instance6).CornerRadius = UDim.new(0, 6)
+local instance7 = Instance.new("TextLabel", instance)
+instance7.Size = UDim2.new(1, -20, 0, 16)
+instance7.Position = UDim2.new(0, 10, 0, 116)
+instance7.BackgroundTransparency = 1
+instance7.Text = "Aimed: None"
+instance7.Font = Enum.Font.Gotham
+instance7.TextSize = 12
+instance7.TextColor3 = Color3.fromRGB(200, 200, 200)
+instance7.TextXAlignment = Enum.TextXAlignment.Left
+local instance8 = Instance.new("TextBox", instance)
+instance8.Size = UDim2.new(0.48, -10, 0, 26)
+instance8.Position = UDim2.new(0, 10, 0, 136)
+instance8.PlaceholderText = "FOV Size (" .. v2 .. ")"
+instance8.Text = tostring(v2)
+instance8.Font = Enum.Font.Gotham
+instance8.TextSize = 12
+instance8.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+instance8.TextColor3 = Color3.fromRGB(230, 230, 230)
+Instance.new("UICorner", instance8).CornerRadius = UDim.new(0, 6)
+instance8.FocusLost:Connect(function(p10)
+  local v25 = tonumber(instance8.Text)
+  if v25 and v25 > 0 and v25 < 2000 then
+    v2 = v25
+    instance8.Text = tostring(v2)
+    instance8.PlaceholderText = "FOV Size (" .. v2 .. ")"
+    if circle then
+      circle.Radius = v2
+    end
+  else
+    instance8.Text = tostring(v2)
+  end
+end)
+local function f12(cframe)
+  local v26 = f1()
+  if not v26 then
+    return false, "no cam"
+  else
+    local v27, v28 = pcall(function() v26.CFrame = cframe end)
+    if not v27 then
+      v10 = true
+      return false, v28
+    end
+    return true
+  end
+end
+local v29 = false
+local v30
+pcall(function()
+  local v31 = Drawing.new("Circle")
+  v31.Thickness = 2
+  v31.NumSides = 64
+  v31.Radius = v2
+  v31.Filled = false
+  v31.Color = Color3.fromRGB(200, 200, 255)
+  v31.Visible = false
+  v30 = v31
+  v29 = true
+end)
+local function f13()
+  if not v30 then
+    return
+  else
+    local v32 = f1()
+    if not v32 then
+      return
+    else
+      local viewportSize = v32.ViewportSize
+      v30.Position = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+      v30.Radius = v2
+      return
+    end
+  end
+end
+local function f14(p11, p12)
+  if not p11 then
+    return false
+  else
+    local v33 = f1()
+    if not v33 then
+      return false
+    else
+      local position = v33.CFrame.Position
+      local v34 = p11.Position - position
+      local raycastParams = RaycastParams.new()
+      raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+      local v35 = {}
+      if localPlayer.Character then
+        table.insert(v35, localPlayer.Character)
+      end
+      if p12 then
+        table.insert(v35, p12)
+      end
+      raycastParams.FilterDescendantsInstances = v35
+      raycastParams.IgnoreWater = true
+      return workspace:Raycast(position, v34, raycastParams) == nil
+    end
+  end
+end
+local function f15()
+  local v36 = f1()
+  if not v36 then
+    return nil
+  else
+    local viewportSize2 = v36.ViewportSize
+    local vector = Vector2.new(viewportSize2.X / 2, viewportSize2.Y / 2)
+    local huge = math.huge
+    local v37 = nil
+    for index, value in ipairs(players:GetPlayers()) do
+      if value ~= localPlayer and f7(value) and not f3(value) then
+        if not (value.Team and localPlayer.Team and value.Team == localPlayer.Team) then
+          local v38 = f6(value)
+          if v38 then
+            local v39, v40 = v36:WorldToViewportPoint(v38.Position)
+            if v40 then
+              local magnitude = (Vector2.new(v39.X, v39.Y) - vector).Magnitude
+              if magnitude < v2 and magnitude < huge then
+                if not v8 or f14(v38, value.Character) then
+                  huge = magnitude
+                  v37 = value
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+    return v37
+  end
+end
+local v41
+runService:BindToRenderStep("Aimbot_v2", Enum.RenderPriority.Camera.Value + 1, function()
+  if v30 then
+    f13()
+    local v42 = v6
+    local v43 = v30
+    v43.Visible = v42 and v29
+  end
+  local name, v44, cframe2
+  if not v6 then
+    return
+  elseif v10 then
+    instance7.Text = "Aimed: Camera writes blocked"
+    return
+  else
+    if not v41 or not (v41.Character and v41.Character.Parent) or not f7(v41) then
+      v41 = f15()
+    end
+    if v41 and v41.Character then
+      local v45 = f6(v41)
+      if v45 then
+        if v8 and not f14(v45, v41.Character) then
+          v41 = nil
+          instance7.Text = "Aimed: None"
+          return
+        end
+        v44 = f1()
+        cframe2 = CFrame.new(v44.CFrame.Position, v45.Position)
+        if v7 then
+          if not f12(cframe2) then
+            instance7.Text = "Aimed: Camera blocked"
+            v6 = false
+            instance3.Text = "Aimbot: OFF (Q)"
+            instance3.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+            return
+          end
+          name = v41.Name
+          instance7.Text = "Aimed: " .. (name or "Unknown")
+          return
+        end
+        if not pcall(function() v44.CFrame = v44.CFrame:Lerp(cframe2, 0.16) end) then
+          v10 = true
+          instance7.Text = "Aimed: Camera writes blocked"
+          v6 = false
+          instance3.Text = "Aimbot: OFF (Q)"
+          instance3.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+          return
+        end
+        name = v41.Name
+        instance7.Text = "Aimed: " .. (name or "Unknown")
+        return
+      end
+      instance7.Text = "Aimed: None"
+      return
+    end
+    instance7.Text = "Aimed: None"
+    return
+  end
+end)
+local function f16(p13)
+  v6 = p13
+  instance3.Text = "Aimbot: " .. (p13 and "ON (Q)" or "OFF (Q)")
+  instance3.BackgroundColor3 = p13 and Color3.fromRGB(60, 200, 120)
+    or Color3.fromRGB(180, 60, 60)
+  if p13 then
+    v41 = f15()
+  else
+    v41 = nil
+    instance7.Text = "Aimed: None"
+    if v30 then
+      v30.Visible = false
+    end
+  end
+end
+instance3.MouseButton1Click:Connect(function() f16(not v6) end)
+instance4.MouseButton1Click:Connect(function()
+  v7 = not v7
+  instance4.Text = "Strong Lock: " .. (v7 and "ON" or "OFF")
+  instance4.BackgroundColor3 = v7 and Color3.fromRGB(60, 200, 120)
+    or Color3.fromRGB(180, 60, 60)
+  if v7 then
+    v41 = f15()
+  end
+end)
+instance5.MouseButton1Click:Connect(function()
+  v8 = not v8
+  instance5.Text = "Wallcheck: " .. (v8 and "ON" or "OFF")
+  instance5.BackgroundColor3 = v8 and Color3.fromRGB(60, 200, 120)
+    or Color3.fromRGB(160, 160, 160)
+  v41 = f15()
+end)
+instance6.MouseButton1Click:Connect(function()
+  if v9 == "Head" then
+    v9 = "HumanoidRootPart"
+    instance6.Text = "Aim: HRP"
+  else
+    v9 = "Head"
+    instance6.Text = "Aim: Head"
+  end
+  v41 = f15()
+end)
+userInputService.InputBegan:Connect(function(input, p14)
+  if p14 then
+    return
+  end
+  if input.KeyCode == q then
+    f16(not v6)
+  elseif input.KeyCode == e then
+    instance6:CaptureFocus()
+    instance6:ReleaseFocus()
+    instance6:MouseButton1Click()
+  end
+end)
+localPlayer.CharacterAdded:Connect(function()
+  v41 = nil
+  v10 = false
+end)
+runService.RenderStepped:Connect(function(delta)
+  v14 = v14 + delta
+  if v14 < 0.033333333333333 then
+    return
+  end
+  v14 = 0
+  for index2, value2 in ipairs(players:GetPlayers()) do
+    f11(value2)
+  end
+end)
+local instance9 = Instance.new("TextButton", instance)
+instance9.Size = UDim2.new(0.48, -10, 0, 26)
+instance9.Position = UDim2.new(0.52, 0, 0, 136)
+instance9.Text = "Exclude: 0"
+instance9.Font = Enum.Font.Gotham
+instance9.TextSize = 12
+instance9.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+Instance.new("UICorner", instance9).CornerRadius = UDim.new(0, 6)
+local instance10 = Instance.new("Frame", instance)
+instance10.Size = UDim2.new(0, 280, 0, 140)
+instance10.Position = UDim2.new(0, 10, 0, 170)
+instance10.BackgroundColor3 = Color3.fromRGB(16, 16, 16)
+instance10.Visible = false
+Instance.new("UICorner", instance10).CornerRadius = UDim.new(0, 8)
+local instance11 = Instance.new("ScrollingFrame", instance10)
+instance11.Size = UDim2.new(1, -12, 1, -12)
+instance11.Position = UDim2.new(0, 6, 0, 6)
+instance11.BackgroundTransparency = 1
+instance11.CanvasSize = UDim2.new(0, 0, 0, 0)
+instance11.ScrollBarThickness = 6
+local instance12 = Instance.new("UIListLayout", instance11)
+instance12.Padding = UDim.new(0, 6)
+instance12.SortOrder = Enum.SortOrder.LayoutOrder
+local function f17()
+  local v46 = 0
+  for index3, value3 in ipairs(instance11:GetChildren()) do
+    if value3:IsA("TextButton") then
+      v46 = v46 + value3.Size.Y.Offset + 6
+    end
+  end
+  instance11.CanvasSize = UDim2.new(0, 0, 0, math.max(0, v46))
+end
+local v47 = {}
+local function f18()
+  local count = 0
+  for key, value4 in pairs(v11) do
+    if value4 then
+      count = count + 1
+    end
+  end
+  instance9.Text = "Exclude: " .. tostring(count)
+end
+local function f19(p15)
+  local textButton
+  if p15 == localPlayer then
+    return
+  elseif v47[p15] then
+    return
+  else
+    local text = tostring(p15.Name) .. " (" .. tostring(p15.DisplayName or "") .. ")"
+    textButton = Instance.new("TextButton")
+    textButton.Size = UDim2.new(1, 0, 0, 28)
+    textButton.BackgroundColor3 = f3(p15) and Color3.fromRGB(180, 60, 60)
+      or Color3.fromRGB(40, 40, 40)
+    textButton.TextColor3 = Color3.fromRGB(230, 230, 230)
+    textButton.Font = Enum.Font.Gotham
+    textButton.TextSize = 14
+    textButton.Text = text
+    textButton.Parent = instance11
+    textButton.MouseButton1Click:Connect(function()
+      if v11[p15] then
+        v11[p15] = nil
+        textButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+      else
+        v11[p15] = true
+        textButton.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        if v41 == p15 then
+          v41 = nil
+        end
+      end
+      f18()
+    end)
+    v47[p15] = textButton
+    f17()
+    f18()
+    return textButton
+  end
+end
+for index4, value5 in ipairs(players:GetPlayers()) do
+  f19(value5)
+end
+players.PlayerAdded:Connect(function(player) f19(player) end)
+players.PlayerRemoving:Connect(function(player2)
+  v11[player2] = nil
+  local v48 = v47[player2]
+  if v48 and v48.Parent then
+    v48:Destroy()
+  end
+  v47[player2] = nil
+  f17()
+  f18()
+  f9(player2)
+  if v41 == player2 then
+    v41 = nil
+  end
+end)
+instance9.MouseButton1Click:Connect(function() instance10.Visible = not instance10.Visible end)
+players.PlayerRemoving:Connect(function(player3) f9(player3) end)
+print(" LrapX Hub runing T-T ")
