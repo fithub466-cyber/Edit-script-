@@ -1494,7 +1494,7 @@ do
 				pcall(SaveConfig)
 			end)
 		end)
-		HopRemainLabel = fn12(Frame8, "الوقت المتبقي:
+		HopRemainLabel = fn12(Frame8, "الوقت المتبقي:")
 		if HopRemainLabel then
 			HopRemainLabel.TextSize = 15
 			HopRemainLabel.TextColor3 = Color3.fromRGB(50, 50, 58)
