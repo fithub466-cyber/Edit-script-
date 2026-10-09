@@ -1300,19 +1300,19 @@ do
 			Frame = Frame8,
 		}
 	end
-	local FishFarm = fn21("FishFarm", "rbxassetid://10723407317", 1)
-	local v5 = fn21("تسكيب السمك", "rbxassetid://10734898355", 2)
-	local Statistics = fn21("Statistics", "rbxassetid://10734896260", 3)
-	v3 = fn21("Anti-Kick", "rbxassetid://10734897394", 4)
-	Server = fn21("Server", "rbxassetid://10734901094", 5)
-	Dev = fn21("Dev", "rbxassetid://10734901807", 6)
-	v4 = fn21("تنقيص الحجم", "rbxassetid://10734903978", 7)
-	fn20("FishFarm")
+	local FishFarm = fn21("ระบบฟาร์มปลา", "rbxassetid://10723407317", 1)
+	local v5 = fn21("ข้ามปลา", "rbxassetid://10734898355", 2)
+	local Statistics = fn21("สถิติ", "rbxassetid://10734896260", 3)
+	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 4)
+	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 5)
+	Dev = fn21("ผู้พัฒนา", "rbxassetid://10734901807", 6)
+	v4 = fn21("ปรับขนาด", "rbxassetid://10734903978", 7)
+	fn20("ระบบฟาร์มปลา")
 	task.defer(function()
 		pcall(fn10)
 	end)
-	label = fn13(FishFarm, "🏦 Bank Balance", "$0").Label
-	label2 = fn13(FishFarm, "💸 Hand Balance", "$0").Label
+	label = fn13(FishFarm, "🏦 ยอดเงินในธนาคาร", "$0").Label
+	label2 = fn13(FishFarm, "💸 เงินสดในมือ", "$0").Label
 	fn12(FishFarm, "إعدادات المعدات")
 	tbl7 = {}
 	tbl4.AutoBuyEnabled = true
