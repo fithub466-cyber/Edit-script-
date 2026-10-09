@@ -1,0 +1,7085 @@
+
+
+do
+	local Players = game:GetService("Players")
+	local RbxAnalyticsService = game:GetService("RbxAnalyticsService")
+	local StarterGui = game:GetService("StarterGui")
+	local HttpService = game:GetService("HttpService")
+	local localPlayer = Players.LocalPlayer
+	local function fn()
+		local ok, result = pcall(function()
+			return RbxAnalyticsService:GetClientId()
+		end)
+		if ok and result then
+			return result
+		end
+		return tostring(game.PlaceId) .. "_" .. tostring(os.time())
+	end
+	local function fn2()
+		local ok, result = pcall(function()
+			return localPlayer.Name
+		end)
+		if ok and result then
+			return result
+		end
+		return "UNKNOWN_USER"
+	end
+	local function fn3(arg)
+		pcall(function()
+			localPlayer:Kick(arg)
+		end)
+	end
+	local function fn4(arg, arg2, arg3)
+		pcall(function()
+			local v = StarterGui
+			local setCore = v.SetCore
+			local tbl = { Title = arg, Text = arg2 }
+			local v2 = arg3
+			local duration
+			if arg3 then
+				duration = v2
+			else
+				duration = 5
+			end
+			tbl.Duration = duration
+			setCore(v, "SendNotification", tbl)
+		end)
+	end
+	local function fn5(arg)
+		local v = fn()
+		local v2 = fn2()
+		local str = string.format("%s/api/verify-key?key=%s&scriptId=%s&udid=%s&username=%s", "http://kvnreal.online", arg, "PAIDFISHUNDER", v, v2)
+		local ok, result = pcall(function()
+			return game:HttpGet(str)
+		end)
+		if not ok then
+			return false, "Connection failed!", true
+		end
+		local ok2, result2 = pcall(function()
+			return HttpService:JSONDecode(result)
+		end)
+		if not ok2 or not result2 then
+			return false, "Invalid server response.", true
+		end
+		if not result2.success then
+			return false, result2.error or "Invalid Key", result2.shouldKick or true
+		end
+		return true, result2.note or "Success", false
+	end
+	local function fn6(arg)
+		spawn(function()
+			local result
+			while true do
+				wait(12)
+				local ok, result2 = pcall(function()
+					local v = fn2()
+					local str = string.format("%s/api/heartbeat?key=%s&scriptId=%s&username=%s", "http://kvnreal.online", arg, "PAIDFISHUNDER", v)
+					return game:HttpGet(str)
+				end)
+				if not (ok and result2) then
+					continue
+				end
+				local ok2
+				ok2, result = pcall(function()
+					return HttpService:JSONDecode(result2)
+				end)
+				if not (ok2 and result and result.kicked) then
+					continue
+				end
+				break
+			end
+			local reason = result.reason or "تم طردك من قبل الأدمن"
+			fn4("⛔ تم طردك", reason, 6)
+			wait(1.5)
+			fn3(reason)
+		end)
+	end
+	if not (function()
+		if not _G.Key or _G.Key == "" then
+			fn4("🔐 Key System", "No key provided! Set _G.Key = 'YOUR_KEY'", 5)
+			return false
+		end
+		fn4("🔐 KVN", "Verifying key...", 3)
+		local v, v2, v3 = fn5(_G.Key)
+		if not v then
+			fn4("❌ Verification Failed", v2, 7)
+			if v3 then
+				wait(1.5)
+				fn3(v2)
+			end
+			return false
+		end
+		fn4("✅ Verified!", v2, 3)
+		fn6(_G.Key)
+		return true
+	end)() then
+		return
+	end
+end
+local fishFarmLoaded = getgenv().FishFarmLoaded
+getgenv().FishFarmLoaded = true
+do
+	local str = ""
+	local n = 0
+	local n2 = 3
+	Notify = function(arg, arg2)
+		local str2 = tostring(arg) .. "|" .. tostring(arg2 or "")
+		local now = tick()
+		if str2 == str and now - n < n2 then
+			return
+		end
+		str = str2
+		n = now
+	end
+end
+if getgenv then
+	getgenv().identifyexecutor = nil
+end
+if getfenv then
+	getfenv().identifyexecutor = nil
+end
+task.spawn(function()
+	local Players = game:GetService("Players")
+	local CoreGui = game:GetService("CoreGui")
+	local localPlayer = Players.LocalPlayer
+	local function fn(arg)
+		if not arg or arg.Parent == nil then
+			return false
+		end
+		if arg:IsA("GuiObject") and not arg.Visible then
+			return false
+		end
+		local parent = arg.Parent
+		while parent and parent ~= game do
+			if parent:IsA("GuiObject") and not parent.Visible then
+				return false
+			end
+			if parent:IsA("ScreenGui") and parent.Enabled == false then
+				return false
+			end
+			parent = parent.Parent
+		end
+		return true
+	end
+	local function fn2(arg)
+		if not arg or not arg.Parent or not fn(arg) then
+			return
+		end
+		pcall(function()
+			if firesignal then
+				firesignal(arg.MouseButton1Click)
+				firesignal(arg.Activated)
+			end
+			if getconnections then
+				for _, v in ipairs(getconnections(arg.MouseButton1Click)) do
+					v:Fire()
+				end
+				for _, v in ipairs(getconnections(arg.Activated)) do
+					v:Fire()
+				end
+			end
+		end)
+	end
+	local now = tick()
+	while tick() - now < 30 do
+		pcall(function()
+			local v = CoreGui
+			for _, v2 in ipairs({ localPlayer:FindFirstChild("PlayerGui"), v }) do
+				if v2 then
+					for _, descendant in ipairs(v2:GetDescendants()) do
+						if (descendant:IsA("TextButton") or descendant:IsA("ImageButton")) and fn(descendant) then
+							local v3 = string.upper(descendant.Name)
+							if v3 == "PLAYBUTTON" or v3 == "AVATARMENUSKIPBUTTON" then
+								fn2(descendant)
+							end
+						end
+					end
+				end
+			end
+		end)
+		task.wait(1)
+	end
+end)
+pcall(function()
+	require(game:GetService("ReplicatedStorage").Modules.Game.UI.TransitionUI).transition = function()
+	end
+end)
+pcall(function()
+	local CharacterCreator = require(game:GetService("ReplicatedStorage").Modules.Game.CharacterCreator.CharacterCreator)
+	if CharacterCreator.start then
+		CharacterCreator.start = function()
+			while true do
+				task.wait(1)
+			end
+		end
+	end
+end)
+local ReplicatedStorage
+ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService, PathfindingService, RunService, TeleportService, UserInputService, localPlayer
+local Players = game:GetService("Players")
+HttpService = game:GetService("HttpService")
+PathfindingService = game:GetService("PathfindingService")
+RunService = game:GetService("RunService")
+TeleportService = game:GetService("TeleportService")
+game:GetService("VirtualInputManager")
+UserInputService = game:GetService("UserInputService")
+localPlayer = Players.LocalPlayer
+local character
+character = localPlayer.Character
+if not character then
+	local now = tick()
+	while not localPlayer.Character and tick() - now < 8 do
+		task.wait(0.1)
+	end
+	character = localPlayer.Character
+end
+local humanoid
+humanoid = character and character:FindFirstChild("Humanoid")
+local humanoidRootPart
+humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+if character then
+	humanoid = humanoid or character:WaitForChild("Humanoid", 8)
+	humanoidRootPart = humanoidRootPart or character:WaitForChild("HumanoidRootPart", 8)
+end
+local playerGui
+playerGui = localPlayer:WaitForChild("PlayerGui")
+local backpack, userId, Net, Data, XPFormula, ItemUtils, Recovery, tbl, tbl2, tbl3
+local fn, tbl4, fn2, n, flag
+do
+	local VirtualUser = game:GetService("VirtualUser")
+	backpack = localPlayer:WaitForChild("Backpack")
+	userId = localPlayer.UserId
+	localPlayer.CharacterAdded:Connect(function(character2)
+		character = character2
+		humanoid = character2:WaitForChild("Humanoid", 10)
+		humanoidRootPart = character2:WaitForChild("HumanoidRootPart", 10)
+		backpack = localPlayer:WaitForChild("Backpack")
+	end)
+	Net = require(ReplicatedStorage.Modules.Core.Net)
+	Data = require(ReplicatedStorage.Modules.Core.Data)
+	XPFormula = nil
+	pcall(function()
+		XPFormula = require(ReplicatedStorage.Modules.Game.Skills.XPFormula)
+	end)
+	ItemUtils = nil
+	pcall(function()
+		ItemUtils = require(ReplicatedStorage.Modules.Game.Inventory.ItemUtils)
+	end)
+	Recovery = nil
+	pcall(function()
+		Recovery = require(ReplicatedStorage.Modules.Game.Inventory.Recovery)
+	end)
+	tbl = {
+		"Bass",
+		"Perch",
+		"Salmon",
+		"Northern Pike",
+		"Dolphinfish",
+		"Coelacanth",
+		"Tuna",
+		"Sailfish",
+		"Marlin",
+	}
+	tbl2 = {}
+	for _, v in ipairs(tbl) do
+		tbl2[v] = true
+	end
+	tbl3 = { totalFish = 0, fishCaught = {} }
+	fn = nil
+	tbl4 = {
+		StopWalking = false,
+		Running = false,
+		Respawn = false,
+		AutoBuyEnabled = false,
+		RodSelect = "Smart Select",
+		BaitSelect = "Smart Select",
+		BaitAmount = 10,
+		WalkSpeed = 20,
+		ZoneSelect = "Level 70 +",
+		AutoFarmActive = false,
+		UseVehicle = true,
+		VehicleType = "Bike",
+		VehicleSelect = "Smart Select",
+		VehicleSpeed = 55,
+		AutoRepairVehicle = false,
+		SellAfterFishCount = 0,
+		HopNoFishEnabled = false,
+		HopNoFishMinutes = 30,
+		HopWatchFish = {},
+	}
+	lastWatchedCatchTime = tick()
+	local str = ""
+	local n2 = 0
+	local n3 = 1.5
+	fn2 = function(caught)
+		if not caught or caught == "" then
+			return
+		end
+		local now = tick()
+		if caught == str and now - n2 < n3 then
+			return
+		end
+		str = caught
+		n2 = now
+		tbl3.totalFish = tbl3.totalFish + 1
+		tbl3.fishCaught[caught] = (tbl3.fishCaught[caught] or 0) + 1
+		getgenv().NEE_LastCaughtFish = caught
+		getgenv().NEE_LastCaughtTime = tick()
+		pcall(function()
+			Notify("NEE Stats", "Caught: " .. caught)
+		end)
+		if fn then
+			fn()
+		end
+	end
+	n = 0
+	flag = false
+	EnableAntiKick = function(arg)
+		flag = arg and true or false
+		if not getgenv()._NEE_AntiKickHooked then
+			getgenv()._NEE_AntiKickHooked = true
+			pcall(function()
+				localPlayer.Idled:Connect(function()
+					if not flag then
+						return
+					end
+					pcall(function()
+						VirtualUser:CaptureFocus()
+						VirtualUser:ClickButton2(Vector2.new())
+					end)
+				end)
+			end)
+		end
+	end
+end
+EnableAntiKick(false)
+local flag2
+flag2 = false
+local n2
+n2 = 30
+local now
+now = tick()
+local now2
+now2 = tick()
+local vector
+vector = Vector3.zero
+local n3
+n3 = 600
+local flag3
+flag3 = false
+local n4
+n4 = 0
+local n5
+n5 = 20
+local flag4
+flag4 = false
+local n6
+n6 = 0
+ForceNextCast = false
+lastThrowTick = tick()
+local n7
+n7 = 230.138
+local n8
+n8 = 8
+local fn3
+fn3 = function()
+	return tbl4.VehicleType == "Bike" and 200 or 500
+end
+local fn4
+fn4 = function()
+	now2 = tick()
+	local character2 = game.Players.LocalPlayer.Character
+	if character2 and character2:FindFirstChild("HumanoidRootPart") then
+		vector = character2.HumanoidRootPart.Position
+	end
+end
+local tbl5, fn5, tbl6, gothamMedium, gotham, fn6, fn7, fn8, fn9, ScreenGui
+local Frame, Frame2, TextButton, ImageLabel, udim2, Frame3, Frame4
+do
+	local TweenService = game:GetService("TweenService")
+	tbl5 = {}
+	fn5 = function()
+		for _, v in ipairs(tbl5) do
+			pcall(function()
+				if v.close then
+					v.close()
+				end
+			end)
+		end
+	end
+	ShowStickyMoney = function(arg, arg2)
+		pcall(function()
+			local neeToasts = playerGui:FindFirstChild("NEE_Toasts")
+			if not neeToasts then
+				neeToasts = Instance.new("ScreenGui")
+				neeToasts.Name = "NEE_Toasts"
+				neeToasts.ResetOnSpawn = false
+				neeToasts.IgnoreGuiInset = true
+				neeToasts.DisplayOrder = 1000000
+				neeToasts.Parent = playerGui
+			end
+			local stickyMoney = neeToasts:FindFirstChild("StickyMoney")
+			if stickyMoney then
+				stickyMoney:Destroy()
+			end
+			local frame = Instance.new("Frame")
+			frame.Name = "StickyMoney"
+			frame.Size = UDim2.fromOffset(300, 64)
+			frame.Position = UDim2.new(1, -320, 0.28, 0)
+			frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			frame.BorderSizePixel = 0
+			frame.Parent = neeToasts
+			Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+			local uiStroke = Instance.new("UIStroke", frame)
+			uiStroke.Color = Color3.fromRGB(220, 80, 80)
+			uiStroke.Thickness = 1
+			local textLabel = Instance.new("TextLabel")
+			textLabel.BackgroundTransparency = 1
+			textLabel.Size = UDim2.new(1, -18, 0, 22)
+			textLabel.Position = UDim2.fromOffset(12, 8)
+			textLabel.Font = Enum.Font.GothamMedium
+			textLabel.TextSize = 14
+			textLabel.TextXAlignment = Enum.TextXAlignment.Left
+			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
+			textLabel.Text = tostring(arg or "NEE")
+			textLabel.Parent = frame
+			local textLabel2 = Instance.new("TextLabel")
+			textLabel2.BackgroundTransparency = 1
+			textLabel2.Size = UDim2.new(1, -18, 0, 24)
+			textLabel2.Position = UDim2.fromOffset(12, 30)
+			textLabel2.Font = Enum.Font.Gotham
+			textLabel2.TextSize = 13
+			textLabel2.TextXAlignment = Enum.TextXAlignment.Left
+			textLabel2.TextColor3 = Color3.fromRGB(180, 50, 50)
+			local v = tostring
+			local v2 = arg2
+			local str
+			if arg2 then
+				str = v2
+			else
+				str = ""
+			end
+			textLabel2.Text = v(str)
+			textLabel2.Parent = frame
+		end)
+	end
+	ShowToast = function(arg, arg2)
+		pcall(function()
+			local neeToasts = playerGui:FindFirstChild("NEE_Toasts")
+			if not neeToasts then
+				neeToasts = Instance.new("ScreenGui")
+				neeToasts.Name = "NEE_Toasts"
+				neeToasts.ResetOnSpawn = false
+				neeToasts.IgnoreGuiInset = true
+				neeToasts.DisplayOrder = 1000000
+				neeToasts.Parent = playerGui
+			end
+			local frame = Instance.new("Frame")
+			frame.Size = UDim2.fromOffset(290, 60)
+			frame.Position = UDim2.new(1, 30, 0.16, 0)
+			frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			frame.BorderSizePixel = 0
+			frame.Parent = neeToasts
+			Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+			local uiStroke = Instance.new("UIStroke", frame)
+			uiStroke.Color = Color3.fromRGB(225, 225, 230)
+			uiStroke.Thickness = 1
+			local textLabel = Instance.new("TextLabel")
+			textLabel.BackgroundTransparency = 1
+			textLabel.Size = UDim2.new(1, -18, 0, 22)
+			textLabel.Position = UDim2.fromOffset(12, 8)
+			textLabel.Font = Enum.Font.GothamMedium
+			textLabel.TextSize = 14
+			textLabel.TextXAlignment = Enum.TextXAlignment.Left
+			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
+			textLabel.Text = tostring(arg or "NEE")
+			textLabel.Parent = frame
+			local textLabel2 = Instance.new("TextLabel")
+			textLabel2.BackgroundTransparency = 1
+			textLabel2.Size = UDim2.new(1, -18, 0, 20)
+			textLabel2.Position = UDim2.fromOffset(12, 30)
+			textLabel2.Font = Enum.Font.Gotham
+			textLabel2.TextSize = 12
+			textLabel2.TextXAlignment = Enum.TextXAlignment.Left
+			textLabel2.TextColor3 = Color3.fromRGB(110, 110, 120)
+			textLabel2.Text = tostring(arg2 or "")
+			textLabel2.Parent = frame
+			TweenService:Create(frame, TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = UDim2.new(1, -310, 0.16, (#neeToasts:GetChildren() - 1) * 68) }):Play()
+			task.delay(3.3, function()
+				pcall(function()
+					TweenService:Create(frame, TweenInfo.new(0.25), { Position = UDim2.new(1, 30, frame.Position.Y.Scale, frame.Position.Y.Offset) }):Play()
+					task.wait(0.26)
+					frame:Destroy()
+				end)
+			end)
+		end)
+	end
+	local image = "rbxassetid://89443683946153"
+	tbl6 = {
+		Background = Color3.fromRGB(248, 248, 250),
+		Panel = Color3.fromRGB(255, 255, 255),
+		PanelLight = Color3.fromRGB(240, 240, 243),
+		AccentDim = Color3.fromRGB(225, 235, 255),
+		Text = Color3.fromRGB(30, 30, 35),
+		SubText = Color3.fromRGB(130, 130, 140),
+		Stroke = Color3.fromRGB(225, 225, 230),
+		Blue = Color3.fromRGB(80, 130, 255),
+		Shadow = Color3.fromRGB(0, 0, 0),
+	}
+	gothamMedium = Enum.Font.GothamMedium
+	gotham = Enum.Font.Gotham
+	fn6 = function(arg, arg2)
+		local instance = Instance.new(arg)
+		for k, v in pairs(arg2) do
+			if k ~= "Parent" then
+				instance[k] = v
+			end
+		end
+		if arg2.Parent then
+			instance.Parent = arg2.Parent
+		end
+		return instance
+	end
+	fn7 = function(parent)
+		pcall(function()
+			if not parent or parent:FindFirstChild("CardBG") then
+				return
+			end
+			local imageLabel = Instance.new("ImageLabel")
+			imageLabel.Name = "CardBG"
+			imageLabel.BackgroundTransparency = 1
+			imageLabel.Size = UDim2.fromScale(1, 1)
+			imageLabel.Image = image
+			imageLabel.ImageTransparency = 0.72
+			imageLabel.ScaleType = Enum.ScaleType.Crop
+			imageLabel.ZIndex = parent.ZIndex or 1
+			imageLabel.Parent = parent
+			Instance.new("UICorner", imageLabel).CornerRadius = UDim.new(0, 12)
+		end)
+	end
+	fn8 = function(arg, arg2, arg3)
+		local tween = TweenService:Create(arg, arg2, arg3)
+		tween:Play()
+		return tween
+	end
+	fn9 = function(arg)
+		local n9 = math.floor(arg / 3600)
+		local n10 = math.floor(arg % 3600 / 60)
+		local n11 = math.floor(arg % 60)
+		return string.format("%02d:%02d:%02d", n9, n10, n11)
+	end
+	pcall(function()
+		local windMenu = playerGui:FindFirstChild("WindMenu")
+		if windMenu then
+			windMenu:Destroy()
+		end
+	end)
+	ScreenGui = fn6("ScreenGui", {
+		Name = "WindMenu",
+		ResetOnSpawn = false,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+		IgnoreGuiInset = true,
+		Parent = playerGui,
+	})
+	Frame = fn6("Frame", {
+		Name = "OpenBtnHolder",
+		Size = UDim2.fromOffset(72, 72),
+		Position = UDim2.new(0, 14, 0.5, -36),
+		BackgroundTransparency = 1,
+		Visible = true,
+		ZIndex = 15,
+		Parent = ScreenGui,
+	})
+	Frame2 = fn6("Frame", {
+		Size = UDim2.fromOffset(72, 72),
+		Position = UDim2.fromOffset(2, 4),
+		BackgroundColor3 = tbl6.Shadow,
+		BackgroundTransparency = 0.8,
+		BorderSizePixel = 0,
+		ZIndex = 15,
+		Parent = Frame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame2 })
+	TextButton = fn6("TextButton", {
+		Name = "OpenBtn",
+		Size = UDim2.fromOffset(72, 72),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		AutoButtonColor = false,
+		Text = "",
+		ClipsDescendants = true,
+		ZIndex = 16,
+		Parent = Frame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TextButton })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 2, Parent = TextButton })
+	ImageLabel = fn6("ImageLabel", {
+		Size = UDim2.fromScale(1, 1),
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Image = "rbxassetid://119572049696363",
+		ImageColor3 = Color3.fromRGB(255, 255, 255),
+		ScaleType = Enum.ScaleType.Crop,
+		ZIndex = 17,
+		Parent = TextButton,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ImageLabel })
+	TextButton.MouseEnter:Connect(function()
+		local tbl7 = { BackgroundColor3 = tbl6.AccentDim }
+		fn8(TextButton, TweenInfo.new(0.15), tbl7)
+	end)
+	TextButton.MouseLeave:Connect(function()
+		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(255, 255, 255) })
+	end)
+	udim2 = UDim2.fromOffset(550, 550)
+	Frame3 = fn6("Frame", {
+		Name = "ShadowHolder",
+		Size = udim2,
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundColor3 = tbl6.Shadow,
+		BackgroundTransparency = 0.75,
+		BorderSizePixel = 0,
+		Visible = false,
+		ZIndex = 1,
+		Parent = ScreenGui,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame3 })
+	Frame4 = fn6("Frame", {
+		Name = "MainFrame",
+		Size = udim2,
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundColor3 = Color3.fromRGB(236, 236, 240),
+		BorderSizePixel = 0,
+		Visible = false,
+		ClipsDescendants = true,
+		Active = true,
+		ZIndex = 2,
+		Parent = ScreenGui,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame4 })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Parent = Frame4 })
+	local ImageLabel2 = fn6("ImageLabel", {
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		Image = image,
+		ImageTransparency = 0.48,
+		ScaleType = Enum.ScaleType.Crop,
+		ZIndex = 2,
+		Parent = Frame4,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = ImageLabel2 })
+end
+local Frame5 = fn6("Frame", {
+	Size = UDim2.fromScale(1, 1),
+	BackgroundColor3 = Color3.fromRGB(232, 232, 236),
+	BackgroundTransparency = 0.38,
+	BorderSizePixel = 0,
+	ZIndex = 3,
+	Parent = Frame4,
+})
+fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame5 })
+local TextLabel, v, v2, flag5, fn10, fn11
+do
+	local Frame6 = fn6("Frame", {
+		Name = "TopBar",
+		Size = UDim2.new(1, 0, 0, 46),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0.55,
+		BorderSizePixel = 0,
+		ZIndex = 5,
+		Parent = Frame4,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame6 })
+	TextLabel = fn6("TextLabel", {
+		Name = "TimerLabel",
+		Size = UDim2.new(0, 130, 1, 0),
+		Position = UDim2.fromOffset(18, 0),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.Code,
+		Text = "00:00:00",
+		TextColor3 = tbl6.Text,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextSize = 15,
+		ZIndex = 6,
+		Parent = Frame6,
+	})
+	local Frame7 = fn6("Frame", {
+		Size = UDim2.fromOffset(92, 28),
+		Position = UDim2.new(1, -104, 0.5, 0),
+		AnchorPoint = Vector2.new(0, 0.5),
+		BackgroundTransparency = 1,
+		ZIndex = 6,
+		Parent = Frame6,
+	})
+	fn6("UIListLayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		HorizontalAlignment = Enum.HorizontalAlignment.Right,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 6),
+		Parent = Frame7,
+	})
+	local function fn12(arg, arg2)
+		local TextButton2 = fn6("TextButton", {
+			Size = UDim2.fromOffset(22, 22),
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Font = Enum.Font.Gotham,
+			Text = arg,
+			TextColor3 = Color3.fromRGB(140, 140, 148),
+			TextSize = arg2 or 16,
+			ZIndex = 6,
+			Parent = Frame7,
+		})
+		TextButton2.MouseEnter:Connect(function()
+			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(30, 30, 35) })
+		end)
+		TextButton2.MouseLeave:Connect(function()
+			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(140, 140, 148) })
+		end)
+		return TextButton2
+	end
+	v = fn12("−", 18)
+	local v3 = fn12("▢", 14)
+	v2 = fn12("×", 18)
+	local flag6 = false
+	v3.MouseButton1Click:Connect(function()
+		flag6 = not flag6
+		local udim22 = flag6 and UDim2.fromOffset(720, 620) or UDim2.fromOffset(550, 550)
+		udim2 = udim22
+		if menuOpen then
+			fn8(Frame4, TweenInfo.new(0.2), { Size = udim22 })
+			fn8(Frame3, TweenInfo.new(0.2), { Size = udim22 })
+		end
+	end)
+	flag5 = false
+	fn10 = function()
+		if flag5 then
+			return
+		end
+		flag5 = true
+		Frame4.Visible = true
+		Frame3.Visible = true
+		Frame4.Size = UDim2.fromOffset(0, 0)
+		Frame3.Size = UDim2.fromOffset(0, 0)
+		local tbl7 = { Size = udim2 }
+		fn8(Frame4, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), tbl7)
+		local tbl8 = { Size = udim2 }
+		fn8(Frame3, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), tbl8)
+	end
+	fn11 = function()
+		if not flag5 then
+			return
+		end
+		flag5 = false
+		fn8(Frame4, TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.In), { Size = UDim2.fromOffset(0, 0) })
+		fn8(Frame3, TweenInfo.new(0.32, Enum.EasingStyle.Quint, Enum.EasingDirection.In), { Size = UDim2.fromOffset(0, 0) })
+		task.delay(0.34, function()
+			if not flag5 then
+				Frame4.Visible = false
+				Frame3.Visible = false
+			end
+		end)
+	end
+	local flag7 = false
+	local position = nil
+	local position2 = nil
+	local n9 = 0
+	TextButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag7 = true
+			position = input.Position
+			position2 = Frame.Position
+			n9 = 0
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if not flag7 then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			local n10 = input.Position - position
+			n9 = math.abs(n10.X) + math.abs(n10.Y)
+			Frame.Position = UDim2.new(position2.X.Scale, position2.X.Offset + n10.X, position2.Y.Scale, position2.Y.Offset + n10.Y)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag7 = false
+		end
+	end)
+	TextButton.MouseButton1Click:Connect(function()
+		if n9 < 8 then
+			if flag5 then
+				fn11()
+			else
+				fn10()
+			end
+		end
+	end)
+	local flag8 = false
+	local position3 = nil
+	local position4 = nil
+	local position5 = nil
+	Frame6.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag8 = true
+			position3 = input.Position
+			position4 = Frame4.Position
+			position5 = Frame3.Position
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if not flag8 then
+			return
+		end
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			local n10 = input.Position - position3
+			Frame4.Position = UDim2.new(position4.X.Scale, position4.X.Offset + n10.X, position4.Y.Scale, position4.Y.Offset + n10.Y)
+			Frame3.Position = UDim2.new(position5.X.Scale, position5.X.Offset + n10.X, position5.Y.Scale, position5.Y.Offset + n10.Y)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			flag8 = false
+		end
+	end)
+end
+UserInputService.InputBegan:Connect(function(input)
+	if input.UserInputType ~= Enum.UserInputType.MouseButton1 and input.UserInputType ~= Enum.UserInputType.Touch then
+		return
+	end
+	local mouseLocation = UserInputService:GetMouseLocation()
+	local guiInset = game:GetService("GuiService"):GetGuiInset()
+	local guiObjectsAtPosition = playerGui:GetGuiObjectsAtPosition(mouseLocation.X - guiInset.X, mouseLocation.Y - guiInset.Y)
+	for _, v3 in ipairs(guiObjectsAtPosition) do
+		while v3 and v3 ~= playerGui do
+			local isScrollingFrame = v3:IsA("ScrollingFrame")
+			if isScrollingFrame then
+				isScrollingFrame = (v3.ZIndex or 0) >= 30
+			end
+			if isScrollingFrame then
+				return
+			end
+			if v3.Name == "ValueChip" then
+				return
+			end
+			v3 = v3.Parent
+		end
+	end
+	fn5()
+end)
+local fn12, fn13, fn14, fn15, fn16, v3, Server, Dev, v4, label
+local label2, tbl7, fn17, vehicleSelect, n9, fn18, fn19, tbl8, flag6, n10
+local flag7
+do
+	local Frame6 = fn6("Frame", {
+		Name = "Sidebar",
+		Size = UDim2.new(0, 160, 1, -46),
+		Position = UDim2.new(0, 0, 0, 46),
+		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundTransparency = 0.62,
+		BorderSizePixel = 0,
+		ZIndex = 4,
+		Parent = Frame4,
+	})
+	local ScrollingFrame = fn6("ScrollingFrame", {
+		Size = UDim2.new(1, -20, 1, -20),
+		Position = UDim2.fromOffset(10, 10),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 0,
+		CanvasSize = UDim2.fromOffset(0, 0),
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		ZIndex = 5,
+		Parent = Frame6,
+	})
+	fn6("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = ScrollingFrame })
+	local Frame7 = fn6("Frame", {
+		Name = "ContentArea",
+		Size = UDim2.new(1, -160, 1, -46),
+		Position = UDim2.new(0, 160, 0, 46),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ZIndex = 4,
+		Parent = Frame4,
+	})
+	local tbl9 = {}
+	local tbl10 = {}
+	local function fn20(arg)
+		for k, v5 in pairs(tbl10) do
+			v5.Visible = k == arg
+		end
+		for k, v5 in pairs(tbl9) do
+			local label3 = v5:FindFirstChild("Label")
+			local icon = v5:FindFirstChild("Icon")
+			if k == arg then
+				local tbl11 = { BackgroundColor3 = tbl6.AccentDim, BackgroundTransparency = 0 }
+				fn8(v5, TweenInfo.new(0.15), tbl11)
+				if label3 then
+					label3.TextColor3 = tbl6.Text
+				end
+				if icon then
+					icon.ImageColor3 = tbl6.Text
+				end
+			else
+				local tbl11 = { BackgroundColor3 = tbl6.Panel, BackgroundTransparency = 1 }
+				fn8(v5, TweenInfo.new(0.15), tbl11)
+				if label3 then
+					label3.TextColor3 = tbl6.SubText
+				end
+				if icon then
+					icon.ImageColor3 = tbl6.SubText
+				end
+			end
+		end
+	end
+	local function fn21(arg, arg2, arg3)
+		local TextButton2 = fn6("TextButton", {
+			Name = arg .. "Button",
+			Size = UDim2.new(1, 0, 0, 38),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Text = "",
+			LayoutOrder = arg3,
+			ZIndex = 5,
+			Parent = ScrollingFrame,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 9), Parent = TextButton2 })
+		fn6("ImageLabel", {
+			Name = "Icon",
+			Size = UDim2.fromOffset(18, 18),
+			Position = UDim2.fromOffset(12, 11),
+			BackgroundTransparency = 1,
+			Image = arg2 or "",
+			ImageColor3 = tbl6.SubText,
+			ScaleType = Enum.ScaleType.Fit,
+			ZIndex = 6,
+			Parent = TextButton2,
+		})
+		fn6("TextLabel", {
+			Name = "Label",
+			Size = UDim2.new(1, -40, 1, 0),
+			Position = UDim2.fromOffset(34, 0),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg,
+			TextColor3 = tbl6.SubText,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 15,
+			ZIndex = 6,
+			Parent = TextButton2,
+		})
+		tbl9[arg] = TextButton2
+		local ScrollingFrame2 = fn6("ScrollingFrame", {
+			Name = arg .. "Page",
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			BorderSizePixel = 0,
+			ScrollBarThickness = 3,
+			ScrollBarImageColor3 = tbl6.SubText,
+			CanvasSize = UDim2.fromScale(0, 0),
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			Visible = false,
+			ZIndex = 4,
+			Parent = Frame7,
+		})
+		fn6("UIPadding", {
+			PaddingTop = UDim.new(0, 16),
+			PaddingLeft = UDim.new(0, 16),
+			PaddingRight = UDim.new(0, 16),
+			PaddingBottom = UDim.new(0, 20),
+			Parent = ScrollingFrame2,
+		})
+		fn6("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = ScrollingFrame2 })
+		tbl10[arg] = ScrollingFrame2
+		TextButton2.MouseButton1Click:Connect(function()
+			fn20(arg)
+		end)
+		return ScrollingFrame2
+	end
+	fn12 = function(arg, arg2)
+		return fn6("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 20),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = Color3.fromRGB(70, 70, 78),
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 15,
+			Parent = arg,
+		})
+	end
+	local function fn22(arg, arg2, arg3)
+		local Frame8 = fn6("Frame", {
+			Size = UDim2.new(1, 0, 0, 52),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			BorderSizePixel = 0,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Frame8 })
+		fn7(Frame8)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.35, Parent = Frame8 })
+		fn6("TextLabel", {
+			Size = UDim2.new(1, -20, 0, 22),
+			Position = UDim2.fromOffset(14, 6),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 15,
+			Parent = Frame8,
+		})
+		fn6("TextLabel", {
+			Size = UDim2.new(1, -20, 0, 18),
+			Position = UDim2.fromOffset(14, 28),
+			BackgroundTransparency = 1,
+			Font = gotham,
+			Text = arg3,
+			TextColor3 = tbl6.SubText,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 12,
+			Parent = Frame8,
+		})
+		return Frame8
+	end
+	fn13 = function(arg, arg2, arg3)
+		local Frame8 = fn6("Frame", {
+			Size = UDim2.new(1, 0, 0, 56),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			BorderSizePixel = 0,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Frame8 })
+		fn7(Frame8)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.35, Parent = Frame8 })
+		fn6("TextLabel", {
+			Size = UDim2.new(1, -50, 0, 22),
+			Position = UDim2.fromOffset(14, 6),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 14,
+			Parent = Frame8,
+		})
+		local TextLabel2 = fn6("TextLabel", {
+			Size = UDim2.new(1, -50, 0, 20),
+			Position = UDim2.fromOffset(14, 28),
+			BackgroundTransparency = 1,
+			Font = gotham,
+			Text = arg3,
+			TextColor3 = tbl6.SubText,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 13,
+			Parent = Frame8,
+		})
+		fn6("ImageLabel", {
+			Size = UDim2.fromOffset(16, 16),
+			Position = UDim2.new(1, -32, 0.5, -8),
+			BackgroundTransparency = 1,
+			Image = "rbxassetid://10734903978",
+			ImageColor3 = Color3.fromRGB(160, 165, 175),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = Frame8,
+		})
+		return {
+			Set = function(arg4, text)
+				TextLabel2.Text = text
+			end,
+			Label = TextLabel2,
+		}
+	end
+	fn14 = function(arg, arg2, arg3)
+		local TextButton2 = fn6("TextButton", {
+			Size = UDim2.new(1, 0, 0, 46),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			AutoButtonColor = false,
+			Font = gothamMedium,
+			Text = "",
+			TextColor3 = tbl6.Text,
+			TextSize = 14,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = TextButton2 })
+		fn7(TextButton2)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.35, Parent = TextButton2 })
+		fn6("TextLabel", {
+			Size = UDim2.new(1, -48, 1, 0),
+			Position = UDim2.fromOffset(14, 0),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 14,
+			Parent = TextButton2,
+		})
+		fn6("ImageLabel", {
+			Size = UDim2.fromOffset(16, 16),
+			Position = UDim2.new(1, -32, 0.5, -8),
+			BackgroundTransparency = 1,
+			Image = "rbxassetid://10734903978",
+			ImageColor3 = Color3.fromRGB(160, 165, 175),
+			ScaleType = Enum.ScaleType.Fit,
+			Parent = TextButton2,
+		})
+		TextButton2.MouseEnter:Connect(function()
+			local tbl11 = { BackgroundTransparency = 0, BackgroundColor3 = tbl6.PanelLight }
+			fn8(TextButton2, TweenInfo.new(0.15), tbl11)
+		end)
+		TextButton2.MouseLeave:Connect(function()
+			local tbl11 = { BackgroundTransparency = 0.08, BackgroundColor3 = tbl6.Panel }
+			fn8(TextButton2, TweenInfo.new(0.15), tbl11)
+		end)
+		TextButton2.MouseButton1Click:Connect(function()
+			if arg3 then
+				arg3()
+			end
+		end)
+		return TextButton2
+	end
+	fn15 = function(arg, arg2, arg3, arg4)
+		local flag8 = arg3 or false
+		local Frame8 = fn6("Frame", {
+			Size = UDim2.new(1, 0, 0, 46),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			BorderSizePixel = 0,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Frame8 })
+		fn7(Frame8)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.35, Parent = Frame8 })
+		fn6("TextLabel", {
+			Size = UDim2.new(1, -70, 1, 0),
+			Position = UDim2.fromOffset(14, 0),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 15,
+			Parent = Frame8,
+		})
+		local TextButton2 = fn6("TextButton", {
+			Size = UDim2.fromOffset(42, 22),
+			Position = UDim2.new(1, -54, 0.5, -11),
+			BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(205, 205, 210),
+			Text = "",
+			BorderSizePixel = 0,
+			Parent = Frame8,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TextButton2 })
+		local Frame9 = fn6("Frame", {
+			Size = UDim2.fromOffset(18, 18),
+			Position = flag8 and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BorderSizePixel = 0,
+			Parent = TextButton2,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame9 })
+		TextButton2.MouseButton1Click:Connect(function()
+			flag8 = not flag8
+			fn8(TextButton2, TweenInfo.new(0.2), { BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(205, 205, 210) })
+			fn8(Frame9, TweenInfo.new(0.2), { Position = flag8 and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9) })
+			if arg4 then
+				arg4(flag8)
+			end
+		end)
+		return {
+			Frame = Frame8,
+			Set = function(arg5, arg6)
+				flag8 = arg6 and true or false
+				TextButton2.BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(205, 205, 210)
+				Frame9.Position = flag8 and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9)
+			end,
+		}
+	end
+	fn16 = function(arg, arg2, arg3, arg4, arg5, arg6)
+		local n11 = arg5 or arg3
+		local Frame8 = fn6("Frame", {
+			Size = UDim2.new(1, 0, 0, 54),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			BorderSizePixel = 0,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Frame8 })
+		fn7(Frame8)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.2, Parent = Frame8 })
+		local TextLabel2 = fn6("TextLabel", {
+			Size = UDim2.new(1, -24, 0, 22),
+			Position = UDim2.fromOffset(14, 6),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2 .. ": " .. n11,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 13,
+			Parent = Frame8,
+		})
+		local Frame9 = fn6("Frame", {
+			Name = "SliderTrack",
+			Size = UDim2.new(1, -28, 0, 6),
+			Position = UDim2.fromOffset(14, 36),
+			BackgroundColor3 = Color3.fromRGB(215, 215, 220),
+			BorderSizePixel = 0,
+			Active = true,
+			Parent = Frame8,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame9 })
+		local Frame10 = fn6("Frame", {
+			Name = "SliderFill",
+			Size = UDim2.new((n11 - arg3) / math.max(arg4 - arg3, 1), 0, 1, 0),
+			BackgroundColor3 = tbl6.Blue,
+			BorderSizePixel = 0,
+			Parent = Frame9,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame10 })
+		local Frame11 = fn6("Frame", {
+			Name = "SliderKnob",
+			Size = UDim2.fromOffset(16, 16),
+			Position = UDim2.new((n11 - arg3) / math.max(arg4 - arg3, 1), -8, 0.5, 0),
+			AnchorPoint = Vector2.new(0, 0.5),
+			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BorderSizePixel = 0,
+			ZIndex = 5,
+			Active = true,
+			Parent = Frame9,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame11 })
+		fn6("UIStroke", { Color = tbl6.Blue, Thickness = 2, Parent = Frame11 })
+		local flag8 = false
+		local function fn23(arg7)
+			n11 = math.clamp(math.floor(arg7 + 0.5), arg3, arg4)
+			local n12 = (n11 - arg3) / math.max(arg4 - arg3, 1)
+			Frame10.Size = UDim2.new(n12, 0, 1, 0)
+			Frame11.Position = UDim2.new(n12, -8, 0.5, 0)
+			TextLabel2.Text = arg2 .. ": " .. n11
+		end
+		local function fn24(arg7)
+			fn23(arg3 + (arg4 - arg3) * math.clamp((arg7.Position.X - Frame9.AbsolutePosition.X) / math.max(Frame9.AbsoluteSize.X, 1), 0, 1))
+			if arg6 then
+				arg6(n11)
+			end
+		end
+		Frame9.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				flag8 = true
+				fn24(input)
+			end
+		end)
+		Frame11.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				flag8 = true
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(input)
+			if flag8 and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+				fn24(input)
+			end
+		end)
+		UserInputService.InputEnded:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				flag8 = false
+			end
+		end)
+		return {
+			Set = function(arg7, arg8)
+				fn23(arg8)
+			end,
+			Frame = Frame8,
+		}
+	end
+	local function fn23(arg, arg2, arg3, arg4, arg5)
+		arg3 = arg3 or { "Smart Select" }
+		local v5 = arg4 or arg3[1]
+		local flag8 = false
+		local Frame8 = fn6("Frame", {
+			Size = UDim2.new(1, 0, 0, 46),
+			BackgroundColor3 = tbl6.Panel,
+			BackgroundTransparency = 0.18,
+			BorderSizePixel = 0,
+			ZIndex = 8,
+			Parent = arg,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = Frame8 })
+		fn7(Frame8)
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.2, Parent = Frame8 })
+		fn6("TextLabel", {
+			Size = UDim2.new(0.48, 0, 1, 0),
+			Position = UDim2.fromOffset(14, 0),
+			BackgroundTransparency = 1,
+			Font = gothamMedium,
+			Text = arg2,
+			TextColor3 = tbl6.Text,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextSize = 15,
+			Parent = Frame8,
+		})
+		local TextButton2 = fn6("TextButton", {
+			Name = "ValueChip",
+			Size = UDim2.new(0.48, -10, 0, 26),
+			Position = UDim2.new(0.52, 0, 0.5, -13),
+			BackgroundColor3 = tbl6.PanelLight,
+			AutoButtonColor = false,
+			Font = gotham,
+			Text = tostring(v5),
+			TextColor3 = tbl6.Text,
+			TextSize = 14,
+			ZIndex = 9,
+			Parent = Frame8,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 7), Parent = TextButton2 })
+		local fn24 = nil
+		local ScrollingFrame2 = fn6("ScrollingFrame", {
+			Size = UDim2.new(0.48, -10, 0, 0),
+			Position = UDim2.new(0.52, 0, 1, 2),
+			BackgroundColor3 = tbl6.Panel,
+			BorderSizePixel = 0,
+			Visible = false,
+			ZIndex = 30,
+			ScrollBarThickness = 3,
+			AutomaticCanvasSize = Enum.AutomaticSize.Y,
+			CanvasSize = UDim2.new(),
+			Parent = Frame8,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = ScrollingFrame2 })
+		fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Parent = ScrollingFrame2 })
+		fn6("UIListLayout", { Padding = UDim.new(0, 2), SortOrder = Enum.SortOrder.LayoutOrder, Parent = ScrollingFrame2 })
+		local function fn25(arg6)
+			arg3 = arg6 or arg3
+			for _, child in ipairs(ScrollingFrame2:GetChildren()) do
+				if child:IsA("TextButton") then
+					child:Destroy()
+				end
+			end
+			for _, v6 in ipairs(arg3) do
+				fn6("TextButton", {
+					Size = UDim2.new(1, -4, 0, 26),
+					BackgroundTransparency = 1,
+					Font = gotham,
+					Text = v6,
+					TextColor3 = tbl6.Text,
+					TextSize = 14,
+					ZIndex = 31,
+					Parent = ScrollingFrame2,
+				}).MouseButton1Click:Connect(function()
+					v5 = v6
+					TextButton2.Text = v6
+					fn24()
+					if arg5 then
+						arg5(v6)
+					end
+				end)
+			end
+		end
+		fn25(arg3)
+		fn24 = function()
+			flag8 = false
+			ScrollingFrame2.Visible = false
+			ScrollingFrame2.Size = UDim2.new(0.48, -10, 0, 0)
+			Frame8.ZIndex = 8
+		end
+		TextButton2.MouseButton1Click:Connect(function()
+			local flag9 = not flag8
+			fn5()
+			if flag9 then
+				flag8 = true
+				ScrollingFrame2.Visible = true
+				ScrollingFrame2.Size = UDim2.new(0.48, -10, 0, math.min(140, #arg3 * 26))
+				Frame8.ZIndex = 40
+			end
+		end)
+		table.insert(tbl5, { close = fn24 })
+		return {
+			Set = function(arg6, arg7)
+				v5 = arg7
+				TextButton2.Text = tostring(arg7)
+			end,
+			SetValues = function(arg6, arg7)
+				fn25(arg7)
+			end,
+			Get = function()
+				return v5
+			end,
+			Destroy = function()
+				Frame8:Destroy()
+			end,
+			Frame = Frame8,
+		}
+	end
+	local FishFarm = fn21("FishFarm", "rbxassetid://10723407317", 1)
+	local v5 = fn21("تسكيب السمك", "rbxassetid://10734898355", 2)
+	local Statistics = fn21("Statistics", "rbxassetid://10734896260", 3)
+	v3 = fn21("Anti-Kick", "rbxassetid://10734897394", 4)
+	Server = fn21("Server", "rbxassetid://10734901094", 5)
+	Dev = fn21("Dev", "rbxassetid://10734901807", 6)
+	v4 = fn21("تنقيص الحجم", "rbxassetid://10734903978", 7)
+	fn20("FishFarm")
+	task.defer(function()
+		pcall(fn10)
+	end)
+	label = fn13(FishFarm, "🏦 Bank Balance", "$0").Label
+	label2 = fn13(FishFarm, "💸 Hand Balance", "$0").Label
+	fn12(FishFarm, "إعدادات المعدات")
+	tbl7 = {}
+	tbl4.AutoBuyEnabled = true
+	tbl7.AutoBuyToggle = { Set = function(arg, arg2)
+		tbl4.AutoBuyEnabled = arg2 and true or false
+	end }
+	tbl7.RodDropdown = fn23(FishFarm, "نوع السنارة", {
+		"Smart Select",
+		"FishingRodUltimate",
+		"FishingRodAdvanced",
+		"FishingRodPro",
+		"FishingRodRegular",
+	}, tbl4.RodSelect, function(rodSelect)
+		tbl4.RodSelect = rodSelect
+	end)
+	tbl7.BaitDropdown = fn23(FishFarm, "نوع الطعم", {
+		"Smart Select",
+		"PrawntecUltimate",
+		"PrawntecPro",
+		"WormtecUltimate",
+		"WormtecPro",
+		"WormtecRegular",
+	}, tbl4.BaitSelect, function(baitSelect)
+		tbl4.BaitSelect = baitSelect
+	end)
+	tbl7.BaitAmountSlider = fn16(FishFarm, "الحد الأقصى للطعم", 1, 100, tbl4.BaitAmount or 10, function(baitAmount)
+		tbl4.BaitAmount = baitAmount
+	end)
+	fn12(FishFarm, "اعدادات المركبه")
+	tbl4.UseVehicle = true
+	tbl7.UseVehicleToggle = {
+		Set = function()
+		end,
+		Frame = nil,
+	}
+	fn17 = function(arg)
+		local tbl11 = { "Smart Select" }
+		local tbl12 = {}
+		local str = arg == "Car" and "car" or "bike"
+		local items = playerGui:FindFirstChild("Items")
+		local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+		if itemsScrollingFrame then
+			for _, child in ipairs(itemsScrollingFrame:GetChildren()) do
+				local attribute = child:GetAttribute("ItemType")
+				local itemName = child:FindFirstChild("ItemName")
+				if itemName and itemName.Text and itemName.Text ~= "" and attribute == str and not tbl12[itemName.Text] then
+					tbl12[itemName.Text] = true
+					table.insert(tbl11, itemName.Text)
+				end
+			end
+		end
+		table.sort(tbl11, function(arg2, arg3)
+			if arg2 == "Smart Select" then
+				return true
+			end
+			if arg3 == "Smart Select" then
+				return false
+			end
+			return arg2 < arg3
+		end)
+		return tbl11
+	end
+	vehicleSelect = nil
+	n9 = 0
+	fn18 = function()
+		if tbl7.VehicleSelectDropdown then
+			pcall(function()
+				tbl7.VehicleSelectDropdown.Destroy()
+			end)
+			tbl7.VehicleSelectDropdown = nil
+		end
+	end
+	fn19 = function()
+		fn18()
+		if tbl4.VehicleType ~= "Car" then
+			return
+		end
+		local Car = fn17("Car")
+		local vehicleSelect2 = tbl4.VehicleSelect or "Smart Select"
+		if not table.find(Car, vehicleSelect2) then
+			vehicleSelect2 = "Smart Select"
+		end
+		tbl7.VehicleSelectDropdown = fn23(FishFarm, "اختر سيارتك", Car, vehicleSelect2, function(vehicleSelect3)
+			tbl4.VehicleSelect = vehicleSelect3
+			vehicleSelect = vehicleSelect3
+			n9 = tick()
+			task.defer(function()
+				pcall(SaveConfig)
+			end)
+		end)
+		pcall(function()
+			local frame = tbl7.VehicleSelectDropdown.Frame
+			if frame then
+				frame.LayoutOrder = 225
+			end
+		end)
+	end
+	tbl7.VehicleTypeDropdown = fn23(FishFarm, "نوع المركبة", { "Bike", "Car" }, tbl4.VehicleType or "Bike", function(vehicleType)
+		tbl4.VehicleType = vehicleType
+		if vehicleType == "Bike" then
+			tbl4.VehicleSelect = "Smart Select"
+			fn18()
+		else
+			fn19()
+		end
+		task.defer(function()
+			pcall(SaveConfig)
+		end)
+	end)
+	if tbl4.VehicleType == "Car" then
+		fn19()
+	end
+	tbl7.VehicleSpeedSlider = fn16(FishFarm, "سرعة المركبة", 20, 120, tbl4.VehicleSpeed or 55, function(vehicleSpeed)
+		tbl4.VehicleSpeed = vehicleSpeed
+	end)
+	tbl7.AutoRepairToggle = fn15(FishFarm, "إصلاح المركبة تلقائي", false, function(autoRepairVehicle)
+		tbl4.AutoRepairVehicle = autoRepairVehicle
+	end)
+	local v6 = fn12(FishFarm, "منطقة الصيد")
+	if v6 then
+		v6.LayoutOrder = 300
+	end
+	tbl7.ZoneDropdown = fn23(FishFarm, "المستوى", { "Level 40 +", "Level 70 +" }, tbl4.ZoneSelect or "Level 70 +", function(zoneSelect)
+		tbl4.ZoneSelect = zoneSelect
+		if zoneSelect == "Level 70 +" then
+			CreateHopWatch()
+		else
+			DestroyHopWatch()
+		end
+		task.defer(function()
+			pcall(SaveConfig)
+		end)
+	end)
+	if tbl7.ZoneDropdown.Frame then
+		tbl7.ZoneDropdown.Frame.LayoutOrder = 301
+	end
+	local Frame8 = fn6("Frame", {
+		Name = "HopWatchHolder",
+		Size = UDim2.new(1, 0, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		LayoutOrder = 302,
+		Visible = false,
+		Parent = FishFarm,
+	})
+	fn6("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = Frame8 })
+	lastWatchedCatchTime = lastWatchedCatchTime or tick()
+	local flag8 = false
+	DestroyHopWatch = function()
+		flag8 = false
+		Frame8.Visible = false
+		for _, child in ipairs(Frame8:GetChildren()) do
+			if not child:IsA("UIListLayout") then
+				pcall(function()
+					child:Destroy()
+				end)
+			end
+		end
+	end
+	CreateHopWatch = function()
+		DestroyHopWatch()
+		if tbl4.ZoneSelect ~= "Level 70 +" then
+			return
+		end
+		flag8 = true
+		Frame8.Visible = true
+		Frame8.LayoutOrder = 302
+		fn12(Frame8, "تغيير السيرفر")
+		fn15(Frame8, "تغيير السيرفر إذا ما جاءت الأسماك", tbl4.HopNoFishEnabled == true, function(hopNoFishEnabled)
+			tbl4.HopNoFishEnabled = hopNoFishEnabled
+			lastWatchedCatchTime = tick()
+			local v7 = lastWatchedCatchTime
+			getgenv().NEE_HopWatchTick = v7
+			if HopRemainLabel then
+				HopRemainLabel.Visible = hopNoFishEnabled and true or false
+			end
+			task.defer(function()
+				pcall(SaveConfig)
+			end)
+		end)
+		HopRemainLabel = fn12(Frame8, "الوقت المتبقي:
+		if HopRemainLabel then
+			HopRemainLabel.TextSize = 15
+			HopRemainLabel.TextColor3 = Color3.fromRGB(50, 50, 58)
+			HopRemainLabel.Visible = tbl4.HopNoFishEnabled == true
+		end
+		fn16(Frame8, "المدة (دقائق)", 5, 120, tbl4.HopNoFishMinutes or 30, function(hopNoFishMinutes)
+			tbl4.HopNoFishMinutes = hopNoFishMinutes
+			lastWatchedCatchTime = tick()
+		end)
+		fn12(Frame8, "حدد الأسماك المطلوبة")
+		tbl4.HopWatchFish = tbl4.HopWatchFish or {}
+		getgenv().NEE_WatchFish = getgenv().NEE_WatchFish or {}
+		for k, v7 in pairs(tbl4.HopWatchFish) do
+			local neeWatchFish = getgenv().NEE_WatchFish
+			v7 = v7 and true or false
+			neeWatchFish[k] = v7
+		end
+		for _, v7 in ipairs(tbl) do
+			fn15(Frame8, v7, tbl4.HopWatchFish[v7] == true, function(arg)
+				tbl4.HopWatchFish[v7] = arg and true or false
+				getgenv().NEE_WatchFish = getgenv().NEE_WatchFish or {}
+				getgenv().NEE_WatchFish[v7] = arg and true or false
+				lastWatchedCatchTime = tick()
+				local v8 = lastWatchedCatchTime
+				getgenv().NEE_HopWatchTick = v8
+			end)
+		end
+	end
+	local v7 = fn12(FishFarm, "التحكم والبيع")
+	if v7 then
+		v7.LayoutOrder = 400
+	end
+	if Frame8 then
+		Frame8.LayoutOrder = 302
+	end
+	if tbl4.ZoneSelect == "Level 70 +" then
+		CreateHopWatch()
+	else
+		DestroyHopWatch()
+	end
+	tbl7.SellAfterFishSlider = fn16(FishFarm, "بيع بعد عدد السمك", 0, 15, tbl4.SellAfterFishCount or 0, function(sellAfterFishCount)
+		tbl4.SellAfterFishCount = sellAfterFishCount
+	end)
+	tbl7.AutoFarmToggle = fn15(FishFarm, "تشغيل Auto Farm", false, function(autoFarmActive)
+		tbl4.AutoFarmActive = autoFarmActive
+		if autoFarmActive then
+			tbl4.UseVehicle = true
+			tbl4.AutoBuyEnabled = true
+			tbl4.Respawn = true
+			pcall(function()
+				if tbl7.AutoBuyToggle then
+					tbl7.AutoBuyToggle:Set(true)
+				end
+			end)
+			pcall(function()
+				if tbl7.RespawnToggle then
+					tbl7.RespawnToggle:Set(true)
+				end
+			end)
+			tbl4.StopWalking = false
+			n = 0
+			flag3 = false
+			fn4()
+			task.spawn(StartAutoFarm)
+		else
+			tbl4.StopWalking = true
+			tbl4.Running = false
+			flag3 = false
+			local humanoidRootPart2 = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if humanoidRootPart2 then
+				humanoidRootPart2.Anchored = false
+			end
+			task.spawn(function()
+				pcall(function()
+					Sf:DestroyHiddenPlatform()
+					local ownedVehicle = Sf:GetOwnedVehicle()
+					if ownedVehicle and ownedVehicle.PrimaryPart then
+						if humanoid and not humanoid.Sit then
+							Sf:EnterVehicle(ownedVehicle)
+							task.wait(0.15)
+						end
+						Sf:SmoothVerticalMove(252, 0.6, true)
+					elseif humanoidRootPart then
+						Sf:SmoothVerticalMove(252, 0.6, true)
+					end
+				end)
+			end)
+		end
+	end)
+	tbl7.RespawnToggle = fn15(FishFarm, "Auto Respawn", false, function(respawn)
+		tbl4.Respawn = respawn
+	end)
+	local layoutOrder = 220
+	task.defer(function()
+		pcall(function()
+			local frame = tbl7.VehicleTypeDropdown and tbl7.VehicleTypeDropdown.Frame
+			local flag9 = false
+			local layoutOrder2 = 10
+			for _, child in ipairs(FishFarm:GetChildren()) do
+				if child:IsA("GuiObject") and child.Name ~= "HopWatchHolder" then
+					if child == frame then
+						child.LayoutOrder = layoutOrder
+						flag9 = true
+						layoutOrder2 = 230
+					elseif flag9 then
+						child.LayoutOrder = layoutOrder2
+						layoutOrder2 += 10
+					else
+						child.LayoutOrder = layoutOrder2
+						layoutOrder2 += 10
+					end
+				end
+			end
+		end)
+	end)
+	tbl8 = {}
+	for _, v8 in ipairs(tbl) do
+		tbl8[v8] = false
+	end
+	flag6 = false
+	n10 = 0
+	flag7 = false
+	tbl7.SkipFishToggles = {}
+	fn12(v5, "تسكيب السمك على الخط")
+	tbl7.SkipBadFishToggle = fn15(v5, "تفعيل تسكيب السمك", false, function(arg)
+		flag6 = arg
+	end)
+	tbl7.SkipDelaySlider = fn16(v5, "تأخير التسكيب", 0, 15, 0, function(arg)
+		n10 = arg
+	end)
+	fn12(v5, "اختر الأسماك")
+	for _, v8 in ipairs(tbl) do
+		tbl7.SkipFishToggles[v8] = fn15(v5, v8, false, function(arg)
+			tbl8[v8] = arg
+		end)
+	end
+	local tbl11 = {
+		Bass = true,
+		Perch = true,
+		Salmon = true,
+		["Northern Pike"] = true,
+		Dolphinfish = true,
+		Coelacanth = true,
+		Tuna = true,
+	}
+	fn12(v5, "تحكم سريع")
+	fn14(v5, "🗑️ تسكيب السمك الخايس", function()
+		for _, v8 in ipairs(tbl) do
+			local flag9 = tbl11[v8] == true
+			tbl8[v8] = flag9
+			if tbl7.SkipFishToggles[v8] then
+				tbl7.SkipFishToggles[v8]:Set(flag9)
+			end
+		end
+	end)
+	fn14(v5, "❌ إلغاء تحديد الكل", function()
+		for _, v8 in ipairs(tbl) do
+			tbl8[v8] = false
+			if tbl7.SkipFishToggles[v8] then
+				tbl7.SkipFishToggles[v8]:Set(false)
+			end
+		end
+	end)
+	fn12(Statistics, "إحصائيات صيد السمك")
+	local totalFishCaught = fn13(Statistics, "Total Fish Caught", "0")
+	local tbl12 = {}
+	for _, v8 in ipairs(tbl) do
+		tbl12[v8] = fn13(Statistics, v8, "× 0")
+	end
+	fn = function()
+		pcall(function()
+			totalFishCaught:Set(tostring(tbl3.totalFish))
+			for _, v8 in ipairs(tbl) do
+				if tbl12[v8] then
+					tbl12[v8]:Set("× " .. tostring(tbl3.fishCaught[v8] or 0))
+				end
+			end
+		end)
+	end
+end
+fn12(v3, "Anti-AFK")
+tbl7.AntiKickToggle = fn15(v3, "يمنع الطرد", false, function(arg)
+	EnableAntiKick(arg)
+	task.defer(function()
+		pcall(SaveConfig)
+	end)
+end)
+fn12(Server, "السيرفر")
+tbl7.ServerSwitchToggle = fn15(Server, "تغيير السيرفر التلقائي", false, function(arg)
+	flag2 = arg
+	if arg then
+		now = tick()
+	end
+end)
+tbl7.ServerIntervalSlider = fn16(Server, "الفترة (دقائق)", 5, 120, 30, function(arg)
+	n2 = arg
+end)
+fn14(Server, "Hop Server الآن", function()
+	task.spawn(SwitchToSmallestServer)
+end)
+fn14(Server, "Rejoin نفس السيرفر", function()
+	ShowToast("NEE", "جاري الريجون...")
+	task.spawn(function()
+		pcall(SaveConfig)
+		task.wait(0.15)
+		local localPlayer2 = game.Players.LocalPlayer
+		if not pcall(function()
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, localPlayer2)
+		end) then
+			pcall(function()
+				TeleportService:Teleport(game.PlaceId, localPlayer2)
+			end)
+		end
+	end)
+end)
+fn12(Server, "الإعدادات")
+fn14(Server, "حفظ الإعدادات", function()
+	SaveConfig()
+	ShowToast("NEE", "تم حفظ الإعدادات")
+end)
+fn14(Server, "حذف الإعدادات", function()
+	DeleteConfig()
+	ShowToast("NEE", "تم الحذف")
+end)
+fn12(Dev, "نسخ رابط الدسكورد")
+fn14(Dev, "Discord", function()
+	ShowToast("NEE", "تم نسخ رابط الدسكورد")
+end)
+local vector2, tbl9, tbl10, tbl11, tbl12, fn20, tbl13, fn21
+do
+	local n11 = 1
+	local n12 = 1
+	local function fn22(arg)
+		n11 = arg
+		local udim22 = UDim2.fromOffset(550 * arg, 550 * arg)
+		udim2 = udim22
+		if flag5 then
+			Frame4.Size = udim22
+			Frame3.Size = udim22
+		end
+	end
+	local function fn23(arg)
+		n12 = math.clamp(tonumber(arg) or 1, 0.5, 1.5)
+		local n13 = 72 * n12
+		Frame.Size = UDim2.fromOffset(n13, n13)
+		TextButton.Size = UDim2.fromOffset(n13, n13)
+		Frame2.Size = UDim2.fromOffset(n13, n13)
+		if ImageLabel then
+			ImageLabel.Size = UDim2.fromScale(1, 1)
+		end
+	end
+	tbl7.MenuScaleSlider = fn16(v4, "حجم القائمة %", 65, 100, 100, function(arg)
+		fn22(arg / 100)
+	end)
+	tbl7.ButtonScaleSlider = fn16(v4, "حجم زر الفتح %", 50, 100, 100, function(arg)
+		fn23(arg / 100)
+	end)
+	fn14(v4, "استعادة الحجم الافتراضي", function()
+		fn22(1)
+		fn23(1)
+		if tbl7.MenuScaleSlider then
+			tbl7.MenuScaleSlider:Set(100)
+		end
+		if tbl7.ButtonScaleSlider then
+			tbl7.ButtonScaleSlider:Set(100)
+		end
+	end)
+	local function fn24()
+		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
+		if moneyTextLabel then
+			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$(%d+)")) or 0
+		end
+		return 0
+	end
+	local v5 = nil
+	local function fn25()
+		if v5 and v5:IsDescendantOf(playerGui) then
+			return tonumber(v5.Text:gsub(",", ""):match("%$(%d+)")) or 0
+		end
+		for _, descendant in ipairs(playerGui:GetDescendants()) do
+			if descendant:IsA("TextLabel") and string.find(descendant.Text, "Bank Balance") then
+				v5 = descendant
+				return tonumber(descendant.Text:gsub(",", ""):match("%$(%d+)")) or 0
+			end
+		end
+		return 0
+	end
+	task.spawn(function()
+		while task.wait(0.6) do
+			pcall(function()
+				label.Text = "$" .. tostring(fn25() or 0)
+				label2.Text = "$" .. tostring(fn24() or 0)
+			end)
+		end
+	end)
+	local now3 = os.clock()
+	task.spawn(function()
+		while TextLabel.Parent do
+			TextLabel.Text = fn9(os.clock() - now3)
+			task.wait(1)
+		end
+	end)
+	v.MouseButton1Click:Connect(function()
+		fn11()
+	end)
+	v2.MouseButton1Click:Connect(function()
+		fn11()
+		task.wait(0.3)
+		ScreenGui:Destroy()
+		getgenv().FishFarmLoaded = false
+	end)
+	tbl7.BankBalanceBtn = { SetDesc = function(arg, bank)
+		label.Text = "Bank: " .. bank
+	end }
+	tbl7.HandBalanceBtn = { SetDesc = function(arg, hand)
+		label2.Text = "Hand: " .. hand
+	end }
+	local function fn26()
+		if tbl4.VehicleType == "Car" then
+			if not tbl7.VehicleSelectDropdown then
+				fn19()
+			else
+				local Car = fn17("Car")
+				tbl7.VehicleSelectDropdown:SetValues(Car)
+				local vehicleSelect2 = vehicleSelect or tbl4.VehicleSelect or "Smart Select"
+				if table.find(Car, vehicleSelect2) then
+					tbl7.VehicleSelectDropdown:Set(vehicleSelect2)
+					tbl4.VehicleSelect = vehicleSelect2
+				end
+			end
+		else
+			fn18()
+		end
+	end
+	task.spawn(function()
+		while task.wait(2) do
+			pcall(function()
+				if tbl4.VehicleType == "Car" then
+					fn26()
+				end
+			end)
+		end
+	end)
+	local n13 = 870
+	vector2 = Vector3.new(82.11319, 245.16185, 922.22076)
+	local function fn27(arg)
+		return Vector3.new(arg.X, 230.138, arg.Z)
+	end
+	tbl9 = {
+		["Level 40 +"] = {
+			Pos = Vector3.new(-308.574, 230.938, 552.806),
+			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
+		},
+		["Level 70 +"] = {
+			Pos = Vector3.new(-21.744, 241.054, 652.132),
+			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
+		},
+	}
+	tbl10 = {
+		{ Name = "FishingRodUltimate", Level = 60, Price = 5000 },
+		{ Name = "FishingRodAdvanced", Level = 35, Price = 2300 },
+		{ Name = "FishingRodPro", Level = 20, Price = 800 },
+		{ Name = "FishingRodRegular", Level = 1, Price = 100 },
+	}
+	tbl11 = {
+		{ Name = "PrawntecUltimate", Level = 45, Price = 45 },
+		{ Name = "PrawntecPro", Level = 30, Price = 40 },
+		{ Name = "PrawntecRegular", Level = 25, Price = 35 },
+		{ Name = "WormtecUltimate", Level = 15, Price = 30 },
+		{ Name = "WormtecPro", Level = 8, Price = 25 },
+		{ Name = "WormtecRegular", Level = 1, Price = 20 },
+	}
+	local str = "NEE_Fishing_Configs"
+	local function fn28()
+		return str .. "/" .. localPlayer.Name .. ".json"
+	end
+	local function fn29()
+		pcall(function()
+			if makefolder and not isfolder("NEE_Fishing_Configs") then
+				makefolder("NEE_Fishing_Configs")
+			end
+		end)
+	end
+	SaveConfig = function()
+		fn29()
+		local tbl14 = {
+			AutoBuyEnabled = tbl4.AutoBuyEnabled,
+			RodSelect = tbl4.RodSelect,
+			BaitSelect = tbl4.BaitSelect,
+			BaitAmount = tbl4.BaitAmount,
+			WalkSpeed = tbl4.WalkSpeed,
+			ZoneSelect = tbl4.ZoneSelect,
+			Respawn = tbl4.Respawn,
+			AntiKick = flag,
+			ServerSwitch = flag2,
+			ServerSwitchInterval = n2,
+			AutoFarmActive = tbl4.AutoFarmActive,
+			SkipBadFishEnabled = flag6,
+			SkipDelay = n10,
+			SkipFishSelected = tbl8,
+			UseVehicle = tbl4.UseVehicle,
+			VehicleType = tbl4.VehicleType,
+			VehicleSelect = tbl4.VehicleSelect,
+			VehicleSpeed = tbl4.VehicleSpeed,
+			AutoRepairVehicle = tbl4.AutoRepairVehicle,
+			SellAfterFishCount = tbl4.SellAfterFishCount,
+			ScaleValue = n11,
+			ButtonScaleValue = n12,
+			HopNoFishEnabled = tbl4.HopNoFishEnabled,
+			HopNoFishMinutes = tbl4.HopNoFishMinutes,
+			HopWatchFish = tbl4.HopWatchFish,
+		}
+		pcall(function()
+			local jsonEncode = HttpService.JSONEncode
+			writefile(fn28(), jsonEncode(HttpService, tbl14))
+		end)
+	end
+	LoadConfig = function()
+		local ok, result = pcall(function()
+			if not isfile(fn28()) then
+				return false
+			end
+			local data = HttpService:JSONDecode(readfile(fn28()))
+			if data.VehicleType then
+				tbl4.VehicleType = data.VehicleType
+				pcall(function()
+					tbl7.VehicleTypeDropdown:Set(data.VehicleType)
+				end)
+			end
+			if data.VehicleSelect then
+				tbl4.VehicleSelect = data.VehicleSelect
+				if data.VehicleSelect ~= "Smart Select" then
+					vehicleSelect = data.VehicleSelect
+					n9 = tick()
+				end
+			end
+			task.spawn(function()
+				task.wait(0.2)
+				pcall(function()
+					tbl7.VehicleTypeDropdown:Set(tbl4.VehicleType)
+				end)
+				fn26()
+				task.wait(0.5)
+				fn26()
+			end)
+			if data.AutoBuyEnabled ~= nil then
+				tbl4.AutoBuyEnabled = data.AutoBuyEnabled
+				pcall(function()
+					tbl7.AutoBuyToggle:Set(data.AutoBuyEnabled)
+				end)
+			end
+			if data.RodSelect then
+				tbl4.RodSelect = data.RodSelect
+				pcall(function()
+					tbl7.RodDropdown:Set(data.RodSelect)
+				end)
+			end
+			if data.BaitSelect then
+				tbl4.BaitSelect = data.BaitSelect
+				pcall(function()
+					tbl7.BaitDropdown:Set(data.BaitSelect)
+				end)
+			end
+			if data.BaitAmount then
+				tbl4.BaitAmount = data.BaitAmount
+				pcall(function()
+					tbl7.BaitAmountSlider:Set(data.BaitAmount)
+				end)
+			end
+			if data.UseVehicle ~= nil then
+				tbl4.UseVehicle = data.UseVehicle
+				pcall(function()
+					tbl7.UseVehicleToggle:Set(data.UseVehicle)
+				end)
+			end
+			if data.VehicleSpeed then
+				tbl4.VehicleSpeed = data.VehicleSpeed
+				pcall(function()
+					tbl7.VehicleSpeedSlider:Set(data.VehicleSpeed)
+				end)
+			end
+			if data.AutoRepairVehicle ~= nil then
+				tbl4.AutoRepairVehicle = data.AutoRepairVehicle
+				pcall(function()
+					tbl7.AutoRepairToggle:Set(data.AutoRepairVehicle)
+				end)
+			end
+			if data.HopNoFishEnabled ~= nil then
+				tbl4.HopNoFishEnabled = data.HopNoFishEnabled == true
+			end
+			if data.HopNoFishMinutes then
+				tbl4.HopNoFishMinutes = data.HopNoFishMinutes
+			end
+			if data.HopWatchFish then
+				tbl4.HopWatchFish = data.HopWatchFish
+				getgenv().NEE_WatchFish = getgenv().NEE_WatchFish or {}
+				for k, v6 in pairs(data.HopWatchFish) do
+					local neeWatchFish = getgenv().NEE_WatchFish
+					v6 = v6 and true or false
+					neeWatchFish[k] = v6
+				end
+			end
+			if data.ZoneSelect then
+				tbl4.ZoneSelect = data.ZoneSelect
+				pcall(function()
+					tbl7.ZoneDropdown:Set(data.ZoneSelect)
+				end)
+			end
+			if tbl4.ZoneSelect == "Level 70 +" then
+				pcall(CreateHopWatch)
+			else
+				pcall(DestroyHopWatch)
+			end
+			if HopRemainLabel then
+				HopRemainLabel.Visible = tbl4.HopNoFishEnabled == true
+			end
+			if data.SellAfterFishCount then
+				tbl4.SellAfterFishCount = data.SellAfterFishCount
+				pcall(function()
+					tbl7.SellAfterFishSlider:Set(data.SellAfterFishCount)
+				end)
+			end
+			if data.Respawn ~= nil then
+				tbl4.Respawn = data.Respawn
+				pcall(function()
+					tbl7.RespawnToggle:Set(data.Respawn)
+				end)
+			end
+			if data.ScaleValue then
+				fn22(data.ScaleValue)
+				pcall(function()
+					tbl7.MenuScaleSlider:Set(math.floor(data.ScaleValue * 100))
+				end)
+			end
+			if data.ButtonScaleValue then
+				fn23(data.ButtonScaleValue)
+				pcall(function()
+					tbl7.ButtonScaleSlider:Set(math.floor(data.ButtonScaleValue * 100))
+				end)
+			end
+			if data.SkipBadFishEnabled ~= nil then
+				flag6 = data.SkipBadFishEnabled
+				pcall(function()
+					tbl7.SkipBadFishToggle:Set(data.SkipBadFishEnabled)
+				end)
+			end
+			if data.SkipDelay then
+				n10 = data.SkipDelay
+				pcall(function()
+					tbl7.SkipDelaySlider:Set(data.SkipDelay)
+				end)
+			end
+			if data.SkipFishSelected then
+				for k, v6 in pairs(data.SkipFishSelected) do
+					if tbl8[k] ~= nil then
+						tbl8[k] = v6
+						if tbl7.SkipFishToggles[k] then
+							pcall(function()
+								tbl7.SkipFishToggles[k]:Set(v6)
+							end)
+						end
+					end
+				end
+			end
+			if data.AntiKick ~= nil then
+				flag = data.AntiKick
+				pcall(function()
+					tbl7.AntiKickToggle:Set(data.AntiKick)
+				end)
+			end
+			if data.ServerSwitch ~= nil then
+				flag2 = data.ServerSwitch
+				pcall(function()
+					tbl7.ServerSwitchToggle:Set(data.ServerSwitch)
+				end)
+			end
+			if data.ServerSwitchInterval then
+				n2 = data.ServerSwitchInterval
+				pcall(function()
+					tbl7.ServerIntervalSlider:Set(data.ServerSwitchInterval)
+				end)
+			end
+			if flag then
+				EnableAntiKick(true)
+			else
+				EnableAntiKick(false)
+			end
+			return true
+		end)
+		return ok == true and result == true
+	end
+	DeleteConfig = function()
+		pcall(function()
+			if isfile(fn28()) then
+				delfile(fn28())
+			end
+		end)
+	end
+	task.spawn(function()
+		task.wait(0.2)
+		pcall(fn10)
+		task.wait(0.3)
+		if LoadConfig() then
+			pcall(function()
+				if flag then
+					EnableAntiKick(true)
+					if tbl7.AntiKickToggle then
+						tbl7.AntiKickToggle:Set(true)
+					end
+				end
+			end)
+		end
+	end)
+	task.spawn(function()
+		while task.wait(1) do
+			pcall(function()
+				if not HopRemainLabel or not HopRemainLabel.Parent then
+					return
+				end
+				if tbl4.ZoneSelect ~= "Level 70 +" or not tbl4.HopNoFishEnabled then
+					HopRemainLabel.Visible = false
+					return
+				end
+				HopRemainLabel.Visible = true
+				local n14 = (tonumber(tbl4.HopNoFishMinutes) or 30) * 60
+				lastWatchedCatchTime = getgenv().NEE_HopWatchTick or lastWatchedCatchTime or tick()
+				local v6 = lastWatchedCatchTime
+				local n15 = math.max(0, n14 - tick() - v6)
+				local n16 = math.floor(n15 / 3600)
+				local n17 = math.floor(n15 % 3600 / 60)
+				local n18 = math.floor(n15 % 60)
+				if n16 > 0 then
+					HopRemainLabel.Text = string.format("الوقت المتبقي: %02d:%02d:%02d", n16, n17, n18)
+				else
+					HopRemainLabel.Text = string.format("الوقت المتبقي: %02d:%02d", n17, n18)
+				end
+			end)
+		end
+	end)
+	SwitchToSmallestServer = function()
+		local tbl14 = {}
+		local response = game:HttpGet(string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100", game.PlaceId))
+		local ok, result = pcall(function()
+			return HttpService:JSONDecode(response)
+		end)
+		if ok and result and result.data then
+			local jobId = game.JobId
+			for _, v6 in pairs(result.data) do
+				if v6.playing < v6.maxPlayers and v6.id ~= jobId then
+					table.insert(tbl14, v6.id)
+				end
+			end
+		end
+		if #tbl14 > 0 then
+			local v6 = tbl14[math.random(1, #tbl14)]
+			pcall(SaveConfig)
+			task.wait(0.2)
+			TeleportService:TeleportToPlaceInstance(game.PlaceId, v6, game.Players.LocalPlayer)
+		end
+	end
+	task.spawn(function()
+		while true do
+			task.wait(60)
+			if flag2 and tbl4.AutoFarmActive then
+				if not (n2 <= (tick() - now) / 60) then
+					continue
+				end
+				now = tick()
+				task.spawn(SwitchToSmallestServer)
+			end
+		end
+	end)
+	tbl12 = { rods = {}, baits = {}, fishCount = 0, inventoryCount = 0, lastUpdate = 0 }
+	fn20 = function()
+		local now4 = tick()
+		if now4 - tbl12.lastUpdate < 1.5 then
+			return
+		end
+		tbl12.lastUpdate = now4
+		local items = playerGui:FindFirstChild("Items")
+		local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+		local rods = {}
+		local baits = {}
+		local inventoryCount = 0
+		local fishCount = 0
+		if itemsScrollingFrame then
+			for _, child in pairs(itemsScrollingFrame:GetChildren()) do
+				if child.Name ~= "Folder" and child.Name ~= "UIGridLayout" and child.Name ~= "ItemTemplate" then
+					inventoryCount += 1
+					local itemName = child:FindFirstChild("ItemName")
+					local attribute = child:GetAttribute("ItemType")
+					attribute = attribute and string.lower(tostring(attribute)) or ""
+					itemName = itemName and itemName.Text or ""
+					local v6 = string.lower(itemName)
+					if attribute == "fish" then
+						fishCount += 1
+					end
+					if string.find(v6, "rod") then
+						local itemEquipped = child:FindFirstChild("ItemEquipped")
+						table.insert(rods, { name = itemName, uid = child.Name, equipped = itemEquipped and itemEquipped.Visible or false })
+					end
+					if string.find(v6, "wormtec") or string.find(v6, "prawntec") then
+						table.insert(baits, { name = itemName, uid = child.Name })
+					end
+				end
+			end
+		end
+		tbl12.rods = rods
+		tbl12.baits = baits
+		tbl12.fishCount = fishCount
+		tbl12.inventoryCount = inventoryCount
+	end
+	local v6 = nil
+	local n14 = 0
+	tbl13 = {
+		dist = function(arg, arg2)
+			if typeof(arg2) == "Vector3" then
+				return (arg2 - humanoidRootPart.Position).Magnitude
+			end
+			if typeof(arg2) == "CFrame" then
+				return (arg2.Position - humanoidRootPart.Position).Magnitude
+			end
+			if typeof(arg2) == "Instance" and arg2:IsA("BasePart") then
+				return (arg2.Position - humanoidRootPart.Position).Magnitude
+			end
+			return 9999
+		end,
+		GetMoney = function()
+			local money = Data.money
+			return money and money.hand and money.hand or 0
+		end,
+		GetBankMoney = function()
+			local money = Data.money
+			return money and money.bank and money.bank or 0
+		end,
+		GetSkill = function(arg, arg2)
+			local skills = playerGui:FindFirstChild("Skills")
+			if not skills then
+				return 0
+			end
+			local skillsScrollingFrame = skills:FindFirstChild("SkillsHolder") and skills.SkillsHolder:FindFirstChild("SkillsScrollingFrame")
+			if not skillsScrollingFrame then
+				return 0
+			end
+			for _, child in pairs(skillsScrollingFrame:GetChildren()) do
+				if child.Name == "SkillOptionTemplate" and string.find(child:FindFirstChild("SkillTitle").Text, arg2) then
+					return tonumber(child:FindFirstChild("SkillTitle").Text:match("%d+")) or 0
+				end
+			end
+			return 0
+		end,
+		HasAnyRod = function()
+			fn20()
+			if #tbl12.rods > 0 then
+				local v7 = tbl12.rods[1]
+				return true, v7.name, v7.uid, v7.equipped
+			end
+			return false, nil, nil, false
+		end,
+		HasAnyBait = function()
+			fn20()
+			if #tbl12.baits > 0 then
+				local v7 = tbl12.baits[1]
+				return true, v7.name, v7.uid
+			end
+			return false, nil, nil
+		end,
+		GetFishCount = function()
+			return tbl3.totalFish
+		end,
+		GetInventoryCount = function()
+			fn20()
+			return tbl12.inventoryCount
+		end,
+		GetTotalLevel = function()
+			local ok, result = pcall(function()
+				if Data and Data.xp and Data.xp.total_level and XPFormula then
+					return XPFormula.xp_to_level(Data.xp.total_level) or 0
+				end
+				return 0
+			end)
+			return ok and result or 0
+		end,
+		IsInventoryFull = function(arg)
+			local totalLevel = arg:GetTotalLevel() or 0
+			local n15 = 15
+			if totalLevel >= 8 then
+				n15 = 17
+			end
+			local items = playerGui:FindFirstChild("Items")
+			local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+			local n16 = 0
+			if itemsScrollingFrame then
+				for _, child in pairs(itemsScrollingFrame:GetChildren()) do
+					if child.Name ~= "Folder" and child.Name ~= "UIGridLayout" and child.Name ~= "ItemTemplate" then
+						n16 += 1
+					end
+				end
+			end
+			if ItemUtils and Data then
+				local n17 = 0
+				if pcall(function()
+					ItemUtils.iterate_through_items(Data, function(arg2)
+						if arg2 and arg2.location == "hand" then
+							n17 += 1
+						end
+					end)
+				end) then
+					n16 = n17
+				end
+			end
+			return n16 >= n15, n16, n15
+		end,
+		IsRodEquipped = function(arg, arg2)
+			fn20()
+			for _, rod in ipairs(tbl12.rods) do
+				if rod.name == arg2 then
+					return rod.equipped
+				end
+			end
+			return false
+		end,
+		GetOwnedVehicle = function()
+			local now4 = tick()
+			if now4 - n14 < 0.2 and v6 and v6.Parent then
+				return v6
+			end
+			n14 = now4
+			v6 = nil
+			local vehicles = workspace:FindFirstChild("Vehicles") or workspace
+			local v7 = nil
+			local huge = math.huge
+			local v8 = humanoidRootPart
+			local position
+			if humanoidRootPart then
+				position = humanoidRootPart.Position
+			else
+				position = v8
+			end
+			local function fn30(arg)
+				if not arg or not arg:IsA("Model") then
+					return
+				end
+				local primaryPart = arg.PrimaryPart or arg:FindFirstChildWhichIsA("BasePart")
+				if not primaryPart then
+					return
+				end
+				local attribute = arg:GetAttribute("OwnerUserId") or arg:GetAttribute("Owner") or arg:GetAttribute("UserId")
+				local flag8 = attribute == userId or attribute == tostring(userId) or attribute == localPlayer.Name
+				if not flag8 then
+					for _, descendant in ipairs(arg:GetDescendants()) do
+						if descendant:IsA("VehicleSeat") and descendant.Occupant == humanoid then
+							flag8 = true
+							break
+						end
+					end
+				end
+				if not flag8 and position then
+					if (primaryPart.Position - position).Magnitude <= 28 then
+						flag8 = true
+					end
+				end
+				if flag8 then
+					local magnitude = position and (primaryPart.Position - position).Magnitude or 0
+					if magnitude < huge then
+						v7 = arg
+						huge = magnitude
+					end
+				end
+			end
+			if vehicles then
+				for _, child in ipairs(vehicles:GetChildren()) do
+					fn30(child)
+				end
+			end
+			if not v7 then
+				for _, child in ipairs(workspace:GetChildren()) do
+					if child:IsA("Model") and child:FindFirstChildWhichIsA("VehicleSeat", true) then
+						fn30(child)
+					end
+				end
+			end
+			v6 = v7
+			return v7
+		end,
+		GetVehicleNameFromInventory = function()
+			fn20()
+			local itemsScrollingFrame = playerGui:FindFirstChild("Items") and playerGui.Items:FindFirstChild("ItemsHolder") and playerGui.Items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+			if not itemsScrollingFrame then
+				return nil
+			end
+			local str2 = tbl4.VehicleType == "Bike" and "bike" or "car"
+			if tbl4.VehicleType == "Car" and tbl4.VehicleSelect and tbl4.VehicleSelect ~= "Smart Select" then
+				for _, child in ipairs(itemsScrollingFrame:GetChildren()) do
+					if child:GetAttribute("ItemType") == str2 and child.ItemName.Text == tbl4.VehicleSelect then
+						return tbl4.VehicleSelect
+					end
+				end
+				tbl4.VehicleSelect = "Smart Select"
+				if tbl7.VehicleSelectDropdown then
+					pcall(function()
+						tbl7.VehicleSelectDropdown:Set("Smart Select")
+					end)
+				end
+			end
+			for _, child in ipairs(itemsScrollingFrame:GetChildren()) do
+				if child:GetAttribute("ItemType") == str2 then
+					return child.ItemName.Text
+				end
+			end
+			return nil
+		end,
+		GetVehicleDataFromData = function(arg, arg2)
+			local str2 = tbl4.VehicleType == "Car" and "car" or "bike"
+			local tbl14 = nil
+			if not ItemUtils or not Data then
+				return nil
+			end
+			pcall(function()
+				ItemUtils.iterate_through_items(Data, function(arg3, arg4)
+					if not arg3 or not arg3.name then
+						return
+					end
+					if not arg4 and ItemUtils.get_item_type then
+						arg4 = ItemUtils.get_item_type(arg3.name)
+					end
+					if arg4 ~= str2 then
+						return
+					end
+					if arg2 and arg2 ~= "" and arg2 ~= "Smart Select" then
+						if arg3.name ~= arg2 then
+							return
+						end
+					end
+					if not tbl14 then
+						local v7 = ItemUtils.get_item_instance(arg3.name)
+						local attribute = v7 and v7:GetAttribute("Health")
+						local n15 = 1500
+						if attribute then
+							n15 = v7:GetAttribute("Health")
+						end
+						tbl14 = {
+							name = arg3.name,
+							guid = arg3.guid,
+							health = arg3.health or arg3.durability,
+							maxHealth = n15,
+							destroyed = arg3.destroyed == true,
+							rawItem = arg3,
+						}
+					end
+				end)
+			end)
+			return tbl14
+		end,
+		GetVehicleHealth = function(arg, arg2)
+			local vehicleDataFromData = tbl13:GetVehicleDataFromData(arg2)
+			if vehicleDataFromData then
+				return vehicleDataFromData.health, vehicleDataFromData.maxHealth, vehicleDataFromData.guid, vehicleDataFromData.name, vehicleDataFromData.destroyed, vehicleDataFromData.rawItem
+			end
+			local num = nil
+			local n15 = 1000
+			local name = nil
+			local v7 = nil
+			pcall(function()
+				for _, child in ipairs(playerGui.Items.ItemsHolder.ItemsScrollingFrame:GetChildren()) do
+					local attribute = child:GetAttribute("ItemType")
+					if attribute == "car" or attribute == "bike" then
+						local itemName = child:FindFirstChild("ItemName")
+						itemName = itemName and itemName.Text or ""
+						local flag8 = arg2 and arg2 ~= "" and arg2 ~= "Smart Select"
+						local flag9 = true
+						if flag8 then
+							flag9 = itemName == arg2 or string.find(string.lower(itemName), string.lower(arg2), 1, true) ~= nil
+						end
+						if flag9 then
+							local itemHealth = child:FindFirstChild("ItemHealth")
+							if itemHealth and itemHealth.Text then
+								local match, v8 = itemHealth.Text:match("(%d+)%s*/%s*(%d+)")
+								if match then
+									num = tonumber(match)
+									n15 = tonumber(v8)
+									name = child.Name
+									v7 = itemName
+									if arg2 and itemName == arg2 then
+										return
+									end
+									continue
+								end
+								continue
+							end
+						end
+					end
+				end
+			end)
+			return num, n15, name, v7, num == 0, nil
+		end,
+		GetRepairCost = function(arg, arg2, arg3, arg4, arg5)
+			local n15 = tonumber(arg2) or 0
+			local n16 = tonumber(arg3) or 1000
+			if Recovery and Recovery.get_repair_price_for_vehicle and arg4 then
+				local ok, result = pcall(function()
+					return Recovery.get_repair_price_for_vehicle(arg4, n15, arg5)
+				end)
+				if ok and type(result) == "number" and result > 0 then
+					return math.floor(result)
+				end
+			end
+			local n17 = math.floor(math.max(0, n16 - n15) * 2.5)
+			if n17 < 1 then
+				n17 = 1000
+			end
+			return n17
+		end,
+		BuyBikeCrate = function()
+			local bikeCrate = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Tiles") and workspace.Map.Tiles:FindFirstChild("BurgerPlaceTile") and workspace.Map.Tiles.BurgerPlaceTile:FindFirstChild("UrbanCyclesAndSkates") and workspace.Map.Tiles.BurgerPlaceTile.UrbanCyclesAndSkates:FindFirstChild("Interior") and workspace.Map.Tiles.BurgerPlaceTile.UrbanCyclesAndSkates.Interior:FindFirstChild("Crates") and workspace.Map.Tiles.BurgerPlaceTile.UrbanCyclesAndSkates.Interior.Crates:FindFirstChild("Bike Crate")
+			if not bikeCrate then
+				return false
+			end
+			local touchPart = bikeCrate:FindFirstChild("Beacon") and bikeCrate.Beacon:FindFirstChild("TouchPart")
+			if not touchPart then
+				return false
+			end
+			if tbl13:GetMoney() < n13 then
+				if not (tbl13:GetBankMoney() >= n13) then
+					return false
+				end
+				tbl13:SmartMoveTo(touchPart.Position)
+				task.wait(0.2)
+				local n15 = n13 - tbl13:GetMoney()
+				if n15 > 0 then
+					pcall(function()
+						Net.get("transfer_funds", "bank", "hand", n15)
+					end)
+					task.wait(0.2)
+				end
+			end
+			tbl13:SmartMoveTo(touchPart.Position)
+			task.wait(0.2)
+			pcall(function()
+				Net.get("open_crate", bikeCrate:WaitForChild("CrateOptions"):WaitForChild("Basic"), "money")
+			end)
+			task.wait(0.5)
+			return true
+		end,
+		GetVehicleUidFromInventory = function()
+			local itemsScrollingFrame = playerGui:FindFirstChild("Items") and playerGui.Items:FindFirstChild("ItemsHolder") and playerGui.Items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+			if not itemsScrollingFrame then
+				return nil, nil, false
+			end
+			local str2 = tbl4.VehicleType == "Bike" and "bike" or "car"
+			local flag8 = tbl4.VehicleType == "Car" and tbl4.VehicleSelect and tbl4.VehicleSelect ~= "Smart Select"
+			local vehicleSelect2 = nil
+			if flag8 then
+				vehicleSelect2 = tbl4.VehicleSelect
+			end
+			for _, child in ipairs(itemsScrollingFrame:GetChildren()) do
+				if child:GetAttribute("ItemType") == str2 and child:FindFirstChild("ItemName") then
+					if not vehicleSelect2 or child.ItemName.Text == vehicleSelect2 then
+						return child.ItemName.Text, child.Name, child:FindFirstChild("ItemEquipped") and child.ItemEquipped.Visible or false
+					end
+				end
+			end
+			return nil, nil, false
+		end,
+		RespawnAndMountVehicle = function()
+			local ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and ownedVehicle.PrimaryPart then
+				if humanoid and humanoid.Sit then
+					pcall(function()
+						Net.send("lock_vehicle", ownedVehicle, true)
+					end)
+					return ownedVehicle
+				end
+				tbl13:EnterVehicle(ownedVehicle)
+				local n15 = 0
+				while humanoid and not humanoid.Sit and n15 < 6 and tbl4.AutoFarmActive do
+					tbl13:EnterVehicle(ownedVehicle)
+					task.wait(0.08)
+					n15 += 1
+				end
+				if humanoid and humanoid.Sit then
+					return ownedVehicle
+				end
+			end
+			if humanoid and humanoid.Sit then
+				tbl13:ExitVehicle()
+				task.wait(0.12)
+			end
+			local vehicleUidFromInventory, v7, v8 = tbl13:GetVehicleUidFromInventory()
+			if not vehicleUidFromInventory then
+				local v9 = tbl13:EnsureVehicle()
+				if v9 then
+					tbl13:EnterVehicle(v9)
+					task.wait(0.1)
+					return v9
+				end
+				return nil
+			end
+			local n15 = 0
+			while true do
+				if (tbl13:GetOwnedVehicle() or v8) and n15 < 8 and tbl4.AutoFarmActive then
+					pcall(function()
+						Net.get("toggle_equip_item", tostring(v7))
+					end)
+					task.wait(0.15)
+					local vehicleUidFromInventory2
+					vehicleUidFromInventory2, v7, v8 = tbl13:GetVehicleUidFromInventory()
+					_ = vehicleUidFromInventory2
+					if not (not tbl13:GetOwnedVehicle() and not v8) then
+						n15 += 1
+						continue
+					end
+				end
+				break
+			end
+			task.wait(0.08)
+			pcall(function()
+				Net.get("toggle_equip_item", tostring(v7))
+			end)
+			local ownedVehicle2 = nil
+			local n16 = 0
+			while true do
+				if n16 < 20 and tbl4.AutoFarmActive then
+					ownedVehicle2 = tbl13:GetOwnedVehicle()
+					if not (ownedVehicle2 and ownedVehicle2.PrimaryPart) then
+						task.wait(0.08)
+						n16 += 1
+						continue
+					end
+				end
+				break
+			end
+			if not ownedVehicle2 then
+				return nil
+			end
+			task.wait(0.06)
+			tbl13:EnterVehicle(ownedVehicle2)
+			pcall(function()
+				Net.send("lock_vehicle", ownedVehicle2, true)
+			end)
+			local n17 = 0
+			while humanoid and not humanoid.Sit and n17 < 12 and tbl4.AutoFarmActive do
+				tbl13:EnterVehicle(ownedVehicle2)
+				task.wait(0.08)
+				n17 += 1
+			end
+			return ownedVehicle2
+		end,
+		EnsureVehicle = function()
+			local ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle then
+				return ownedVehicle
+			end
+			local vehicleNameFromInventory = tbl13:GetVehicleNameFromInventory()
+			if not vehicleNameFromInventory then
+				if tbl4.VehicleType == "Bike" then
+					tbl13:BuyBikeCrate()
+					task.wait(0.5)
+					vehicleNameFromInventory = tbl13:GetVehicleNameFromInventory()
+				end
+				if not vehicleNameFromInventory then
+					return nil
+				end
+			end
+			local items = playerGui:FindFirstChild("Items")
+			local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+			if itemsScrollingFrame then
+				for _, child in pairs(itemsScrollingFrame:GetChildren()) do
+					if child:FindFirstChild("ItemName") and child.ItemName.Text == vehicleNameFromInventory then
+						local itemEquipped = child:FindFirstChild("ItemEquipped")
+						if not (itemEquipped and itemEquipped.Visible) then
+							pcall(function()
+								Net.get("toggle_equip_item", tostring(child.Name))
+							end)
+							task.wait(0.2)
+						end
+						break
+					end
+				end
+			end
+			task.wait(0.25)
+			return tbl13:GetOwnedVehicle()
+		end,
+		ExitVehicle = function()
+			if humanoid and humanoid.Sit then
+				pcall(function()
+					Net.get("exit_seat")
+				end)
+				task.wait(0.08)
+				if humanoidRootPart then
+					humanoidRootPart.CFrame = humanoidRootPart.CFrame * CFrame.new(-4, 0, 0)
+				end
+				task.wait(0.06)
+			end
+		end,
+	}
+	fn21 = function()
+		local flag8 = humanoid
+		if humanoid then
+			flag8 = humanoid.Health <= 0
+			if not flag8 then
+				local dead = Enum.HumanoidStateType.Dead
+				flag8 = humanoid:GetState() == dead
+			end
+		end
+		if flag8 then
+			return true
+		end
+		local deathScreen = playerGui and playerGui:FindFirstChild("DeathScreen")
+		if deathScreen then
+			local deathScreenHolder = deathScreen:FindFirstChild("DeathScreenHolder")
+			if deathScreenHolder and deathScreenHolder.Visible then
+				return true
+			end
+		end
+		return false
+	end
+	tbl13.PullVehicle = function(arg, arg2)
+		if not arg2 or not arg2.PrimaryPart then
+			return false
+		end
+		if not humanoidRootPart then
+			return false
+		end
+		local lookVector = humanoidRootPart.CFrame.LookVector
+		local n15 = tbl4.VehicleType == "Bike" and 3 or 7
+		local cframe = CFrame.Angles
+		local n16 = CFrame.new(humanoidRootPart.Position + Vector3.new(0, n15, 0)) * cframe(0, math.atan2(lookVector.X, lookVector.Z), 0)
+		pcall(function()
+			arg2:PivotTo(n16)
+			for _, descendant in ipairs(arg2:GetDescendants()) do
+				if descendant:IsA("BasePart") then
+					descendant.AssemblyLinearVelocity = Vector3.zero
+					descendant.AssemblyAngularVelocity = Vector3.zero
+				end
+			end
+		end)
+		return true
+	end
+	tbl13.EnterVehicle = function(arg, arg2)
+		if fn21() then
+			return false
+		end
+		if not arg2 then
+			return false
+		end
+		if not arg2.PrimaryPart then
+			arg2.PrimaryPart = arg2:FindFirstChildWhichIsA("BasePart")
+		end
+		if humanoid and humanoid.Sit then
+			return true
+		end
+		local flag8 = false
+		if humanoidRootPart then
+			local y = humanoidRootPart.Position.Y
+			if y < 150 or y > 400 then
+				flag8 = true
+			end
+			local abs = math.abs
+			local n15 = 230.138
+			if not n7 then
+				n15 = 230
+			end
+			if abs(y - n15) < 8 then
+				flag8 = true
+			end
+		end
+		if not flag8 then
+			tbl13:PullVehicle(arg2)
+			task.wait(0.2)
+		end
+		pcall(function()
+			Net.send("lock_vehicle", arg2, true)
+		end)
+		pcall(function()
+			Net.get("lock_vehicle", arg2, true)
+		end)
+		pcall(function()
+			Net.get("set_vehicle_locked", arg2, true)
+		end)
+		for i = 1, 5 do
+			pcall(function()
+				for _, descendant in pairs(arg2.PrimaryPart:GetDescendants()) do
+					if descendant:IsA("ProximityPrompt") then
+						fireproximityprompt(descendant)
+					end
+				end
+			end)
+			if humanoid and humanoid.Sit then
+				task.wait(0.4)
+				pcall(function()
+					Net.send("lock_vehicle", arg2, true)
+				end)
+				return true
+			end
+			task.wait(0.25)
+		end
+		local n15 = tick() + 5
+		while humanoid and not humanoid.Sit and tick() < n15 do
+			task.wait(0.1)
+		end
+		if humanoid.Sit then
+			pcall(function()
+				Net.send("lock_vehicle", arg2, true)
+			end)
+			pcall(function()
+				Net.get("lock_vehicle", arg2, true)
+			end)
+			pcall(function()
+				Net.get("set_vehicle_locked", arg2, true)
+			end)
+		end
+		return humanoid.Sit
+	end
+	local v7 = nil
+	tbl13.CreateHiddenPlatform = function(arg, arg2)
+		if v7 and v7.Parent then
+			v7:Destroy()
+		end
+		local part = Instance.new("Part")
+		part.Name = "HiddenFlightPlatform"
+		part.Size = Vector3.new(18, 2, 18)
+		part.Transparency = 1
+		part.CanCollide = true
+		part.Anchored = true
+		part.Material = Enum.Material.SmoothPlastic
+		part.Parent = workspace
+		if arg2 and arg2.PrimaryPart then
+			local position = arg2.PrimaryPart.Position
+			part.CFrame = CFrame.new(position.X, position.Y - 1.5, position.Z)
+		else
+			part.CFrame = CFrame.new(0, n7 - 1.5, 0)
+		end
+		v7 = part
+		return part
+	end
+	tbl13.UpdateHiddenPlatform = function(arg, arg2)
+		if not v7 or not v7.Parent then
+			return
+		end
+		if not arg2 or not arg2.PrimaryPart then
+			return
+		end
+		local position = arg2.PrimaryPart.Position
+		v7.CFrame = CFrame.new(position.X, position.Y - 1.5, position.Z)
+	end
+	tbl13.DestroyHiddenPlatform = function()
+		if v7 and v7.Parent then
+			v7:Destroy()
+		end
+		v7 = nil
+	end
+	tbl13.SmoothVerticalMove = function(arg, arg2, arg3, arg4)
+		arg3 = arg3 or 0.6
+		if not humanoidRootPart or not humanoid then
+			return
+		end
+		local ownedVehicle = tbl13:GetOwnedVehicle()
+		local primaryPart = tbl4.UseVehicle and ownedVehicle and ownedVehicle.PrimaryPart
+		if primaryPart then
+			if not humanoid.Sit then
+				tbl13:EnterVehicle(ownedVehicle)
+				task.wait(0.1)
+			end
+			ownedVehicle = tbl13:GetOwnedVehicle()
+			if not (ownedVehicle and ownedVehicle.PrimaryPart) then
+				primaryPart = false
+			end
+		end
+		local pivot = primaryPart and ownedVehicle:GetPivot() or humanoidRootPart.CFrame
+		local y = pivot.Position.Y
+		local vector3 = Vector3.new(pivot.Position.X, 0, pivot.Position.Z)
+		local n15 = pivot - pivot.Position
+		local now4 = tick()
+		if primaryPart then
+			tbl13:CreateHiddenPlatform(ownedVehicle)
+		end
+		local function fn30(cFrame)
+			if primaryPart and ownedVehicle and ownedVehicle.PrimaryPart then
+				ownedVehicle:PivotTo(cFrame)
+				for _, descendant in ipairs(ownedVehicle:GetDescendants()) do
+					if descendant:IsA("BasePart") then
+						descendant.AssemblyLinearVelocity = Vector3.zero
+						descendant.AssemblyAngularVelocity = Vector3.zero
+					end
+				end
+				tbl13:UpdateHiddenPlatform(ownedVehicle)
+				if humanoid then
+					humanoid.Sit = true
+				end
+				if humanoidRootPart then
+					humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+					humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+				end
+			elseif humanoidRootPart then
+				humanoidRootPart.CFrame = cFrame
+				humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+				humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+			end
+		end
+		while tick() - now4 < arg3 and (arg4 or tbl4.AutoFarmActive and not flag3) do
+			local n16 = math.clamp((tick() - now4) / arg3, 0, 1)
+			fn30(CFrame.new(Vector3.new(vector3.X, y + (arg2 - y) * n16 * n16 * (3 - 2 * n16), vector3.Z)) * n15)
+			task.wait(0.012)
+		end
+		local n16 = CFrame.new(Vector3.new(vector3.X, arg2, vector3.Z)) * n15
+		local n17 = tick() + 0.1
+		while tick() < n17 and (arg4 or tbl4.AutoFarmActive) do
+			fn30(n16)
+			task.wait(0.012)
+		end
+		fn4()
+	end
+	tbl13.QuickAction = function(arg, arg2, arg3)
+		local n15 = arg3 or 0.3
+		if not humanoidRootPart or not humanoid then
+			return
+		end
+		local ownedVehicle = tbl13:GetOwnedVehicle()
+		local primaryPart = tbl4.UseVehicle and ownedVehicle and ownedVehicle.PrimaryPart
+		if primaryPart then
+			if not humanoid.Sit then
+				tbl13:EnterVehicle(ownedVehicle)
+				task.wait(0.1)
+			end
+			ownedVehicle = tbl13:GetOwnedVehicle()
+			if not (ownedVehicle and ownedVehicle.PrimaryPart) then
+				primaryPart = false
+			end
+		end
+		local n16 = 252 - n8
+		local pivot = primaryPart and ownedVehicle:GetPivot() or humanoidRootPart.CFrame
+		local y = pivot.Position.Y
+		local vector3 = Vector3.new(pivot.Position.X, 0, pivot.Position.Z)
+		local n17 = pivot - pivot.Position
+		local now4 = tick()
+		if primaryPart then
+			tbl13:CreateHiddenPlatform(ownedVehicle)
+		end
+		local function fn30(cFrame)
+			if primaryPart and ownedVehicle and ownedVehicle.PrimaryPart then
+				ownedVehicle:PivotTo(cFrame)
+				for _, descendant in ipairs(ownedVehicle:GetDescendants()) do
+					if descendant:IsA("BasePart") then
+						descendant.AssemblyLinearVelocity = Vector3.zero
+						descendant.AssemblyAngularVelocity = Vector3.zero
+					end
+				end
+				tbl13:UpdateHiddenPlatform(ownedVehicle)
+				if humanoid then
+					humanoid.Sit = true
+				end
+				if humanoidRootPart then
+					humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+					humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+				end
+			elseif humanoidRootPart then
+				humanoidRootPart.CFrame = cFrame
+				humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+				humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+			end
+		end
+		while tick() - now4 < n15 and tbl4.AutoFarmActive do
+			local n18 = math.clamp((tick() - now4) / n15, 0, 1)
+			fn30(CFrame.new(Vector3.new(vector3.X, y + (n16 - y) * n18 * n18 * (3 - 2 * n18), vector3.Z)) * n17)
+			task.wait(0.012)
+		end
+		local n18 = CFrame.new(Vector3.new(vector3.X, n16, vector3.Z)) * n17
+		local n19 = tick() + 0.08
+		while tick() < n19 and tbl4.AutoFarmActive do
+			fn30(n18)
+			task.wait(0.012)
+		end
+		if arg2 then
+			pcall(arg2)
+		end
+		local n20 = tick() + 0.08
+		while tick() < n20 and tbl4.AutoFarmActive do
+			fn30(n18)
+			task.wait(0.012)
+		end
+		fn4()
+	end
+	tbl13.Drive = function(arg, arg2, arg3, arg4)
+		if not arg2 or not arg2.PrimaryPart then
+			return
+		end
+		tbl4.StopWalking = false
+		tbl4.Running = true
+		if typeof(arg3) == "CFrame" then
+			arg3 = arg3.Position
+		end
+		local y = arg3.Y
+		local vector3 = Vector3.new(arg3.X, y, arg3.Z)
+		tbl13:CreateHiddenPlatform(arg2)
+		if not humanoid.Sit then
+			tbl13:EnterVehicle(arg2)
+			task.wait(0.1)
+		end
+		local vector4 = Vector3.new(vector3.X, y, vector3.Z)
+		local vehicleSpeed = tbl4.VehicleSpeed or 55
+		local now4 = tick()
+		local now5 = tick()
+		local function fn30()
+			local raycastParams = RaycastParams.new()
+			raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+			local filterDescendantsInstances = { character }
+			if arg2 then
+				table.insert(filterDescendantsInstances, arg2)
+			end
+			if v7 then
+				table.insert(filterDescendantsInstances, v7)
+			end
+			raycastParams.FilterDescendantsInstances = filterDescendantsInstances
+			raycastParams.IgnoreWater = true
+			return raycastParams
+		end
+		local function fn31(arg5, arg6, arg7)
+			if arg6.Magnitude < 0.05 then
+				return false
+			end
+			local v8 = workspace
+			local n15 = arg6.Unit * arg7
+			return v8:Raycast(Vector3.new(arg5.X, y, arg5.Z), n15, fn30()) ~= nil
+		end
+		while tbl4.AutoFarmActive and not tbl4.StopWalking and not flag3 do
+			task.wait()
+			if isDeadGlobal and isDeadGlobal() then
+				tbl4.Running = false
+				return
+			end
+			if not arg2 or not arg2.PrimaryPart then
+				tbl4.Running = false
+				return
+			end
+			if arg4 and not arg4() then
+				break
+			end
+			if tick() - now4 > 28 then
+				break
+			end
+			if humanoid and not humanoid.Sit then
+				tbl13:EnterVehicle(arg2)
+			end
+			local vector5 = Vector3.new(arg2.PrimaryPart.Position.X, y, arg2.PrimaryPart.Position.Z)
+			local vector6 = Vector3.new(vector4.X - vector5.X, 0, vector4.Z - vector5.Z)
+			if vector6.Magnitude <= 4 then
+				break
+			end
+			local unit = vector6.Unit
+			local vector7 = Vector3.new(-unit.Z, 0, unit.X)
+			if fn31(vector5, unit, 16) then
+				local flag8 = not fn31(vector5, unit + vector7 * -1.2, 16)
+				local flag9 = not fn31(vector5, unit + vector7 * 1.2, 16)
+				if flag8 and not flag9 then
+					unit = (unit * 0.25 + vector7 * -1).Unit
+				elseif flag9 and not flag8 then
+					unit = (unit * 0.25 + vector7).Unit
+				elseif flag8 or flag9 then
+					if (vector5 + vector7 * -12 - vector4).Magnitude < (vector5 + vector7 * 12 - vector4).Magnitude then
+						unit = (unit * 0.2 + vector7 * -1).Unit
+					else
+						unit = (unit * 0.2 + vector7).Unit
+					end
+				else
+					unit = (vector7 * (tick() % 2 < 1 and 1 or -1)).Unit
+				end
+			end
+			local now6 = tick()
+			local n15 = math.min(vehicleSpeed * math.clamp(now6 - now5, 0, 0.05), vector6.Magnitude)
+			local vector8 = Vector3.new(vector5.X + unit.X * n15, y, vector5.Z + unit.Z * n15)
+			local cframe = CFrame.Angles
+			arg2:PivotTo(CFrame.new(vector8) * cframe(0, math.atan2(unit.X, unit.Z), 0))
+			tbl13:UpdateHiddenPlatform(arg2)
+			for _, descendant in ipairs(arg2:GetDescendants()) do
+				if descendant:IsA("BasePart") then
+					descendant.AssemblyLinearVelocity = Vector3.zero
+					descendant.AssemblyAngularVelocity = Vector3.zero
+				end
+			end
+			now5 = now6
+		end
+		tbl4.Running = false
+		fn4()
+	end
+	tbl13.WalkTo = function(arg, arg2, arg3)
+		if flag3 then
+			return
+		end
+		tbl4.StopWalking = false
+		tbl4.Running = true
+		local v8 = PathfindingService:CreatePath({
+			AgentCanJump = true,
+			AgentJumpHeight = 2.5,
+			AgentHeight = 8,
+			AgentRadius = 2.5,
+			AgentMaxSlope = 90,
+			Costs = { BlockedNode = 50, DoorArea = 1 },
+		})
+		if not pcall(function()
+			v8:ComputeAsync(humanoidRootPart.Position, arg2)
+		end) or v8.Status ~= Enum.PathStatus.Success then
+			tbl4.Running = false
+			return
+		end
+		local waypoints = v8:GetWaypoints()
+		local walkSpeed = tbl4.WalkSpeed or 20
+		for _, waypoint in pairs(waypoints) do
+			if flag3 or not tbl4.AutoFarmActive or tbl4.StopWalking then
+				tbl4.Running = false
+				return
+			end
+			if arg3 and not arg3() then
+				tbl4.Running = false
+				return
+			end
+			local n15 = waypoint.Position + Vector3.new(0, waypoint.Action == Enum.PathWaypointAction.Jump and 10 or 4, 0)
+			local position = humanoidRootPart.Position
+			local unit = (n15 - position).Unit
+			local magnitude = (n15 - position).Magnitude
+			local now4 = tick()
+			local n16 = 0
+			while true do
+				if n16 < magnitude and tbl4.AutoFarmActive and not tbl4.StopWalking and not flag3 then
+					task.wait()
+					if not (humanoid.Health <= 0) then
+						if not (arg3 and not arg3()) then
+							n16 = math.min((tick() - now4) * walkSpeed, magnitude)
+							local n17 = position + unit * n16
+							if humanoid.Sit then
+								humanoid.Sit = false
+							end
+							humanoidRootPart:PivotTo(CFrame.new(n17))
+							pcall(function()
+								Net.send("set_sprinting_1", true)
+							end)
+							continue
+						end
+					end
+				end
+				break
+			end
+		end
+		tbl4.Running = false
+		fn4()
+	end
+	tbl13.WalkToSurface = function(arg, arg2, arg3)
+		local flag8 = arg3 ~= false
+		tbl4.StopWalking = false
+		tbl4.Running = true
+		local character2 = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+		local humanoidRootPart2 = character2:WaitForChild("HumanoidRootPart")
+		local humanoid2 = character2:WaitForChild("Humanoid")
+		local v8 = PathfindingService:CreatePath({
+			AgentCanJump = true,
+			AgentJumpHeight = 2.5,
+			AgentHeight = 8,
+			AgentRadius = 2.5,
+			AgentMaxSlope = 90,
+			Costs = { BlockedNode = 50, DoorArea = 1 },
+		})
+		if not pcall(function()
+			v8:ComputeAsync(humanoidRootPart2.Position, arg2)
+		end) then
+			tbl4.Running = false
+			return
+		end
+		if v8.Status == Enum.PathStatus.Success then
+			local waypoints = v8:GetWaypoints()
+			for _, waypoint in pairs(waypoints) do
+				local n15 = waypoint.Position + Vector3.new(0, waypoint.Action == Enum.PathWaypointAction.Jump and 10 or 4, 0)
+				local position = humanoidRootPart2.Position
+				local unit = (n15 - position).Unit
+				local magnitude = (n15 - position).Magnitude
+				local walkSpeed = tbl4.WalkSpeed or 20
+				local now4 = tick()
+				local n16 = 0
+				while true do
+					if n16 < magnitude and not tbl4.StopWalking and flag8 then
+						task.wait()
+						tbl4.Running = true
+						if tbl4.StopWalking or not flag8 or humanoid2.Health <= 0 then
+							tbl4.Running = false
+							break
+						else
+							n16 = math.min((tick() - now4) * walkSpeed, magnitude)
+							local n17 = position + unit * n16
+							if humanoid2.Sit then
+								humanoid2.Sit = false
+							end
+							humanoidRootPart2:PivotTo(CFrame.new(n17))
+							pcall(function()
+								Net.send("set_sprinting_1", true)
+							end)
+							continue
+						end
+					end
+					break
+				end
+				tbl4.Running = false
+				if flag8 then
+					continue
+				end
+				break
+			end
+		end
+		tbl4.Running = false
+	end
+	tbl13.SmartMoveTo = function(arg, arg2, arg3)
+		if not tbl4.AutoFarmActive or flag3 then
+			return
+		end
+		if arg2.Y > 245 then
+			arg2 = fn27(arg2)
+		end
+		local n15 = 40
+		local now4 = tick()
+		local function fn30()
+			return tbl4.AutoFarmActive and not flag3 and tick() - now4 < n15
+		end
+		character = localPlayer.Character
+		humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+		local v8 = tbl13:EnsureVehicle()
+		if v8 then
+			tbl13:CreateHiddenPlatform(v8)
+			if humanoid and not humanoid.Sit then
+				tbl13:EnterVehicle(v8)
+				task.wait(0.08)
+			end
+			if fn30() then
+				tbl13:Drive(v8, arg2, function()
+					return fn30() and (arg3 and arg3() or true)
+				end)
+				return
+			end
+		elseif fn30() then
+			tbl13:WalkTo(arg2, function()
+				return fn30() and (arg3 and arg3() or true)
+			end)
+		end
+	end
+end
+task.spawn(function()
+	while task.wait(0.4) do
+		if not (not tbl4.AutoFarmActive or not tbl4.UseVehicle) then
+			pcall(function()
+				local vehicles = workspace:FindFirstChild("Vehicles")
+				if not vehicles then
+					return
+				end
+				for _, child in pairs(vehicles:GetChildren()) do
+					if child:GetAttribute("OwnerUserId") == userId and child.PrimaryPart then
+						if child.PrimaryPart.Position.Y < n7 - 1 then
+							child:PivotTo(CFrame.new(child.PrimaryPart.Position.X, 230.138, child.PrimaryPart.Position.Z) * child:GetPivot().Rotation)
+							for _, descendant in pairs(child:GetDescendants()) do
+								if descendant:IsA("BasePart") then
+									descendant.AssemblyLinearVelocity = Vector3.zero
+									descendant.AssemblyAngularVelocity = Vector3.zero
+								end
+							end
+						end
+					end
+				end
+			end)
+		end
+	end
+end)
+do
+	local function fn22()
+		if not tbl4.AutoFarmActive then
+			return
+		end
+		character = localPlayer.Character
+		humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+		local ownedVehicle = tbl13:GetOwnedVehicle()
+		if ownedVehicle and ownedVehicle.PrimaryPart then
+			for _, descendant in pairs(ownedVehicle:GetDescendants()) do
+				if descendant:IsA("BasePart") then
+					descendant.AssemblyLinearVelocity = Vector3.zero
+					descendant.AssemblyAngularVelocity = Vector3.zero
+				end
+			end
+			if humanoid and not humanoid.Sit then
+				tbl13:EnterVehicle(ownedVehicle)
+				task.wait(0.15)
+			end
+		end
+		tbl4.StopWalking = false
+		tbl4.Running = false
+		flag3 = false
+		fn4()
+	end
+	local function fn23()
+		if flag3 then
+			return
+		end
+		if tick() - n4 < n5 then
+			return
+		end
+		flag3 = true
+		n4 = tick()
+		tbl4.StopWalking = true
+		tbl4.Running = false
+		if humanoidRootPart then
+			humanoidRootPart.Anchored = false
+			humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+			humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+		end
+		task.wait(2.5)
+		if tbl4.AutoFarmActive then
+			fn22()
+		else
+			flag3 = false
+		end
+	end
+	task.spawn(function()
+		ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("Send").OnClientEvent:Connect(function(arg, ...)
+			if arg == "notification" then
+				local str = tostring(({ ... })[2] or "")
+				for _, v5 in ipairs({
+					"Anti noclip triggered",
+					"Teleport detected",
+					"Speed hack detected",
+					"Exploit detected",
+					"Cheat detected",
+					"Suspicious movement",
+					"Invalid position",
+					"Anti teleport",
+				}) do
+					if str:lower():find(v5:lower()) then
+						if tbl4.AutoFarmActive and not flag3 then
+							task.spawn(fn23)
+						end
+						break
+					end
+				end
+			end
+		end)
+	end)
+end
+task.spawn(function()
+	while task.wait(3) do
+		if tbl4.AutoFarmActive then
+			if tbl4.AutoRepairVehicle then
+				if not flag3 then
+					pcall(function()
+						local vehicleHealth, v5, v6, v7, v8 = tbl13:GetVehicleHealth(nil)
+						if not vehicleHealth then
+							return
+						end
+						local v9 = fn3()
+						if v8 == true or vehicleHealth and type(vehicleHealth) == "number" and vehicleHealth < v9 then
+							local attribute = localPlayer:GetAttribute("SpawnVehicleNext")
+							local serverTimeNow = workspace:GetServerTimeNow()
+							attribute = attribute and attribute - serverTimeNow > 0
+							local ownedVehicle = tbl13:GetOwnedVehicle()
+							if v8 and attribute and not ownedVehicle then
+								while tbl4.AutoFarmActive do
+									local attribute2 = localPlayer:GetAttribute("SpawnVehicleNext")
+									local serverTimeNow2 = workspace:GetServerTimeNow()
+									if not (not attribute2 or attribute2 - serverTimeNow2 <= 0) then
+										task.wait(0.4)
+										continue
+									end
+									break
+								end
+							end
+							tbl13:TryAutoRepair()
+						end
+					end)
+				end
+			end
+		end
+	end
+end)
+do
+	local function fn22(arg)
+		if not arg then
+			return nil
+		end
+		local str = tostring(arg)
+		if tbl2[str] ~= nil then
+			return str
+		end
+		return nil
+	end
+	local function fn23(arg)
+		if not arg or arg == "" then
+			return nil
+		end
+		local str = tostring(arg)
+		local v5 = fn22(str)
+		if v5 then
+			return v5
+		end
+		local v6 = string.match(str, "%(([^%)]+)%)")
+		if v6 then
+			local v7 = string.gsub(string.gsub(v6, "^%s+", ""), "%s+$", "")
+			local v8 = fn22(v7)
+			if v8 then
+				return v8
+			end
+		end
+		return nil
+	end
+	local function fn24(arg)
+		for i = 1, 8 do
+			if not arg then
+				break
+			end
+			local v5 = fn22(arg.Name)
+			if v5 then
+				return v5
+			end
+			arg = arg.Parent
+		end
+		return nil
+	end
+	local function fn25(arg)
+		if not arg then
+			return nil
+		end
+		local v5 = fn24(arg)
+		if v5 then
+			return v5
+		end
+		local v6 = fn23(arg.Name)
+		if v6 then
+			return v6
+		end
+		if arg:IsA("StringValue") or arg:IsA("ObjectValue") then
+			local v7 = fn23(tostring(arg.Value))
+			if v7 then
+				return v7
+			end
+		end
+		for _, v7 in pairs(arg:GetAttributes()) do
+			local v8 = fn23(tostring(v7))
+			if v8 then
+				return v8
+			end
+		end
+		if arg:IsA("BillboardGui") or arg:IsA("SurfaceGui") or arg:IsA("TextLabel") or arg:IsA("TextButton") then
+			local text = arg.Text
+			if text then
+				local v7 = fn23(text)
+				if v7 then
+					return v7
+				end
+			end
+		end
+		for _, child in ipairs(arg:GetChildren()) do
+			if child:IsA("BillboardGui") or child:IsA("SurfaceGui") then
+				for _, child2 in ipairs(child:GetChildren()) do
+					if child2:IsA("TextLabel") or child2:IsA("TextButton") then
+						local v7 = fn23(child2.Text)
+						if v7 then
+							return v7
+						end
+					end
+				end
+				continue
+			end
+			if child:IsA("TextLabel") or child:IsA("TextButton") then
+				local v7 = fn23(child.Text)
+				if v7 then
+					return v7
+				end
+			end
+		end
+		return nil
+	end
+	local function fn26()
+		local character2 = localPlayer.Character
+		if not character2 then
+			return nil
+		end
+		local tool = character2:FindFirstChildOfClass("Tool")
+		if tool then
+			local v5 = string.lower(tostring(tool.Name))
+			if string.find(v5, "rod") or string.find(v5, "سنار") then
+				return tool
+			end
+		end
+		for _, v5 in ipairs({ "FishingRodUltimate", "FishingRodAdvanced", "FishingRodPro", "FishingRodRegular" }) do
+			local v6 = character2:FindFirstChild(v5)
+			if v6 then
+				return v6
+			end
+		end
+		return nil
+	end
+	local function fn27()
+		local function fn28(arg, arg2)
+			while arg do
+				if arg == arg2 then
+					return true
+				end
+				arg = arg.Parent
+			end
+			return false
+		end
+		local function fn29(arg, arg2)
+			local tbl14 = {}
+			for _, v5 in ipairs({ "Attachment0", "Attachment1", "Part0", "Part1" }) do
+				local ok, result = pcall(function()
+					return arg[v5]
+				end)
+				if ok and typeof(result) == "Instance" then
+					if result:IsA("Attachment") then
+						table.insert(tbl14, result.Parent)
+					else
+						table.insert(tbl14, result)
+					end
+				end
+			end
+			for _, v5 in ipairs(tbl14) do
+				if v5 and not fn28(v5, arg2) then
+					return v5
+				end
+			end
+			return tbl14[2]
+		end
+		local fn30 = nil
+		fn30 = function(arg, arg2)
+			if not arg then
+				return nil
+			end
+			arg2 = arg2 or 0
+			local v5 = fn25(arg)
+			if v5 then
+				return v5
+			end
+			if arg2 >= 3 then
+				return nil
+			end
+			for _, child in ipairs(arg:GetChildren()) do
+				local v6 = fn30(child, arg2 + 1)
+				if v6 then
+					return v6
+				end
+			end
+			if arg.Parent and arg.Parent ~= workspace and not arg.Parent:IsA("Tool") then
+				return fn25(arg.Parent)
+			end
+			return nil
+		end
+		local function fn31(arg)
+			if not arg then
+				return nil
+			end
+			local v5 = nil
+			pcall(function()
+				local v6 = fn30(arg, 0)
+				if v6 then
+					v5 = v6
+					return
+				end
+				for _, descendant in ipairs(arg:GetDescendants()) do
+					local v7 = fn25(descendant)
+					if v7 then
+						v5 = v7
+						return
+					end
+					if descendant:IsA("Beam") or descendant:IsA("Trail") or descendant:IsA("RopeConstraint") or descendant:IsA("RodConstraint") or descendant:IsA("SpringConstraint") then
+						local parent = fn29(descendant, arg)
+						if parent then
+							local v8 = fn30(parent, 0)
+							if v8 then
+								v5 = v8
+								return
+							end
+							for i = 1, 6 do
+								if not parent then
+									break
+								end
+								local v9 = fn25(parent)
+								if v9 then
+									v5 = v9
+									return
+								end
+								parent = parent.Parent
+								if not parent or parent == workspace or parent:IsA("Tool") then
+									break
+								end
+							end
+						end
+					end
+				end
+			end)
+			return v5
+		end
+		local ok, result = pcall(function()
+			local v5 = fn26()
+			if not v5 then
+				return nil
+			end
+			return fn31(v5)
+		end)
+		if ok then
+			return result
+		end
+		return nil
+	end
+	local function fn28(arg)
+		if not flag6 then
+			return false
+		end
+		if not arg then
+			return false
+		end
+		return tbl8[arg] == true
+	end
+	local n11 = 0
+	local function fn29()
+		local flag8 = flag7
+		if flag7 then
+			flag8 = tick() - (n11 or 0) < 0.12
+		end
+		if flag8 then
+			return false
+		end
+		flag7 = true
+		n11 = tick()
+		if not flag6 then
+			flag7 = false
+			return false
+		end
+		pcall(function()
+			if humanoid then
+				humanoid:UnequipTools()
+			end
+		end)
+		pcall(function()
+			local v5, v6, v7 = tbl13:HasAnyRod()
+			local v8, v9, v10 = tbl13:HasAnyBait()
+			if v5 and v7 and v8 and v10 then
+				Net.get("equip_ammo_on_item", v7, v10)
+			end
+		end)
+		pcall(function()
+			EquipRod()
+		end)
+		pcall(function()
+			local v5 = GetRodTool()
+			if v5 and humanoid and v5.Parent == backpack then
+				humanoid:EquipTool(v5)
+				v5 = GetRodTool()
+			end
+			if v5 and Vector3.new(82.11319, 245.16185, 922.22076) then
+				Net.get("throw_rod", v5, Vector3.new(82.11319, 245.16185, 922.22076))
+				lastThrowTick = tick()
+			end
+		end)
+		ForceNextCast = false
+		flag7 = false
+		n11 = 0
+		fn4()
+		return true
+	end
+	task.spawn(function()
+		while task.wait(0.3) do
+			if flag7 and n11 > 0 and tick() - n11 > 1 then
+				flag7 = false
+				ForceNextCast = true
+			end
+			local flag8 = tbl4.AutoFarmActive and not isSliderOpen() and not flag3 and lastThrowTick
+			if flag8 then
+				local v5 = lastThrowTick
+				flag8 = tick() - v5 > 5
+			end
+			if flag8 then
+				ForceNextCast = true
+			end
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(0.4)
+			if tbl4.AutoFarmActive then
+				if not flag7 then
+					if not flag6 then
+						continue
+					end
+					local v5 = fn27()
+					if v5 and tbl8[v5] == true then
+						fn29(v5)
+					end
+				end
+			end
+		end
+	end)
+	tbl13.SellAllFish = function()
+		pcall(function()
+			Net.get("sell_all_fish")
+		end)
+	end
+	tbl13.SellFishWithPath = function()
+		local v5 = tbl13:EnsureVehicle()
+		if v5 and humanoid and not humanoid.Sit then
+			tbl13:EnterVehicle(v5)
+			task.wait(0.15)
+		end
+		tbl13:SmartMoveTo(Vector3.new(-252.746, 252.839, 379.64))
+		if not tbl4.AutoFarmActive or flag3 then
+			return false
+		end
+		tbl13:QuickAction(function()
+			tbl13:SellAllFish()
+		end, 0.3)
+		tbl13:SmoothVerticalMove(230.138, 0.3)
+		if tbl4.AutoFarmActive and not flag3 then
+			DepositAllMoney()
+		end
+		fn4()
+		return true
+	end
+	tbl13.IsATMAvailable = function(arg, arg2)
+		if not arg2 or not arg2.Parent then
+			return false
+		end
+		local ok, result = pcall(function()
+			if not arg2:FindFirstChild("Area") then
+				return false
+			end
+			local tbl14 = {}
+			for k in pairs(arg2:GetAttributes()) do
+				table.insert(tbl14, k)
+			end
+			table.sort(tbl14)
+			if tbl14[3] and arg2:GetAttribute(tbl14[3]) == true then
+				return false
+			end
+			return true
+		end)
+		return ok and result == true
+	end
+	tbl13.FindClosestAvailableATM = function(arg, arg2)
+		local ok, result = pcall(function()
+			local atMs = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Props") and workspace.Map.Props:FindFirstChild("ATMs")
+			if not atMs then
+				return nil
+			end
+			local huge = math.huge
+			local v5 = nil
+			for _, child in pairs(atMs:GetChildren()) do
+				if child ~= arg2 and child.Name == "ATM" and child:IsA("Model") and child:FindFirstChild("Area") then
+					if tbl13:IsATMAvailable(child) then
+						local v6 = tbl13:dist(child.Area.Position)
+						if v6 < huge then
+							huge = v6
+							v5 = child
+						end
+					end
+				end
+			end
+			return v5
+		end)
+		return ok and result or nil
+	end
+	DepositAllMoney = function()
+		return (pcall(function()
+			if tbl13:GetMoney() <= 0 then
+				return true
+			end
+			local now3 = tick()
+			local tbl14 = {}
+			while tbl4.AutoFarmActive and tick() - now3 < 40 do
+				if tbl13:GetMoney() <= 0 then
+					return true
+				end
+				local v5 = tbl13:FindClosestAvailableATM()
+				local n12 = 0
+				while v5 and tbl14[v5] and n12 < 5 do
+					v5 = tbl13:FindClosestAvailableATM(v5)
+					n12 += 1
+				end
+				if not v5 or not v5:FindFirstChild("Area") then
+					return false
+				end
+				local position = v5.Area.Position
+				local now4 = tick()
+				local flag8 = false
+				local flag9 = false
+				tbl4.StopWalking = false
+				task.spawn(function()
+					tbl13:SmartMoveTo(position, function()
+						if not tbl4.AutoFarmActive then
+							return false
+						end
+						if not tbl13:IsATMAvailable(v5) then
+							flag9 = true
+							return false
+						end
+						return true
+					end)
+					flag8 = true
+				end)
+				while true do
+					if not flag8 and tick() - now4 < 15 and tbl4.AutoFarmActive then
+						task.wait(0.2)
+						if not tbl13:IsATMAvailable(v5) then
+							flag9 = true
+							tbl4.StopWalking = true
+							task.wait(0.1)
+							tbl4.StopWalking = false
+							break
+						else
+							continue
+						end
+					end
+					break
+				end
+				if flag9 or not tbl13:IsATMAvailable(v5) then
+					tbl14[v5] = true
+					tbl4.StopWalking = true
+					task.wait(0.1)
+					tbl4.StopWalking = false
+					continue
+				end
+				if tick() - now4 >= 15 and not flag8 then
+					tbl4.StopWalking = true
+					task.wait(0.15)
+					tbl4.StopWalking = false
+					tbl14[v5] = true
+					continue
+				end
+				if not tbl13:IsATMAvailable(v5) then
+					tbl14[v5] = true
+					continue
+				end
+				local money = tbl13:GetMoney()
+				if money > 0 then
+					tbl13:QuickAction(function()
+						if tbl13:IsATMAvailable(v5) then
+							pcall(function()
+								Net.get("transfer_funds", "hand", "bank", money)
+							end)
+						end
+					end, 0.3)
+					task.wait(0.15)
+				end
+				if tbl13:GetMoney() <= 0 then
+					if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
+						tbl13:SmoothVerticalMove(230.138, 0.3)
+					end
+					return true
+				end
+				tbl14[v5] = true
+			end
+			return tbl13:GetMoney() <= 0
+		end))
+	end
+	tbl13.WithdrawFromBank = function(arg, arg2, arg3)
+		if arg2 <= 0 then
+			return true
+		end
+		if tbl13:GetMoney() >= arg2 then
+			return true
+		end
+		local bankMoney = tbl13:GetBankMoney() or 0
+		if bankMoney <= 0 then
+			return false
+		end
+		if math.min(arg2 - (tbl13:GetMoney() or 0), bankMoney) <= 0 then
+			return true
+		end
+		local tbl14 = {}
+		local now3 = tick()
+		while tbl4.AutoFarmActive and tick() - now3 < 45 do
+			if (tbl13:GetMoney() or 0) >= arg2 then
+				return true
+			end
+			local v5 = tbl13:FindClosestAvailableATM()
+			local n12 = 0
+			while v5 and tbl14[v5] and n12 < 6 do
+				v5 = tbl13:FindClosestAvailableATM(v5)
+				n12 += 1
+			end
+			if not v5 then
+				return (tbl13:GetMoney() or 0) >= arg2
+			end
+			local position = v5.Area and v5.Area.Position or v5.PrimaryPart and v5.PrimaryPart.Position
+			if not position then
+				tbl14[v5] = true
+				continue
+			end
+			if arg3 then
+				if humanoid then
+					humanoid.WalkSpeed = 32
+				end
+				if humanoid and humanoid.Sit then
+					tbl13:ExitVehicle()
+					task.wait(0.1)
+				end
+				if humanoid then
+					humanoid.WalkSpeed = 32
+				end
+			end
+			local flag8 = false
+			tbl13:SmartMoveTo(position, function()
+				if not tbl4.AutoFarmActive then
+					return false
+				end
+				if not tbl13:IsATMAvailable(v5) then
+					flag8 = true
+					return false
+				end
+				return true
+			end)
+			if flag8 or not tbl13:IsATMAvailable(v5) then
+				tbl14[v5] = true
+				continue
+			end
+			local n13 = math.min(arg2 - (tbl13:GetMoney() or 0), tbl13:GetBankMoney() or 0)
+			if n13 > 0 then
+				tbl13:QuickAction(function()
+					if tbl13:IsATMAvailable(v5) then
+						pcall(function()
+							Net.get("transfer_funds", "bank", "hand", n13)
+						end)
+					end
+				end, 0.35)
+				task.wait(0.2)
+			end
+			if (tbl13:GetMoney() or 0) >= arg2 then
+				return true
+			end
+			tbl14[v5] = true
+		end
+		return (tbl13:GetMoney() or 0) >= arg2
+	end
+	tbl13.TryAutoRepair = function()
+		if not tbl4.AutoRepairVehicle then
+			return true
+		end
+		local vehicleNameFromInventory = nil
+		pcall(function()
+			vehicleNameFromInventory = tbl13:GetVehicleNameFromInventory()
+		end)
+		local vehicleHealth, v5, v6, v7, v8, v9 = tbl13:GetVehicleHealth(vehicleNameFromInventory)
+		if vehicleHealth == nil then
+			vehicleHealth, v5, v6, v7, v8, v9 = tbl13:GetVehicleHealth(nil)
+		end
+		if not (vehicleHealth and v5 and vehicleHealth > v5) then
+			local v10 = vehicleHealth
+			vehicleHealth = v5
+			v5 = v10
+		end
+		local v10 = fn3()
+		if v5 == nil then
+			return true
+		end
+		if v5 >= v10 and not v8 then
+			return true
+		end
+		if not v6 then
+			return false
+		end
+		local repairCost = tbl13:GetRepairCost(v5, vehicleHealth or 1500, v7 or vehicleNameFromInventory, v9)
+		if not repairCost or repairCost <= 0 then
+			repairCost = 1000
+		end
+		local n12 = math.floor(tonumber(repairCost) or 1000)
+		local n13 = math.floor(tbl13:GetMoney() or 0)
+		math.floor(tbl13:GetBankMoney() or 0)
+		local flag8 = v8 == true
+		local n14
+		if n13 < n12 then
+			if flag8 and humanoid then
+				humanoid.WalkSpeed = 32
+			end
+			tbl13:WithdrawFromBank(math.max(0, n12 - n13) + n13, flag8)
+			n14 = math.floor(tbl13:GetMoney() or 0)
+		else
+			n14 = n13
+		end
+		if n14 < n12 then
+			return false
+		end
+		if not getgenv()._NEE_LastRepairAt then
+			getgenv()._NEE_LastRepairAt = 0
+		end
+		if not (tick() - getgenv()._NEE_LastRepairAt < 6) then
+			getgenv()._NEE_LastRepairAt = tick()
+			pcall(function()
+				Net.get("repair_vehicle", v6)
+			end)
+			task.wait(1.2)
+		end
+		if flag8 then
+			pcall(function()
+				Net.send("request_respawn")
+			end)
+			pcall(function()
+				Net.send("death_screen_request_respawn")
+			end)
+			local n15 = 0
+			while n15 < 20 do
+				task.wait(0.25)
+				local character2 = localPlayer.Character
+				local humanoid2 = character2 and character2:FindFirstChildOfClass("Humanoid")
+				local humanoidRootPart2 = character2 and character2:FindFirstChild("HumanoidRootPart")
+				if humanoid2 and humanoidRootPart2 and humanoid2.Health > 0 then
+					character = character2
+					humanoid = humanoid2
+					humanoidRootPart = humanoidRootPart2
+					break
+				else
+					n15 += 1
+				end
+			end
+			while tbl4.AutoFarmActive do
+				local attribute = localPlayer:GetAttribute("SpawnVehicleNext")
+				local serverTimeNow = workspace:GetServerTimeNow()
+				if not (not attribute or attribute - serverTimeNow <= 0) then
+					task.wait(0.35)
+					continue
+				end
+				break
+			end
+			tbl13:ForceRespawnVehicle()
+			local ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and humanoid and not humanoid.Sit then
+				tbl13:EnterVehicle(ownedVehicle)
+			end
+			if humanoid and humanoid.Sit then
+				tbl13:SmoothVerticalMove(230.138, 0.35)
+			end
+		end
+		local vehicleHealth2, v11, v12, v13, v14 = tbl13:GetVehicleHealth(v7 or vehicleNameFromInventory)
+		if vehicleHealth2 and vehicleHealth2 > 0 and not v14 then
+			return true
+		end
+		return false
+	end
+	tbl13.ForceRespawnVehicle = function()
+		if humanoid and humanoid.Sit then
+			pcall(function()
+				Net.get("exit_seat")
+			end)
+			task.wait(0.12)
+		end
+		local ownedVehicle = tbl13:GetOwnedVehicle()
+		if ownedVehicle and ownedVehicle.PrimaryPart then
+			tbl13:EnterVehicle(ownedVehicle)
+			pcall(function()
+				Net.send("lock_vehicle", ownedVehicle, true)
+			end)
+			local n12 = 0
+			while humanoid and not humanoid.Sit and n12 < 6 and tbl4.AutoFarmActive do
+				tbl13:EnterVehicle(ownedVehicle)
+				task.wait(0.08)
+				n12 += 1
+			end
+			if humanoid and humanoid.Sit then
+				return true
+			end
+		end
+		local v5 = tbl13:RespawnAndMountVehicle()
+		if v5 and v5.PrimaryPart and humanoid and humanoid.Sit then
+			pcall(function()
+				Net.send("lock_vehicle", v5, true)
+			end)
+			return true
+		end
+		tbl4.Respawn = true
+		pcall(function()
+			if tbl7.RespawnToggle then
+				tbl7.RespawnToggle:Set(true)
+			end
+		end)
+		pcall(function()
+			Net.send("request_respawn")
+		end)
+		task.wait(0.4)
+		pcall(function()
+			Net.send("death_screen_request_respawn")
+		end)
+		task.wait(0.4)
+		local n12 = 0
+		while n12 < 25 do
+			task.wait(0.4)
+			local character2 = localPlayer.Character
+			if character2 and character2.Parent and character2:FindFirstChild("Humanoid") and character2:FindFirstChild("HumanoidRootPart") then
+				local humanoid2 = character2:FindFirstChildOfClass("Humanoid")
+				local flag8 = humanoid2 and humanoid2.Health > 0
+				if flag8 then
+					local dead = Enum.HumanoidStateType.Dead
+					flag8 = humanoid2:GetState() ~= dead
+				end
+				if flag8 then
+					break
+				else
+					n12 += 1
+				end
+			else
+				n12 += 1
+			end
+		end
+		task.wait(0.8)
+		character = localPlayer.Character
+		if character then
+			humanoid = character:FindFirstChildOfClass("Humanoid") or humanoid
+			humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or humanoidRootPart
+			backpack = localPlayer:FindFirstChild("Backpack") or backpack
+		end
+		for i = 1, 4 do
+			if not tbl4.AutoFarmActive then
+				return false
+			end
+			local ownedVehicle2 = tbl13:GetOwnedVehicle()
+			if ownedVehicle2 and ownedVehicle2.PrimaryPart then
+				tbl13:EnterVehicle(ownedVehicle2)
+				pcall(function()
+					Net.send("lock_vehicle", ownedVehicle2, true)
+				end)
+				local n13 = 0
+				while humanoid and not humanoid.Sit and n13 < 8 and tbl4.AutoFarmActive do
+					tbl13:EnterVehicle(ownedVehicle2)
+					task.wait(0.08)
+					n13 += 1
+				end
+				if humanoid and humanoid.Sit then
+					return true
+				end
+			end
+			local v6 = tbl13:RespawnAndMountVehicle()
+			if v6 and v6.PrimaryPart and humanoid and humanoid.Sit then
+				local function fn30()
+					Net.send("lock_vehicle", v6, true)
+				end
+				pcall(fn30)
+				return true
+			end
+			task.wait(1.2)
+		end
+		return false
+	end
+	local tbl14 = {
+		"FishingRodUltimate",
+		"FishingRodAdvanced",
+		"FishingRodPro",
+		"FishingRodRegular",
+		"Advanced Fishing rod",
+		"Advanced Fishing Rod",
+		"Ultimate Fishing rod",
+		"Pro Fishing rod",
+		"Regular Fishing rod",
+	}
+	local function fn30(arg)
+		if not arg or not arg:IsA("Tool") then
+			return false
+		end
+		local v5 = string.lower(tostring(arg.Name))
+		if string.find(v5, "rod") or string.find(v5, "سنار") then
+			return true
+		end
+		for _, v6 in ipairs(tbl14) do
+			if arg.Name == v6 then
+				return true
+			end
+		end
+		return false
+	end
+	GetRodTool = function()
+		local character2 = localPlayer.Character
+		local backpack2 = localPlayer:FindFirstChild("Backpack")
+		if character2 then
+			local tool = character2:FindFirstChildOfClass("Tool")
+			if tool and fn30(tool) then
+				return tool
+			end
+			for _, v5 in ipairs(tbl14) do
+				local v6 = character2:FindFirstChild(v5)
+				if v6 and v6:IsA("Tool") then
+					return v6
+				end
+			end
+			for _, child in ipairs(character2:GetChildren()) do
+				if fn30(child) then
+					return child
+				end
+			end
+		end
+		if backpack2 then
+			for _, v5 in ipairs(tbl14) do
+				local v6 = backpack2:FindFirstChild(v5)
+				if v6 and v6:IsA("Tool") then
+					return v6
+				end
+			end
+			for _, child in ipairs(backpack2:GetChildren()) do
+				if fn30(child) then
+					return child
+				end
+			end
+		end
+		return nil
+	end
+	EquipRod = function()
+		local character2 = localPlayer.Character
+		local humanoid2 = character2 and character2:FindFirstChildOfClass("Humanoid") or humanoid
+		local backpack2 = localPlayer:FindFirstChild("Backpack") or backpack
+		for _, v5 in ipairs(tbl14) do
+			local v6 = character2 and character2:FindFirstChild(v5) or backpack2 and backpack2:FindFirstChild(v5)
+			if v6 then
+				if humanoid2 and v6.Parent == backpack2 then
+					pcall(function()
+						humanoid2:EquipTool(v6)
+					end)
+				end
+				return true
+			end
+		end
+		if character2 then
+			for _, child in ipairs(character2:GetChildren()) do
+				if fn30(child) then
+					return true
+				end
+			end
+		end
+		if backpack2 then
+			for _, child in ipairs(backpack2:GetChildren()) do
+				if fn30(child) then
+					if humanoid2 then
+						pcall(function()
+							humanoid2:EquipTool(child)
+						end)
+					end
+					return true
+				end
+			end
+		end
+		tbl12.lastUpdate = 0
+		local v5, v6, v7 = tbl13:HasAnyRod()
+		if v5 and v7 then
+			pcall(function()
+				Net.get("toggle_equip_item", tostring(v7))
+			end)
+			task.wait(0.12)
+			local v8 = GetRodTool()
+			if v8 and humanoid2 and v8.Parent ~= character2 then
+				pcall(function()
+					humanoid2:EquipTool(v8)
+				end)
+			end
+			return GetRodTool() ~= nil
+		end
+		return false
+	end
+	task.spawn(function()
+		while task.wait(0.4) do
+			pcall(function()
+				if not localPlayer.Character then
+					return
+				end
+				EquipRod()
+			end)
+		end
+	end)
+	EnsureRodEquipped = function()
+		local v5 = GetRodTool()
+		if v5 and v5.Parent == localPlayer.Character then
+			return true
+		end
+		return EquipRod()
+	end
+	EquipBaitOnRod = function()
+		local v5, v6, v7 = tbl13:HasAnyRod()
+		local v8, v9, v10 = tbl13:HasAnyBait()
+		if v5 and v7 and v8 and v10 then
+			pcall(function()
+				Net.get("equip_ammo_on_item", v7, v10)
+			end)
+			task.wait(0.1)
+			return true
+		end
+		return false
+	end
+	local SliderMinigame = nil
+	local v5 = nil
+	pcall(function()
+		SliderMinigame = require(ReplicatedStorage.Modules.Game.Minigames.SliderMinigame)
+	end)
+	if not SliderMinigame then
+		for _, descendant in ipairs(ReplicatedStorage:GetDescendants()) do
+			if descendant:IsA("ModuleScript") and descendant.Name == "SliderMinigame" then
+				local ok, result = pcall(require, descendant)
+				if ok then
+					SliderMinigame = result
+					break
+				end
+			end
+		end
+	end
+	pcall(function()
+		local Keybinds = require(ReplicatedStorage.Modules.Game.Keybinds)
+		local hookAction = Keybinds.hook_action
+		Keybinds.hook_action = function(arg, arg2, ...)
+			if arg == "minigame_click" then
+				v5 = arg2
+			end
+			local v6 = table.pack(...)
+			local v7 = hookAction
+			v6.n = 3 + v6.n - 1
+			table.move(v6, 1, v6.n, 3, v6)
+			v6[1] = arg
+			v6[2] = arg2
+			return v7(table.unpack(v6, 1, v6.n))
+		end
+	end)
+	local function fn31()
+		if SliderMinigame and SliderMinigame.tries and SliderMinigame.tries.set then
+			pcall(function()
+				SliderMinigame.tries.set(99)
+			end)
+		end
+	end
+	fn31()
+	local function fn32()
+		if SliderMinigame and SliderMinigame.enabled and SliderMinigame.enabled.get then
+			return SliderMinigame.enabled.get() == true
+		end
+		local sliderMinigame = playerGui:FindFirstChild("SliderMinigame")
+		if sliderMinigame then
+			local frame = sliderMinigame:FindFirstChildOfClass("Frame")
+			if frame and frame.Visible then
+				return true
+			end
+		end
+		return false
+	end
+	local function fn33()
+		if not SliderMinigame then
+			return false
+		end
+		local ok, result = pcall(function()
+			local v6 = SliderMinigame.needle_pos.get()
+			local v7 = SliderMinigame.target_pos.get()
+			local n12 = SliderMinigame.target_size.get() / 2
+			return v6 >= v7 - n12 and v6 <= v7 + n12
+		end)
+		return ok and result == true
+	end
+	local function fn34()
+		if v5 then
+			pcall(function()
+				v5(true)
+			end)
+		else
+			pcall(function()
+				local VirtualInputManager = game:GetService("VirtualInputManager")
+				local currentCamera = workspace.CurrentCamera
+				local viewportSize = currentCamera and currentCamera.ViewportSize or Vector2.new(400, 400)
+				local n12 = viewportSize.X * 0.5
+				local n13 = viewportSize.Y * 0.5
+				VirtualInputManager:SendMouseButtonEvent(n12, n13, 0, true, game, 1)
+				VirtualInputManager:SendMouseButtonEvent(n12, n13, 0, false, game, 1)
+			end)
+		end
+	end
+	local function fn35()
+		if not fn32() then
+			return false
+		end
+		fn31()
+		local now3 = tick()
+		local flag8 = false
+		while true do
+			if fn32() and tbl4.AutoFarmActive and not flag3 then
+				if fn33() then
+					fn34()
+					flag8 = true
+				end
+				if not (tick() - now3 > 18) then
+					RunService.Heartbeat:Wait()
+					continue
+				end
+			end
+			break
+		end
+		return flag8
+	end
+	if SliderMinigame and SliderMinigame.enabled and SliderMinigame.enabled.hook then
+		pcall(function()
+			SliderMinigame.enabled.hook(function(arg)
+				if arg then
+					fn31()
+				end
+			end)
+		end)
+	end
+	local flag8 = false
+	local function fn36()
+		local flag9 = humanoid
+		if humanoid then
+			flag9 = humanoid.Health <= 0
+			if not flag9 then
+				local dead = Enum.HumanoidStateType.Dead
+				flag9 = humanoid:GetState() == dead
+			end
+		end
+		if flag9 then
+			return true
+		end
+		local deathScreen = playerGui and playerGui:FindFirstChild("DeathScreen")
+		if deathScreen then
+			local deathScreenHolder = deathScreen:FindFirstChild("DeathScreenHolder")
+			if deathScreenHolder and deathScreenHolder.Visible then
+				return true
+			end
+		end
+		return false
+	end
+	task.spawn(function()
+		while true do
+			task.wait(0.15)
+			pcall(function()
+				local v6 = fn36()
+				if v6 and not flag8 then
+					flag8 = true
+					tbl4.StopWalking = true
+					tbl4.Running = false
+					tbl4.Paused = true
+					ForceNextCast = false
+					flag7 = false
+					local ownedVehicle = tbl13:GetOwnedVehicle()
+					if ownedVehicle then
+						for _, descendant in ipairs(ownedVehicle:GetDescendants()) do
+							if descendant:IsA("BasePart") then
+								descendant.AssemblyLinearVelocity = Vector3.zero
+								descendant.AssemblyAngularVelocity = Vector3.zero
+							end
+						end
+					end
+					pcall(function()
+						if humanoid and humanoid.Sit then
+							Net.get("exit_seat")
+						end
+					end)
+				end
+				if v6 then
+					local deathScreen = playerGui:FindFirstChild("DeathScreen")
+					if deathScreen then
+						local deathScreenHolder = deathScreen:FindFirstChild("DeathScreenHolder")
+						if deathScreenHolder and deathScreenHolder.Visible then
+							local frame = deathScreenHolder:FindFirstChild("Frame")
+							frame = frame and frame:FindFirstChild("RespawnButtonFrame")
+							frame = frame and frame:FindFirstChild("RespawnButton")
+							if frame then
+								pcall(function()
+									Net.send("death_screen_request_respawn")
+								end)
+								if firesignal then
+									pcall(function()
+										firesignal(frame.MouseButton1Click)
+									end)
+								end
+							end
+						end
+					end
+				end
+				if not v6 and flag8 then
+					local character2 = localPlayer.Character
+					local humanoid2 = character2 and character2:FindFirstChildOfClass("Humanoid")
+					if humanoid2 and humanoid2.Health > 0 then
+						flag8 = false
+						humanoid = humanoid2
+						humanoidRootPart = character2:FindFirstChild("HumanoidRootPart")
+						character = character2
+						backpack = localPlayer:FindFirstChild("Backpack")
+						if tbl4.AutoFarmActive then
+							task.spawn(function()
+								tbl4.Paused = false
+								tbl4.StopWalking = false
+								tbl4.Running = false
+								task.wait(0.25)
+								local ownedVehicle = tbl13:GetOwnedVehicle()
+								if not ownedVehicle then
+									pcall(function()
+										local vehicleNameFromInventory = tbl13:GetVehicleNameFromInventory()
+										if vehicleNameFromInventory then
+											local info = tbl13:GetInfo(vehicleNameFromInventory)
+											if info[2] and not info[4] then
+												Net.get("toggle_equip_item", tostring(info[3]))
+												task.wait(0.4)
+											end
+										end
+									end)
+									ownedVehicle = tbl13:GetOwnedVehicle()
+								end
+								if ownedVehicle then
+									tbl13:PullVehicle(ownedVehicle)
+									task.wait(0.15)
+									tbl13:EnterVehicle(ownedVehicle)
+								end
+								task.wait(0.15)
+								if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
+									pcall(function()
+										tbl13:SmoothVerticalMove(230.138, 0.2, true)
+									end)
+								end
+								ForceNextCast = true
+								lastThrowTick = 0
+							end)
+						else
+							tbl4.Paused = false
+							tbl4.StopWalking = false
+						end
+					end
+				end
+			end)
+		end
+	end)
+	task.spawn(function()
+		while task.wait(1) do
+			if tbl4.Respawn then
+				local deathScreen = playerGui:FindFirstChild("DeathScreen")
+				if deathScreen then
+					local deathScreenHolder = deathScreen:FindFirstChild("DeathScreenHolder")
+					if deathScreenHolder and deathScreenHolder.Visible then
+						local textLabel = deathScreenHolder:FindFirstChild("Frame") and deathScreenHolder.Frame:FindFirstChild("RespawnButtonFrame") and deathScreenHolder.Frame.RespawnButtonFrame:FindFirstChild("RespawnButton") and deathScreenHolder.Frame.RespawnButtonFrame.RespawnButton:FindFirstChild("TextLabel")
+						if textLabel and textLabel.Text == "Respawn" then
+							pcall(function()
+								Net.send("death_screen_request_respawn")
+							end)
+							local n12 = 0
+							while n12 < 20 do
+								task.wait(0.25)
+								n12 += 1
+								local character2 = localPlayer.Character
+								local humanoid2 = character2 and character2:FindFirstChildOfClass("Humanoid")
+								local humanoidRootPart2 = character2 and character2:FindFirstChild("HumanoidRootPart")
+								if humanoid2 and humanoidRootPart2 and humanoid2.Health > 0 and not fn21() then
+									character = character2
+									humanoid = humanoid2
+									humanoidRootPart = humanoidRootPart2
+									break
+								end
+							end
+							if tbl4.AutoFarmActive then
+								task.wait(0.4)
+								local ownedVehicle = tbl13:GetOwnedVehicle()
+								if ownedVehicle then
+									tbl13:EnterVehicle(ownedVehicle)
+									if humanoid and humanoid.Sit then
+										tbl13:SmoothVerticalMove(230.138, 0.35)
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end)
+	task.spawn(function()
+		while true do
+			task.wait(10)
+			if not tbl4.AutoFarmActive then
+				fn4()
+			else
+				local n12 = tick() - now2
+				local character2 = game.Players.LocalPlayer.Character
+				if character2 and character2:FindFirstChild("HumanoidRootPart") then
+					if (character2.HumanoidRootPart.Position - vector).Magnitude > 3 then
+						fn4()
+						continue
+					end
+					if n12 >= n3 then
+						pcall(function()
+							Net.send("request_respawn")
+						end)
+						task.wait(1.5)
+						fn4()
+					end
+				end
+			end
+		end
+	end)
+	for _, descendant in pairs(workspace:GetDescendants()) do
+		if descendant.Name == "DoorSystem" or descendant.Name == "BasementDoor" then
+			for _, descendant2 in ipairs(descendant:GetDescendants()) do
+				if descendant2:IsA("BasePart") then
+					descendant2.CanCollide = false
+					if not descendant2:FindFirstChildOfClass("PathfindingModifier") then
+						local pathfindingModifier = Instance.new("PathfindingModifier")
+						pathfindingModifier.Label = "DoorArea"
+						pathfindingModifier.PassThrough = true
+						pathfindingModifier.Parent = descendant2
+					end
+				end
+			end
+		end
+	end
+	local function fn37()
+		local flag9 = false
+		pcall(function()
+			if ItemUtils and Data then
+				ItemUtils.iterate_through_items(Data, function(arg)
+					if arg and arg.name and tbl2[arg.name] then
+						flag9 = true
+					end
+				end)
+			end
+		end)
+		if flag9 then
+			return true
+		end
+		pcall(function()
+			local items = playerGui:FindFirstChild("Items")
+			local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+			if not itemsScrollingFrame then
+				return
+			end
+			for _, child in pairs(itemsScrollingFrame:GetChildren()) do
+				if child.Name ~= "Folder" and child.Name ~= "UIGridLayout" and child.Name ~= "ItemTemplate" then
+					local attribute = child:GetAttribute("ItemType")
+					if attribute and string.lower(tostring(attribute)) == "fish" then
+						flag9 = true
+						break
+					end
+				end
+			end
+		end)
+		return flag9
+	end
+	local flag9 = false
+	StartAutoFarm = function()
+		local state = 1
+		local ownedVehicle, vehicleHealth, destroyed, vehicleDataFromData, flag10, sit, value, flag11, v6, flag12, flag13, sit2, ownedVehicle2, flag14, flag15, flag16, n12, character2, humanoid2, humanoidRootPart2, humanoid3, flag17, humanoid4, humanoidRootPart3, flag18, flag19, flag20, ownedVehicle3, sit3, value2, value3, flag21, v7, totalFish, v8, v9, v10, flag22, flag23, flag24, flag25, v11, flag26, flag27, flag28, flag29, v12, flag30, autoFarmActive, value4, flag31, autoFarmActive2, vehicleHealth2, v13, v14, flag32, autoFarmActive3, sit4, ownedVehicle4, flag33, flag34, sit5, pos, position, ownedVehicle5, flag35, ownedVehicle6, v15, v16, flag36, flag37, v17, v18, now3, v19, n13, n14, autoFarmActive4, flag38, flag39, flag40, v20, flag41, flag42, flag43, now4, autoFarmActive5, v21, n15, flag44, flag45, flag46, autoFarmActive6, value5, flag47, autoFarmActive7, now5, flag48, autoFarmActive8, v22, autoFarmActive9
+		while true do
+			if state == 1 then
+				if flag9 then
+					state = 419
+				else
+					state = 2
+				end
+			elseif state == 2 then
+				flag9 = true
+				n = 0
+				task.spawn(function()
+					while tbl4.AutoFarmActive do
+						pcall(function()
+							local humanoid5 = (localPlayer.Character or localPlayer.CharacterAdded:Wait()):FindFirstChildOfClass("Humanoid")
+							local v23 = GetRodTool()
+							if v23 and humanoid5 and v23.Parent == localPlayer.Backpack then
+								humanoid5:EquipTool(v23)
+							end
+						end)
+						task.wait(1)
+					end
+				end)
+				if tbl4.UseVehicle then
+					state = 3
+				else
+					state = 34
+				end
+			elseif state == 3 then
+				ownedVehicle = tbl13:GetOwnedVehicle()
+				local v23, v24, v25
+				vehicleHealth, v23, v24, v25, destroyed = tbl13:GetVehicleHealth(nil)
+				if not vehicleHealth then
+					state = 4
+				else
+					state = 6
+				end
+			elseif state == 4 then
+				vehicleDataFromData = tbl13:GetVehicleDataFromData(nil)
+				if vehicleDataFromData then
+					state = 5
+				else
+					state = 6
+				end
+			elseif state == 5 then
+				vehicleHealth = vehicleDataFromData.health
+				destroyed = vehicleDataFromData.destroyed
+				state = 6
+			elseif state == 6 then
+				flag10 = destroyed == true
+				if flag10 then
+					state = 9
+				else
+					state = 7
+				end
+			elseif state == 7 then
+				flag10 = type(vehicleHealth) == "number"
+				if flag10 then
+					state = 8
+				else
+					state = 9
+				end
+			elseif state == 8 then
+				flag10 = vehicleHealth <= 0
+				state = 9
+			elseif state == 9 then
+				if flag10 then
+					state = 10
+				else
+					state = 22
+				end
+			elseif state == 10 then
+				if ownedVehicle then
+					state = 11
+				else
+					state = 15
+				end
+			elseif state == 11 then
+				sit = humanoid
+				if humanoid then
+					state = 12
+				else
+					state = 13
+				end
+			elseif state == 12 then
+				sit = humanoid.Sit
+				state = 13
+			elseif state == 13 then
+				if sit then
+					state = 14
+				else
+					state = 15
+				end
+			elseif state == 14 then
+				pcall(function()
+					Net.get("exit_seat")
+				end)
+				task.wait(0.3)
+				state = 15
+			elseif state == 15 then
+				tbl13:TryAutoRepair()
+				if not tbl4.AutoFarmActive then
+					state = 418
+				else
+					state = 16
+				end
+			elseif state == 16 then
+				task.wait(0.5)
+				value = select(1, tbl13:GetVehicleHealth(nil))
+				flag11 = not value
+				if flag11 then
+					state = 18
+				else
+					state = 17
+				end
+			elseif state == 17 then
+				flag11 = value <= 0
+				state = 18
+			elseif state == 18 then
+				if flag11 then
+					state = 19
+				else
+					state = 22
+				end
+			elseif state == 19 then
+				v6 = tbl13:RespawnAndMountVehicle()
+				if not v6 then
+					state = 20
+				else
+					state = 21
+				end
+			elseif state == 20 then
+				pcall(function()
+					Net.send("request_respawn")
+				end)
+				task.wait(0.5)
+				pcall(function()
+					Net.send("death_screen_request_respawn")
+				end)
+				task.wait(1)
+				v6 = tbl13:RespawnAndMountVehicle()
+				state = 21
+			elseif state == 21 then
+				if not v6 then
+					state = 417
+				else
+					state = 22
+				end
+			elseif state == 22 then
+				if vehicleHealth then
+					state = 24
+				else
+					state = 23
+				end
+			elseif state == 23 then
+				flag12 = vehicleHealth
+				state = 25
+			elseif state == 24 then
+				flag12 = type(vehicleHealth) == "number"
+				state = 25
+			elseif state == 25 then
+				if flag12 then
+					state = 26
+				else
+					state = 27
+				end
+			elseif state == 26 then
+				flag12 = vehicleHealth > 0
+				state = 27
+			elseif state == 27 then
+				if flag12 then
+					state = 29
+				else
+					state = 28
+				end
+			elseif state == 28 then
+				flag13 = flag12
+				state = 30
+			elseif state == 29 then
+				flag13 = vehicleHealth < fn3()
+				state = 30
+			elseif state == 30 then
+				if flag13 then
+					state = 31
+				else
+					state = 32
+				end
+			elseif state == 31 then
+				flag13 = not destroyed
+				state = 32
+			elseif state == 32 then
+				if flag13 then
+					state = 33
+				else
+					state = 34
+				end
+			elseif state == 33 then
+				tbl13:TryAutoRepair()
+				if not tbl4.AutoFarmActive then
+					state = 416
+				else
+					state = 34
+				end
+			elseif state == 34 then
+				if tbl4.UseVehicle then
+					state = 35
+				else
+					state = 77
+				end
+			elseif state == 35 then
+				sit2 = humanoid
+				if humanoid then
+					state = 36
+				else
+					state = 37
+				end
+			elseif state == 36 then
+				sit2 = humanoid.Sit
+				state = 37
+			elseif state == 37 then
+				if sit2 then
+					state = 38
+				else
+					state = 39
+				end
+			elseif state == 38 then
+				pcall(function()
+					Net.get("exit_seat")
+				end)
+				task.wait(0.08)
+				state = 39
+			elseif state == 39 then
+				ownedVehicle2 = tbl13:GetOwnedVehicle()
+				flag14 = not ownedVehicle2
+				if flag14 then
+					state = 41
+				else
+					state = 40
+				end
+			elseif state == 40 then
+				flag15 = not ownedVehicle2.PrimaryPart
+				state = 42
+			elseif state == 41 then
+				flag15 = flag14
+				state = 42
+			elseif state == 42 then
+				if flag15 then
+					state = 43
+				else
+					state = 44
+				end
+			elseif state == 43 then
+				ownedVehicle2 = tbl13:RespawnAndMountVehicle()
+				state = 44
+			elseif state == 44 then
+				flag16 = not ownedVehicle2
+				if flag16 then
+					state = 46
+				else
+					state = 45
+				end
+			elseif state == 45 then
+				flag16 = not ownedVehicle2.PrimaryPart
+				state = 46
+			elseif state == 46 then
+				if flag16 then
+					state = 47
+				else
+					state = 66
+				end
+			elseif state == 47 then
+				pcall(function()
+					Net.send("request_respawn")
+				end)
+				task.wait(0.3)
+				pcall(function()
+					Net.send("death_screen_request_respawn")
+				end)
+				task.wait(0.5)
+				n12 = 0
+				state = 48
+			elseif state == 48 then
+				if n12 < 15 then
+					state = 49
+				else
+					state = 61
+				end
+			elseif state == 49 then
+				task.wait(0.2)
+				character2 = localPlayer.Character
+				if character2 then
+					state = 51
+				else
+					state = 50
+				end
+			elseif state == 50 then
+				humanoid2 = character2
+				state = 52
+			elseif state == 51 then
+				humanoid2 = character2:FindFirstChild("Humanoid")
+				state = 52
+			elseif state == 52 then
+				if humanoid2 then
+					state = 54
+				else
+					state = 53
+				end
+			elseif state == 53 then
+				humanoidRootPart2 = humanoid2
+				state = 55
+			elseif state == 54 then
+				humanoidRootPart2 = character2:FindFirstChild("HumanoidRootPart")
+				state = 55
+			elseif state == 55 then
+				if humanoidRootPart2 then
+					state = 56
+				else
+					state = 60
+				end
+			elseif state == 56 then
+				humanoid3 = character2:FindFirstChildOfClass("Humanoid")
+				if humanoid3 then
+					state = 58
+				else
+					state = 57
+				end
+			elseif state == 57 then
+				flag17 = humanoid3
+				state = 59
+			elseif state == 58 then
+				flag17 = humanoid3.Health > 0
+				state = 59
+			elseif state == 59 then
+				if flag17 then
+					state = 61
+				else
+					state = 60
+				end
+			elseif state == 60 then
+				n12 += 1
+				state = 48
+			elseif state == 61 then
+				character = localPlayer.Character
+				humanoid4 = character
+				if character then
+					state = 62
+				else
+					state = 63
+				end
+			elseif state == 62 then
+				humanoid4 = character:FindFirstChildOfClass("Humanoid")
+				state = 63
+			elseif state == 63 then
+				humanoid = humanoid4
+				humanoidRootPart3 = character
+				if character then
+					state = 64
+				else
+					state = 65
+				end
+			elseif state == 64 then
+				humanoidRootPart3 = character:FindFirstChild("HumanoidRootPart")
+				state = 65
+			elseif state == 65 then
+				humanoidRootPart = humanoidRootPart3
+				ownedVehicle2 = tbl13:RespawnAndMountVehicle()
+				state = 66
+			elseif state == 66 then
+				flag18 = not ownedVehicle2
+				if flag18 then
+					state = 68
+				else
+					state = 67
+				end
+			elseif state == 67 then
+				flag18 = not ownedVehicle2.PrimaryPart
+				state = 68
+			elseif state == 68 then
+				if flag18 then
+					state = 415
+				else
+					state = 69
+				end
+			elseif state == 69 then
+				flag19 = humanoid
+				if humanoid then
+					state = 70
+				else
+					state = 71
+				end
+			elseif state == 70 then
+				flag19 = not humanoid.Sit
+				state = 71
+			elseif state == 71 then
+				if flag19 then
+					state = 72
+				else
+					state = 73
+				end
+			elseif state == 72 then
+				tbl13:EnterVehicle(ownedVehicle2)
+				state = 73
+			elseif state == 73 then
+				pcall(function()
+					Net.send("lock_vehicle", ownedVehicle2, true)
+				end)
+				flag20 = not humanoid
+				if flag20 then
+					state = 75
+				else
+					state = 74
+				end
+			elseif state == 74 then
+				flag20 = not humanoid.Sit
+				state = 75
+			elseif state == 75 then
+				if flag20 then
+					state = 414
+				else
+					state = 76
+				end
+			elseif state == 76 then
+				state = 77
+			elseif state == 77 then
+				EquipRod()
+				if not tbl4.AutoFarmActive then
+					state = 413
+				else
+					state = 78
+				end
+			elseif state == 78 then
+				if tbl4.UseVehicle then
+					state = 79
+				else
+					state = 81
+				end
+			elseif state == 79 then
+				ownedVehicle3 = tbl13:GetOwnedVehicle()
+				if ownedVehicle3 then
+					state = 80
+				else
+					state = 81
+				end
+			elseif state == 80 then
+				tbl13:CreateHiddenPlatform(ownedVehicle3)
+				state = 81
+			elseif state == 81 then
+				sit3 = humanoid
+				if humanoid then
+					state = 82
+				else
+					state = 83
+				end
+			elseif state == 82 then
+				sit3 = humanoid.Sit
+				state = 83
+			elseif state == 83 then
+				if sit3 then
+					state = 84
+				else
+					state = 85
+				end
+			elseif state == 84 then
+				sit3 = tbl13:GetOwnedVehicle()
+				state = 85
+			elseif state == 85 then
+				if sit3 then
+					state = 86
+				else
+					state = 87
+				end
+			elseif state == 86 then
+				tbl13:SmoothVerticalMove(230.138, 0.35)
+				state = 87
+			elseif state == 87 then
+				if tbl4.AutoBuyEnabled then
+					state = 88
+				else
+					state = 92
+				end
+			elseif state == 88 then
+				value2 = select(1, tbl13:HasAnyRod())
+				value3 = select(1, tbl13:HasAnyBait())
+				if value2 then
+					state = 90
+				else
+					state = 89
+				end
+			elseif state == 89 then
+				value3 = value2
+				state = 90
+			elseif state == 90 then
+				if not value3 then
+					state = 91
+				else
+					state = 92
+				end
+			elseif state == 91 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 412
+				else
+					state = 92
+				end
+			elseif state == 92 then
+				if tbl4.AutoFarmActive then
+					state = 93
+				else
+					state = 409
+				end
+			elseif state == 93 then
+				flag21 = not localPlayer.Character
+				if flag21 then
+					state = 95
+				else
+					state = 94
+				end
+			elseif state == 94 then
+				flag21 = not localPlayer.Character.Parent
+				state = 95
+			elseif state == 95 then
+				if flag21 then
+					state = 411
+				else
+					state = 96
+				end
+			elseif state == 96 then
+				character = localPlayer.Character
+				humanoid = character:FindFirstChildOfClass("Humanoid")
+				humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+				if flag3 then
+					state = 405
+				else
+					state = 97
+				end
+			elseif state == 97 then
+				if fn36() then
+					state = 404
+				else
+					state = 98
+				end
+			elseif state == 98 then
+				if ForceNextCast then
+					state = 99
+				else
+					state = 100
+				end
+			elseif state == 99 then
+				ForceNextCast = false
+				flag7 = false
+				pcall(function()
+					local v23 = GetRodTool()
+					if v23 and humanoid and v23.Parent == backpack then
+						humanoid:EquipTool(v23)
+						v23 = GetRodTool()
+					end
+					if not v23 then
+						EquipRod()
+						v23 = GetRodTool()
+					end
+					if v23 and Vector3.new(82.11319, 245.16185, 922.22076) then
+						Net.get("throw_rod", v23, Vector3.new(82.11319, 245.16185, 922.22076))
+						lastThrowTick = tick()
+					end
+				end)
+				state = 100
+			elseif state == 100 then
+				EnsureRodEquipped()
+				v7 = tbl9[tbl4.ZoneSelect]
+				if not v7 then
+					state = 403
+				else
+					state = 101
+				end
+			elseif state == 101 then
+				totalFish = tbl3.totalFish
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				v10 = fn37()
+				flag22 = false
+				if flag4 then
+					state = 102
+				else
+					state = 103
+				end
+			elseif state == 102 then
+				flag4 = false
+				flag22 = true
+				state = 103
+			elseif state == 103 then
+				if not flag22 then
+					state = 122
+				else
+					state = 104
+				end
+			elseif state == 104 then
+				if flag22 then
+					state = 105
+				else
+					state = 218
+				end
+			elseif state == 105 then
+				if fn37() then
+					state = 107
+				else
+					state = 106
+				end
+			elseif state == 106 then
+				n = 0
+				state = 116
+			elseif state == 107 then
+				flag23 = n > 0
+				if flag23 then
+					state = 109
+				else
+					state = 108
+				end
+			elseif state == 108 then
+				flag23 = totalFish > 0
+				state = 109
+			elseif state == 109 then
+				if flag23 then
+					state = 111
+				else
+					state = 110
+				end
+			elseif state == 110 then
+				flag23 = flag4
+				state = 111
+			elseif state == 111 then
+				if flag23 then
+					state = 112
+				else
+					state = 113
+				end
+			elseif state == 112 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 113
+			elseif state == 113 then
+				n = 0
+				if not (tbl13:GetMoney() > 0) then
+					state = 116
+				else
+					state = 114
+				end
+			elseif state == 114 then
+				if not tbl13:HasAnyBait() then
+					state = 115
+				else
+					state = 116
+				end
+			elseif state == 115 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 116
+			elseif state == 116 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 117
+				end
+			elseif state == 117 then
+				if not tbl13:HasAnyBait() then
+					state = 118
+				else
+					state = 121
+				end
+			elseif state == 118 then
+				if tbl4.AutoBuyEnabled then
+					state = 119
+				else
+					state = 121
+				end
+			elseif state == 119 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 120
+				end
+			elseif state == 120 then
+				EquipRod()
+				task.wait(0.15)
+				state = 121
+			elseif state == 121 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 122 then
+				if v10 then
+					state = 143
+				else
+					state = 123
+				end
+			elseif state == 123 then
+				if flag22 then
+					state = 124
+				else
+					state = 218
+				end
+			elseif state == 124 then
+				if fn37() then
+					state = 126
+				else
+					state = 125
+				end
+			elseif state == 125 then
+				n = 0
+				state = 137
+			elseif state == 126 then
+				flag24 = n > 0
+				if flag24 then
+					state = 128
+				else
+					state = 127
+				end
+			elseif state == 127 then
+				flag25 = totalFish > 0
+				state = 129
+			elseif state == 128 then
+				flag25 = flag24
+				state = 129
+			elseif state == 129 then
+				if flag25 then
+					state = 131
+				else
+					state = 130
+				end
+			elseif state == 130 then
+				v11 = flag4
+				state = 132
+			elseif state == 131 then
+				v11 = flag25
+				state = 132
+			elseif state == 132 then
+				if v11 then
+					state = 133
+				else
+					state = 134
+				end
+			elseif state == 133 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 134
+			elseif state == 134 then
+				n = 0
+				if not (tbl13:GetMoney() > 0) then
+					state = 137
+				else
+					state = 135
+				end
+			elseif state == 135 then
+				if not tbl13:HasAnyBait() then
+					state = 136
+				else
+					state = 137
+				end
+			elseif state == 136 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 137
+			elseif state == 137 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 138
+				end
+			elseif state == 138 then
+				if not tbl13:HasAnyBait() then
+					state = 139
+				else
+					state = 142
+				end
+			elseif state == 139 then
+				if tbl4.AutoBuyEnabled then
+					state = 140
+				else
+					state = 142
+				end
+			elseif state == 140 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 141
+				end
+			elseif state == 141 then
+				EquipRod()
+				task.wait(0.15)
+				state = 142
+			elseif state == 142 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 143 then
+				flag26 = tbl4.SellAfterFishCount > 0
+				if flag26 then
+					state = 144
+				else
+					state = 145
+				end
+			elseif state == 144 then
+				flag26 = n >= tbl4.SellAfterFishCount
+				state = 145
+			elseif state == 145 then
+				if flag26 then
+					state = 201
+				else
+					state = 146
+				end
+			elseif state == 146 then
+				if v8 then
+					state = 183
+				else
+					state = 147
+				end
+			elseif state == 147 then
+				if not v9 then
+					state = 166
+				else
+					state = 148
+				end
+			elseif state == 148 then
+				if flag22 then
+					state = 149
+				else
+					state = 218
+				end
+			elseif state == 149 then
+				if fn37() then
+					state = 151
+				else
+					state = 150
+				end
+			elseif state == 150 then
+				n = 0
+				state = 160
+			elseif state == 151 then
+				flag27 = n > 0
+				if flag27 then
+					state = 153
+				else
+					state = 152
+				end
+			elseif state == 152 then
+				flag27 = totalFish > 0
+				state = 153
+			elseif state == 153 then
+				if flag27 then
+					state = 155
+				else
+					state = 154
+				end
+			elseif state == 154 then
+				flag27 = flag4
+				state = 155
+			elseif state == 155 then
+				if flag27 then
+					state = 156
+				else
+					state = 157
+				end
+			elseif state == 156 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 157
+			elseif state == 157 then
+				n = 0
+				if not (tbl13:GetMoney() > 0) then
+					state = 160
+				else
+					state = 158
+				end
+			elseif state == 158 then
+				if not tbl13:HasAnyBait() then
+					state = 159
+				else
+					state = 160
+				end
+			elseif state == 159 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 160
+			elseif state == 160 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 161
+				end
+			elseif state == 161 then
+				if not tbl13:HasAnyBait() then
+					state = 162
+				else
+					state = 165
+				end
+			elseif state == 162 then
+				if tbl4.AutoBuyEnabled then
+					state = 163
+				else
+					state = 165
+				end
+			elseif state == 163 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 164
+				end
+			elseif state == 164 then
+				EquipRod()
+				task.wait(0.15)
+				state = 165
+			elseif state == 165 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 166 then
+				if fn37() then
+					state = 168
+				else
+					state = 167
+				end
+			elseif state == 167 then
+				n = 0
+				state = 177
+			elseif state == 168 then
+				flag28 = n > 0
+				if flag28 then
+					state = 170
+				else
+					state = 169
+				end
+			elseif state == 169 then
+				flag28 = totalFish > 0
+				state = 170
+			elseif state == 170 then
+				if flag28 then
+					state = 172
+				else
+					state = 171
+				end
+			elseif state == 171 then
+				flag28 = flag4
+				state = 172
+			elseif state == 172 then
+				if flag28 then
+					state = 173
+				else
+					state = 174
+				end
+			elseif state == 173 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 174
+			elseif state == 174 then
+				n = 0
+				if not (tbl13:GetMoney() > 0) then
+					state = 177
+				else
+					state = 175
+				end
+			elseif state == 175 then
+				if not tbl13:HasAnyBait() then
+					state = 176
+				else
+					state = 177
+				end
+			elseif state == 176 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 177
+			elseif state == 177 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 178
+				end
+			elseif state == 178 then
+				if not tbl13:HasAnyBait() then
+					state = 179
+				else
+					state = 182
+				end
+			elseif state == 179 then
+				if tbl4.AutoBuyEnabled then
+					state = 180
+				else
+					state = 182
+				end
+			elseif state == 180 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 181
+				end
+			elseif state == 181 then
+				EquipRod()
+				task.wait(0.15)
+				state = 182
+			elseif state == 182 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 183 then
+				if fn37() then
+					state = 185
+				else
+					state = 184
+				end
+			elseif state == 184 then
+				n = 0
+				state = 195
+			elseif state == 185 then
+				flag29 = n > 0
+				if flag29 then
+					state = 187
+				else
+					state = 186
+				end
+			elseif state == 186 then
+				flag29 = totalFish > 0
+				state = 187
+			elseif state == 187 then
+				if flag29 then
+					state = 189
+				else
+					state = 188
+				end
+			elseif state == 188 then
+				v12 = flag4
+				state = 190
+			elseif state == 189 then
+				v12 = flag29
+				state = 190
+			elseif state == 190 then
+				if v12 then
+					state = 191
+				else
+					state = 192
+				end
+			elseif state == 191 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 192
+			elseif state == 192 then
+				n = 0
+				if tbl13:GetMoney() > 0 then
+					state = 193
+				else
+					state = 195
+				end
+			elseif state == 193 then
+				if not tbl13:HasAnyBait() then
+					state = 194
+				else
+					state = 195
+				end
+			elseif state == 194 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 195
+			elseif state == 195 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 196
+				end
+			elseif state == 196 then
+				if not tbl13:HasAnyBait() then
+					state = 197
+				else
+					state = 200
+				end
+			elseif state == 197 then
+				if tbl4.AutoBuyEnabled then
+					state = 198
+				else
+					state = 200
+				end
+			elseif state == 198 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 199
+				end
+			elseif state == 199 then
+				EquipRod()
+				task.wait(0.15)
+				state = 200
+			elseif state == 200 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 201 then
+				if fn37() then
+					state = 203
+				else
+					state = 202
+				end
+			elseif state == 202 then
+				n = 0
+				state = 212
+			elseif state == 203 then
+				flag30 = n > 0
+				if flag30 then
+					state = 205
+				else
+					state = 204
+				end
+			elseif state == 204 then
+				flag30 = totalFish > 0
+				state = 205
+			elseif state == 205 then
+				if flag30 then
+					state = 207
+				else
+					state = 206
+				end
+			elseif state == 206 then
+				flag30 = flag4
+				state = 207
+			elseif state == 207 then
+				if flag30 then
+					state = 208
+				else
+					state = 209
+				end
+			elseif state == 208 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				state = 209
+			elseif state == 209 then
+				n = 0
+				if not (tbl13:GetMoney() > 0) then
+					state = 212
+				else
+					state = 210
+				end
+			elseif state == 210 then
+				if not tbl13:HasAnyBait() then
+					state = 211
+				else
+					state = 212
+				end
+			elseif state == 211 then
+				DepositAllMoney()
+				task.wait(0.15)
+				state = 212
+			elseif state == 212 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 213
+				end
+			elseif state == 213 then
+				if not tbl13:HasAnyBait() then
+					state = 214
+				else
+					state = 217
+				end
+			elseif state == 214 then
+				if tbl4.AutoBuyEnabled then
+					state = 215
+				else
+					state = 217
+				end
+			elseif state == 215 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 216
+				end
+			elseif state == 216 then
+				EquipRod()
+				task.wait(0.15)
+				state = 217
+			elseif state == 217 then
+				v8 = tbl13:IsInventoryFull()
+				v9 = tbl13:HasAnyBait()
+				state = 218
+			elseif state == 218 then
+				autoFarmActive = tbl4.AutoFarmActive
+				if autoFarmActive then
+					state = 219
+				else
+					state = 220
+				end
+			elseif state == 219 then
+				autoFarmActive = tbl4.AutoBuyEnabled
+				state = 220
+			elseif state == 220 then
+				if autoFarmActive then
+					state = 221
+				else
+					state = 226
+				end
+			elseif state == 221 then
+				value4 = select(1, tbl13:HasAnyRod())
+				v9 = tbl13:HasAnyBait()
+				flag31 = not v9
+				if flag31 then
+					state = 223
+				else
+					state = 222
+				end
+			elseif state == 222 then
+				flag31 = not value4
+				state = 223
+			elseif state == 223 then
+				if flag31 then
+					state = 224
+				else
+					state = 226
+				end
+			elseif state == 224 then
+				BuyEquipment()
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 225
+				end
+			elseif state == 225 then
+				EquipRod()
+				EquipBaitOnRod()
+				task.wait(0.15)
+				v9 = tbl13:HasAnyBait()
+				v8 = tbl13:IsInventoryFull()
+				state = 226
+			elseif state == 226 then
+				autoFarmActive2 = tbl4.AutoFarmActive
+				if autoFarmActive2 then
+					state = 227
+				else
+					state = 228
+				end
+			elseif state == 227 then
+				autoFarmActive2 = not v8
+				state = 228
+			elseif state == 228 then
+				if autoFarmActive2 then
+					state = 230
+				else
+					state = 229
+				end
+			elseif state == 229 then
+				v9 = autoFarmActive2
+				state = 230
+			elseif state == 230 then
+				if v9 then
+					state = 231
+				else
+					state = 399
+				end
+			elseif state == 231 then
+				if tbl4.AutoRepairVehicle then
+					state = 232
+				else
+					state = 260
+				end
+			elseif state == 232 then
+				local v23, v24, v25
+				vehicleHealth2, v23, v24, v25, v13 = tbl13:GetVehicleHealth(nil)
+				v14 = fn3()
+				flag32 = v13 == true
+				if flag32 then
+					state = 238
+				else
+					state = 233
+				end
+			elseif state == 233 then
+				if vehicleHealth2 then
+					state = 235
+				else
+					state = 234
+				end
+			elseif state == 234 then
+				flag32 = vehicleHealth2
+				state = 236
+			elseif state == 235 then
+				flag32 = type(vehicleHealth2) == "number"
+				state = 236
+			elseif state == 236 then
+				if flag32 then
+					state = 237
+				else
+					state = 238
+				end
+			elseif state == 237 then
+				flag32 = vehicleHealth2 < v14
+				state = 238
+			elseif state == 238 then
+				if flag32 then
+					state = 239
+				else
+					state = 260
+				end
+			elseif state == 239 then
+				if tick() - n6 > 8 then
+					state = 240
+				else
+					state = 260
+				end
+			elseif state == 240 then
+				n6 = tick()
+				autoFarmActive3 = tbl4.AutoFarmActive
+				if v13 ~= true then
+					state = 245
+				else
+					state = 241
+				end
+			elseif state == 241 then
+				sit4 = humanoid
+				if humanoid then
+					state = 242
+				else
+					state = 243
+				end
+			elseif state == 242 then
+				sit4 = humanoid.Sit
+				state = 243
+			elseif state == 243 then
+				if sit4 then
+					state = 244
+				else
+					state = 245
+				end
+			elseif state == 244 then
+				tbl13:ExitVehicle()
+				task.wait(0.2)
+				state = 245
+			elseif state == 245 then
+				tbl13:TryAutoRepair()
+				if autoFarmActive3 then
+					state = 246
+				else
+					state = 259
+				end
+			elseif state == 246 then
+				ownedVehicle4 = tbl13:GetOwnedVehicle()
+				flag33 = not ownedVehicle4
+				if flag33 then
+					state = 248
+				else
+					state = 247
+				end
+			elseif state == 247 then
+				flag33 = not ownedVehicle4.PrimaryPart
+				state = 248
+			elseif state == 248 then
+				if flag33 then
+					state = 254
+				else
+					state = 249
+				end
+			elseif state == 249 then
+				flag34 = humanoid
+				if humanoid then
+					state = 250
+				else
+					state = 251
+				end
+			elseif state == 250 then
+				flag34 = not humanoid.Sit
+				state = 251
+			elseif state == 251 then
+				if flag34 then
+					state = 252
+				else
+					state = 253
+				end
+			elseif state == 252 then
+				tbl13:EnterVehicle(ownedVehicle4)
+				task.wait(0.2)
+				state = 253
+			elseif state == 253 then
+				pcall(function()
+					Net.send("lock_vehicle", ownedVehicle4, true)
+				end)
+				state = 255
+			elseif state == 254 then
+				tbl13:ForceRespawnVehicle()
+				state = 255
+			elseif state == 255 then
+				sit5 = humanoid
+				if humanoid then
+					state = 256
+				else
+					state = 257
+				end
+			elseif state == 256 then
+				sit5 = humanoid.Sit
+				state = 257
+			elseif state == 257 then
+				if sit5 then
+					state = 258
+				else
+					state = 259
+				end
+			elseif state == 258 then
+				tbl13:SmoothVerticalMove(230.138, 0.3)
+				state = 259
+			elseif state == 259 then
+				task.wait(0.2)
+				state = 260
+			elseif state == 260 then
+				pos = v7.Pos
+				position = humanoidRootPart
+				if humanoidRootPart then
+					state = 261
+				else
+					state = 262
+				end
+			elseif state == 261 then
+				position = humanoidRootPart.Position
+				state = 262
+			elseif state == 262 then
+				if position then
+					state = 264
+				else
+					state = 263
+				end
+			elseif state == 263 then
+				position = pos
+				state = 264
+			elseif state == 264 then
+				if (Vector3.new(position.X, 0, position.Z) - Vector3.new(pos.X, 0, pos.Z)).Magnitude > 55 then
+					state = 265
+				else
+					state = 266
+				end
+			elseif state == 265 then
+				tbl13:SmartMoveTo(v7.Pos)
+				task.wait(0.05)
+				state = 266
+			elseif state == 266 then
+				if tbl4.UseVehicle then
+					state = 267
+				else
+					state = 282
+				end
+			elseif state == 267 then
+				ownedVehicle5 = tbl13:GetOwnedVehicle()
+				if ownedVehicle5 then
+					state = 269
+				else
+					state = 268
+				end
+			elseif state == 268 then
+				flag35 = ownedVehicle5
+				state = 270
+			elseif state == 269 then
+				flag35 = humanoid
+				state = 270
+			elseif state == 270 then
+				if flag35 then
+					state = 271
+				else
+					state = 272
+				end
+			elseif state == 271 then
+				flag35 = not humanoid.Sit
+				state = 272
+			elseif state == 272 then
+				if flag35 then
+					state = 273
+				else
+					state = 274
+				end
+			elseif state == 273 then
+				tbl13:EnterVehicle(ownedVehicle5)
+				task.wait(0.05)
+				state = 274
+			elseif state == 274 then
+				ownedVehicle6 = tbl13:GetOwnedVehicle()
+				if ownedVehicle6 then
+					state = 275
+				else
+					state = 276
+				end
+			elseif state == 275 then
+				ownedVehicle6 = ownedVehicle6.PrimaryPart
+				state = 276
+			elseif state == 276 then
+				if ownedVehicle6 then
+					state = 278
+				else
+					state = 277
+				end
+			elseif state == 277 then
+				ownedVehicle6 = humanoidRootPart
+				state = 278
+			elseif state == 278 then
+				if ownedVehicle6 then
+					state = 279
+				else
+					state = 280
+				end
+			elseif state == 279 then
+				ownedVehicle6 = math.abs(ownedVehicle6.Position.Y - n7) > 2
+				state = 280
+			elseif state == 280 then
+				if ownedVehicle6 then
+					state = 281
+				else
+					state = 282
+				end
+			elseif state == 281 then
+				tbl13:SmoothVerticalMove(230.138, 0.3)
+				state = 282
+			elseif state == 282 then
+				if flag3 then
+					state = 92
+				else
+					state = 283
+				end
+			elseif state == 283 then
+				if not tbl13:HasAnyBait() then
+					state = 92
+				else
+					state = 284
+				end
+			elseif state == 284 then
+				EnsureRodEquipped()
+				EquipBaitOnRod()
+				v15 = vector2
+				v16 = GetRodTool()
+				if v16 then
+					state = 286
+				else
+					state = 285
+				end
+			elseif state == 285 then
+				flag36 = v16
+				state = 287
+			elseif state == 286 then
+				flag36 = humanoid
+				state = 287
+			elseif state == 287 then
+				if flag36 then
+					state = 288
+				else
+					state = 289
+				end
+			elseif state == 288 then
+				flag36 = v16.Parent == backpack
+				state = 289
+			elseif state == 289 then
+				if flag36 then
+					state = 290
+				else
+					state = 291
+				end
+			elseif state == 290 then
+				pcall(function()
+					humanoid:EquipTool(v16)
+				end)
+				v16 = GetRodTool()
+				state = 291
+			elseif state == 291 then
+				flag37, v17, v18 = tbl13:IsInventoryFull()
+				if flag37 then
+					state = 297
+				else
+					state = 292
+				end
+			elseif state == 292 then
+				if v17 then
+					state = 294
+				else
+					state = 293
+				end
+			elseif state == 293 then
+				flag37 = v17
+				state = 295
+			elseif state == 294 then
+				flag37 = v18
+				state = 295
+			elseif state == 295 then
+				if flag37 then
+					state = 296
+				else
+					state = 297
+				end
+			elseif state == 296 then
+				flag37 = v17 >= v18
+				state = 297
+			elseif state == 297 then
+				if flag37 then
+					state = 305
+				else
+					state = 298
+				end
+			elseif state == 298 then
+				if v16 then
+					state = 304
+				else
+					state = 299
+				end
+			elseif state == 299 then
+				now3 = tick()
+				v19 = lastThrowTick
+				if v19 then
+					state = 301
+				else
+					state = 300
+				end
+			elseif state == 300 then
+				n13 = 0
+				state = 302
+			elseif state == 301 then
+				n13 = v19
+				state = 302
+			elseif state == 302 then
+				if not (now3 - n13 > 3) then
+					state = 305
+				else
+					state = 303
+				end
+			elseif state == 303 then
+				pcall(function()
+					EnsureRodEquipped()
+					local v23 = GetRodTool()
+					if v23 then
+						Net.get("throw_rod", v23, v15)
+					end
+				end)
+				lastThrowTick = tick()
+				state = 305
+			elseif state == 304 then
+				pcall(function()
+					Net.get("throw_rod", v16, v15)
+				end)
+				lastThrowTick = tick()
+				ForceNextCast = false
+				state = 305
+			elseif state == 305 then
+				fn4()
+				n14 = tick() + 12
+				state = 306
+			elseif state == 306 then
+				autoFarmActive4 = tbl4.AutoFarmActive
+				if autoFarmActive4 then
+					state = 308
+				else
+					state = 307
+				end
+			elseif state == 307 then
+				flag38 = autoFarmActive4
+				state = 309
+			elseif state == 308 then
+				flag38 = tick() < n14
+				state = 309
+			elseif state == 309 then
+				if flag38 then
+					state = 311
+				else
+					state = 310
+				end
+			elseif state == 310 then
+				flag39 = flag38
+				state = 312
+			elseif state == 311 then
+				flag39 = not flag3
+				state = 312
+			elseif state == 312 then
+				flag40 = false
+				if flag39 then
+					state = 313
+				else
+					state = 319
+				end
+			elseif state == 313 then
+				if fn36() then
+					state = 319
+				else
+					state = 314
+				end
+			elseif state == 314 then
+				if select(1, tbl13:IsInventoryFull()) then
+					state = 318
+				else
+					state = 315
+				end
+			elseif state == 315 then
+				if fn32() then
+					state = 317
+				else
+					state = 316
+				end
+			elseif state == 316 then
+				task.wait(0.03)
+				state = 306
+			elseif state == 317 then
+				fn4()
+				flag40 = true
+				state = 319
+			elseif state == 318 then
+				flag4 = true
+				state = 319
+			elseif state == 319 then
+				if flag3 then
+					state = 402
+				else
+					state = 320
+				end
+			elseif state == 320 then
+				if fn36() then
+					state = 401
+				else
+					state = 321
+				end
+			elseif state == 321 then
+				if flag40 then
+					state = 335
+				else
+					state = 322
+				end
+			elseif state == 322 then
+				v20 = fn27()
+				flag41 = fn28(v20)
+				if flag41 then
+					state = 323
+				else
+					state = 324
+				end
+			elseif state == 323 then
+				flag41 = not flag7
+				state = 324
+			elseif state == 324 then
+				if flag41 then
+					state = 334
+				else
+					state = 325
+				end
+			elseif state == 325 then
+				flag42 = false
+				if v16 then
+					state = 326
+				else
+					state = 360
+				end
+			elseif state == 326 then
+				pcall(function()
+					Net.send("reel_ended", v16, false)
+				end)
+				if v20 then
+					state = 327
+				else
+					state = 328
+				end
+			elseif state == 327 then
+				fn2(v20)
+				state = 328
+			elseif state == 328 then
+				flag43 = flag6
+				if flag6 then
+					state = 329
+				else
+					state = 330
+				end
+			elseif state == 329 then
+				flag43 = v20
+				state = 330
+			elseif state == 330 then
+				if flag43 then
+					state = 331
+				else
+					state = 332
+				end
+			elseif state == 331 then
+				flag43 = not fn28(v20)
+				state = 332
+			elseif state == 332 then
+				if flag43 then
+					state = 333
+				else
+					state = 360
+				end
+			elseif state == 333 then
+				flag4 = true
+				state = 360
+			elseif state == 334 then
+				fn29(v20, false)
+				flag4 = false
+				flag42 = false
+				state = 360
+			elseif state == 335 then
+				now4 = tick()
+				state = 336
+			elseif state == 336 then
+				autoFarmActive5 = tbl4.AutoFarmActive
+				if autoFarmActive5 then
+					state = 337
+				else
+					state = 338
+				end
+			elseif state == 337 then
+				autoFarmActive5 = fn32()
+				state = 338
+			elseif state == 338 then
+				if autoFarmActive5 then
+					state = 339
+				else
+					state = 340
+				end
+			elseif state == 339 then
+				autoFarmActive5 = not flag3
+				state = 340
+			elseif state == 340 then
+				flag42 = false
+				if autoFarmActive5 then
+					state = 341
+				else
+					state = 359
+				end
+			elseif state == 341 then
+				if fn36() then
+					state = 359
+				else
+					state = 342
+				end
+			elseif state == 342 then
+				v21 = fn27()
+				n15 = tick() - now4
+				if fn28(v21) then
+					state = 354
+				else
+					state = 343
+				end
+			elseif state == 343 then
+				fn35()
+				if v16 then
+					state = 344
+				else
+					state = 345
+				end
+			elseif state == 344 then
+				pcall(function()
+					Net.send("reel_ended", v16, true)
+				end)
+				state = 345
+			elseif state == 345 then
+				n += 1
+				if v21 then
+					state = 347
+				else
+					state = 346
+				end
+			elseif state == 346 then
+				lastWatchedCatchTime = tick()
+				local v23 = lastWatchedCatchTime
+				getgenv().NEE_HopWatchTick = v23
+				state = 348
+			elseif state == 347 then
+				fn2(v21)
+				state = 348
+			elseif state == 348 then
+				flag44 = flag6
+				if flag6 then
+					state = 349
+				else
+					state = 352
+				end
+			elseif state == 349 then
+				flag45 = not v21
+				if flag45 then
+					state = 351
+				else
+					state = 350
+				end
+			elseif state == 350 then
+				flag44 = not fn28(v21)
+				state = 352
+			elseif state == 351 then
+				flag44 = flag45
+				state = 352
+			elseif state == 352 then
+				flag42 = true
+				if flag44 then
+					state = 353
+				else
+					state = 359
+				end
+			elseif state == 353 then
+				flag4 = true
+				state = 359
+			elseif state == 354 then
+				flag46 = n15 >= n10
+				if flag46 then
+					state = 355
+				else
+					state = 356
+				end
+			elseif state == 355 then
+				flag46 = not flag7
+				state = 356
+			elseif state == 356 then
+				if flag46 then
+					state = 358
+				else
+					state = 357
+				end
+			elseif state == 357 then
+				task.wait(0.04)
+				state = 336
+			elseif state == 358 then
+				fn29(v21, true)
+				flag4 = false
+				state = 359
+			elseif state == 359 then
+				fn4()
+				state = 360
+			elseif state == 360 then
+				if flag42 then
+					state = 362
+				else
+					state = 361
+				end
+			elseif state == 361 then
+				autoFarmActive6 = flag42
+				state = 363
+			elseif state == 362 then
+				autoFarmActive6 = tbl4.AutoFarmActive
+				state = 363
+			elseif state == 363 then
+				if autoFarmActive6 then
+					state = 364
+				else
+					state = 365
+				end
+			elseif state == 364 then
+				autoFarmActive6 = flag4
+				state = 365
+			elseif state == 365 then
+				if autoFarmActive6 then
+					state = 385
+				else
+					state = 366
+				end
+			elseif state == 366 then
+				if flag42 then
+					state = 367
+				else
+					state = 368
+				end
+			elseif state == 367 then
+				flag42 = tbl4.AutoFarmActive
+				state = 368
+			elseif state == 368 then
+				if flag42 then
+					state = 369
+				else
+					state = 370
+				end
+			elseif state == 369 then
+				flag42 = not flag4
+				state = 370
+			elseif state == 370 then
+				if flag42 then
+					state = 371
+				else
+					state = 398
+				end
+			elseif state == 371 then
+				value5 = select(1, tbl13:IsInventoryFull())
+				if value5 then
+					state = 374
+				else
+					state = 372
+				end
+			elseif state == 372 then
+				value5 = tbl4.SellAfterFishCount > 0
+				if value5 then
+					state = 373
+				else
+					state = 374
+				end
+			elseif state == 373 then
+				value5 = n >= tbl4.SellAfterFishCount
+				state = 374
+			elseif state == 374 then
+				if value5 then
+					state = 376
+				else
+					state = 375
+				end
+			elseif state == 375 then
+				flag47 = value5
+				state = 377
+			elseif state == 376 then
+				flag47 = n > 0
+				state = 377
+			elseif state == 377 then
+				if flag47 then
+					state = 378
+				else
+					state = 379
+				end
+			elseif state == 378 then
+				flag47 = fn37()
+				state = 379
+			elseif state == 379 then
+				if flag47 then
+					state = 381
+				else
+					state = 380
+				end
+			elseif state == 380 then
+				task.wait(1)
+				ForceNextCast = true
+				state = 398
+			elseif state == 381 then
+				task.wait(0.15)
+				tbl13:SellFishWithPath()
+				task.wait(0.2)
+				n = 0
+				autoFarmActive7 = tbl4.AutoFarmActive
+				if autoFarmActive7 then
+					state = 382
+				else
+					state = 383
+				end
+			elseif state == 382 then
+				autoFarmActive7 = tbl9[tbl4.ZoneSelect]
+				state = 383
+			elseif state == 383 then
+				if autoFarmActive7 then
+					state = 384
+				else
+					state = 398
+				end
+			elseif state == 384 then
+				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
+				tbl13:SmoothVerticalMove(230.138, 0.3)
+				state = 398
+			elseif state == 385 then
+				now5 = tick()
+				state = 386
+			elseif state == 386 then
+				flag48 = tick() - now5 < 1.4
+				if flag48 then
+					state = 387
+				else
+					state = 388
+				end
+			elseif state == 387 then
+				flag48 = not fn37()
+				state = 388
+			elseif state == 388 then
+				if flag48 then
+					state = 389
+				else
+					state = 390
+				end
+			elseif state == 389 then
+				flag48 = tbl4.AutoFarmActive
+				state = 390
+			elseif state == 390 then
+				if flag48 then
+					state = 400
+				else
+					state = 391
+				end
+			elseif state == 391 then
+				if fn37() then
+					state = 392
+				else
+					state = 393
+				end
+			elseif state == 392 then
+				tbl13:SellFishWithPath()
+				task.wait(0.15)
+				n = 0
+				state = 393
+			elseif state == 393 then
+				flag4 = false
+				ForceNextCast = false
+				autoFarmActive8 = tbl4.AutoFarmActive
+				if autoFarmActive8 then
+					state = 395
+				else
+					state = 394
+				end
+			elseif state == 394 then
+				v22 = autoFarmActive8
+				state = 396
+			elseif state == 395 then
+				v22 = tbl9[tbl4.ZoneSelect]
+				state = 396
+			elseif state == 396 then
+				if v22 then
+					state = 397
+				else
+					state = 398
+				end
+			elseif state == 397 then
+				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
+				tbl13:SmoothVerticalMove(230.138, 0.3)
+				state = 398
+			elseif state == 398 then
+				state = 399
+			elseif state == 399 then
+				task.wait(0.05)
+				state = 92
+			elseif state == 400 then
+				task.wait(0.1)
+				state = 386
+			elseif state == 401 then
+				state = 92
+			elseif state == 402 then
+				state = 92
+			elseif state == 403 then
+				task.wait(0.5)
+				state = 92
+			elseif state == 404 then
+				task.wait(0.5)
+				state = 92
+			elseif state == 405 then
+				autoFarmActive9 = flag3
+				if flag3 then
+					state = 406
+				else
+					state = 407
+				end
+			elseif state == 406 then
+				autoFarmActive9 = tbl4.AutoFarmActive
+				state = 407
+			elseif state == 407 then
+				if autoFarmActive9 then
+					state = 410
+				else
+					state = 408
+				end
+			elseif state == 408 then
+				if not tbl4.AutoFarmActive then
+					state = 409
+				else
+					state = 92
+				end
+			elseif state == 409 then
+				flag9 = false
+				return
+			elseif state == 410 then
+				task.wait(0.2)
+				state = 405
+			elseif state == 411 then
+				task.wait(0.5)
+				state = 92
+			elseif state == 412 then
+				flag9 = false
+				return
+			elseif state == 413 then
+				flag9 = false
+				return
+			elseif state == 414 then
+				ShowToast("NEE", "تم إيقاف الفارم")
+				tbl4.AutoFarmActive = false
+				pcall(function()
+					tbl7.AutoFarmToggle:Set(false)
+				end)
+				flag9 = false
+				return
+			elseif state == 415 then
+				ShowToast("NEE", "تم إيقاف الفارم")
+				tbl4.AutoFarmActive = false
+				pcall(function()
+					tbl7.AutoFarmToggle:Set(false)
+				end)
+				flag9 = false
+				return
+			elseif state == 416 then
+				flag9 = false
+				return
+			elseif state == 417 then
+				ShowToast("NEE", "ما قدرت أجيب سيارة — تأكد من الفلوس")
+				tbl4.AutoFarmActive = false
+				pcall(function()
+					tbl7.AutoFarmToggle:Set(false)
+				end)
+				flag9 = false
+				return
+			elseif state == 418 then
+				flag9 = false
+				return
+			elseif state == 419 then
+				return
+			end
+		end
+	end
+	local n12 = 0
+	local n13 = 5
+	BuyEquipment = function()
+		if tick() - n12 < n13 then
+			return false
+		end
+		n12 = tick()
+		local items = playerGui:FindFirstChild("Items")
+		local itemsScrollingFrame = items and items:FindFirstChild("ItemsHolder") and items.ItemsHolder:FindFirstChild("ItemsScrollingFrame")
+		if itemsScrollingFrame then
+			for _, child in pairs(itemsScrollingFrame:GetChildren()) do
+				if child.Name ~= "Folder" and child.Name ~= "UIGridLayout" and child.Name ~= "ItemTemplate" then
+					local itemName = child:FindFirstChild("ItemName")
+					local attribute = child:GetAttribute("ItemType")
+					local text = itemName and itemName.Text and string.lower(itemName.Text) or ""
+					local str = attribute and string.lower(tostring(attribute)) or ""
+					local flag10 = str == "fish"
+					local flag11 = string.find(text, "rod") ~= nil
+					local flag12 = string.find(text, "wormtec") ~= nil or string.find(text, "prawntec") ~= nil
+					if not flag10 and not flag11 and not flag12 and not (str == "car" or str == "bike") then
+						pcall(function()
+							Net.get("drop_item", child.Name, 1)
+						end)
+						task.wait(0.04)
+					end
+				end
+			end
+		end
+		local rodSelect = tbl4.RodSelect
+		local baitSelect = tbl4.BaitSelect
+		local baitAmount = tbl4.BaitAmount
+		local skill = tbl13:GetSkill("Fishing")
+		local name = rodSelect
+		if name == "Smart Select" then
+			for _, v6 in ipairs(tbl10) do
+				if v6.Level <= skill then
+					name = v6.Name
+					break
+				end
+			end
+		end
+		if baitSelect == "Smart Select" then
+			for _, v6 in ipairs(tbl11) do
+				if v6.Level <= skill then
+					baitSelect = v6.Name
+					break
+				end
+			end
+		end
+		tbl12.lastUpdate = 0
+		fn20()
+		local flag10 = select(1, tbl13:HasAnyRod()) or GetRodTool() ~= nil or fn26() ~= nil
+		local value = select(1, tbl13:HasAnyBait())
+		local n14 = 0
+		local flag11 = not flag10
+		if flag11 then
+			for _, v6 in ipairs(tbl10) do
+				if v6.Name == name then
+					n14 += v6.Price
+					break
+				end
+			end
+		end
+		if not value then
+			for _, v6 in ipairs(tbl11) do
+				if v6.Name == baitSelect then
+					n14 += v6.Price * baitAmount
+					break
+				end
+			end
+		end
+		if n14 <= 0 then
+			return true
+		end
+		if tbl13:GetMoney() < n14 then
+			pcall(function()
+				tbl13:WithdrawFromBank(n14)
+			end)
+			task.wait(0.35)
+		end
+		local money = tbl13:GetMoney() or 0
+		local bankMoney = tbl13:GetBankMoney() or 0
+		if flag11 and money + bankMoney < n14 then
+			tbl4.AutoFarmActive = false
+			tbl4.StopWalking = true
+			tbl4.Running = false
+			pcall(function()
+				if tbl7.AutoFarmToggle then
+					tbl7.AutoFarmToggle:Set(false)
+				end
+			end)
+			ShowStickyMoney("NEE", "ماعندك فلوس كافيه لشراء سناره")
+			return false
+		end
+		tbl13:SmartMoveTo(Vector3.new(-135.802, 251.81, 153.361))
+		task.wait(0.2)
+		local shopZoneHardware = workspace:FindFirstChild("ShopZone_Hardware")
+		if not shopZoneHardware then
+			return false
+		end
+		tbl13:QuickAction(function()
+			if not flag10 then
+				pcall(function()
+					Net.get("purchase_consumable", shopZoneHardware, name)
+				end)
+				task.wait(0.3)
+			end
+			if not value then
+				for i = 1, baitAmount do
+					if tbl4.AutoFarmActive then
+						pcall(function()
+							Net.get("purchase_consumable", shopZoneHardware, baitSelect)
+						end)
+						task.wait(0.05)
+						continue
+					end
+					break
+				end
+			end
+		end, 0.4)
+		task.wait(0.15)
+		tbl12.lastUpdate = 0
+		fn20()
+		tbl13:SmoothVerticalMove(230.138, 0.3)
+		fn4()
+		return true
+	end
+end
+task.spawn(function()
+	while task.wait(60) do
+		pcall(SaveConfig)
+	end
+end)
+pcall(function()
+	if flag then
+		EnableAntiKick(true)
+	end
+end)
