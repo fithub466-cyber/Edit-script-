@@ -1753,47 +1753,6 @@ do
 	tbl7.RespawnToggle = fn15(FishFarm, "เกิดใหม่อัตโนมัติ", false, function(respawn)
 		tbl4.Respawn = respawn
 	end)
-	-- ซ่อนชื่อผู้เล่น: เปิดอัตโนมัติทุกครั้งที่รันสคริปต์
-	tbl4.HidePlayerNames = true
-	local function RemovePlayerNameLabel(instance)
-		if not tbl4.HidePlayerNames or not instance or instance.Name ~= "PlayerName" then
-			return
-		end
-		pcall(function()
-			local billboard = instance.Parent
-			while billboard and billboard ~= workspace and billboard.Name ~= "CharacterBillboardGui" do
-				billboard = billboard.Parent
-			end
-			if billboard and billboard ~= workspace and billboard.Name == "CharacterBillboardGui" then
-				instance:Destroy()
-			end
-		end)
-	end
-	-- ลบชื่อที่มีอยู่แล้ว และลบชื่อใหม่ทันทีเมื่อผู้เล่นเกิดใหม่/โหลดตัวละคร
-	task.spawn(function()
-		for _, instance in ipairs(workspace:GetDescendants()) do
-			if instance.Name == "PlayerName" then
-				RemovePlayerNameLabel(instance)
-			end
-		end
-		workspace.DescendantAdded:Connect(function(instance)
-			if instance.Name == "PlayerName" then
-				task.defer(RemovePlayerNameLabel, instance)
-			end
-		end)
-	end)
-	tbl7.HidePlayerNamesToggle = fn15(FishFarm, "ซ่อนชื่อ", true, function(enabled)
-		tbl4.HidePlayerNames = enabled
-		if enabled then
-			task.spawn(function()
-				for _, instance in ipairs(workspace:GetDescendants()) do
-					if instance.Name == "PlayerName" then
-						RemovePlayerNameLabel(instance)
-					end
-				end
-			end)
-		end
-	end)
 	local layoutOrder = 220
 	task.defer(function()
 		pcall(function()
@@ -1968,10 +1927,6 @@ tbl7.ServerSwitchToggle = fn15(Server, "เปลี่ยนเซิร์ฟ�
 		now = tick()
 	end
 end)
-tbl7.DeathServerHopToggle = fn15(Server, "ย้ายเซิร์ฟเวอร์หลังตายและเกิดใหม่", true, function(enabled)
-	tbl4.DeathServerHop = enabled
-	pcall(SaveConfig)
-end)
 tbl7.ServerIntervalSlider = fn16(Server, "ช่วงเวลา (นาที)", 5, 120, 30, function(arg)
 	n2 = arg
 end)
@@ -2046,25 +2001,11 @@ do
 		end
 	end)
 	local function fn24()
-		-- อ่านเงินสดจากข้อมูลเกมก่อน เพราะตำแหน่ง HUD อาจเปลี่ยนหรือยังโหลดไม่เสร็จ
-		local ok, cashValue = pcall(function()
-			local moneyData = Data and Data.money
-			if moneyData and tonumber(moneyData.hand) then
-				return tonumber(moneyData.hand)
-			end
-			return nil
-		end)
-		if ok and cashValue ~= nil then
-			return cashValue
-		end
-		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud")
-			and playerGui.TopRightHud:FindFirstChild("Holder")
-			and playerGui.TopRightHud.Holder:FindFirstChild("Frame")
-			and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
+		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
 		if moneyTextLabel then
-			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$([%d,]+)"):gsub(",", "")) or 0
+			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$(%d+)")) or 0
 		end
-		return nil
+		return 0
 	end
 	local v5 = nil
 	local function fn25()
@@ -2079,25 +2020,20 @@ do
 		end
 		return 0
 	end
-	local lastObservedCash = fn24()
+	local lastObservedCash = fn24() or 0
 	local earnedSinceRun = 0
 	task.spawn(function()
 		while task.wait(0.6) do
 			pcall(function()
 				local bankNow = fn25() or 0
-				local cashNow = fn24()
+				local cashNow = fn24() or 0
 				label.Text = "$" .. tostring(bankNow)
-				if cashNow ~= nil then
-					label2.Text = "$" .. tostring(cashNow)
-					-- นับเฉพาะเงินสดที่เพิ่มขึ้นจริง ไม่หักกำไรเมื่อถอนเงินจาก ATM
-					-- ถ้าข้อมูลเงินเพิ่งโหลด จะตั้งค่าฐานก่อนเริ่มนับเพื่อไม่ให้นับยอดเดิมเป็นกำไร
-					if lastObservedCash == nil then
-						lastObservedCash = cashNow
-					elseif cashNow > lastObservedCash then
-						earnedSinceRun = earnedSinceRun + (cashNow - lastObservedCash)
-					end
-					lastObservedCash = cashNow
+				label2.Text = "$" .. tostring(cashNow)
+				-- นับเฉพาะยอดเงินสดที่เพิ่มขึ้นหลังเริ่มสคริปต์ ไม่หักเมื่อใช้เงินหรือฝากธนาคาร
+				if cashNow > lastObservedCash then
+					earnedSinceRun = earnedSinceRun + (cashNow - lastObservedCash)
 				end
+				lastObservedCash = cashNow
 				profitLabel.Text = "$" .. tostring(earnedSinceRun)
 			end)
 		end
@@ -2200,7 +2136,6 @@ do
 			WalkSpeed = tbl4.WalkSpeed,
 			ZoneSelect = tbl4.ZoneSelect,
 			Respawn = tbl4.Respawn,
-			DeathServerHop = tbl4.DeathServerHop ~= false,
 			AntiKick = flag,
 			ServerSwitch = flag2,
 			ServerSwitchInterval = n2,
@@ -2347,12 +2282,6 @@ do
 					tbl7.RespawnToggle:Set(data.Respawn)
 				end)
 			end
-			if data.DeathServerHop ~= nil then
-				tbl4.DeathServerHop = data.DeathServerHop
-				pcall(function()
-					tbl7.DeathServerHopToggle:Set(data.DeathServerHop)
-				end)
-			end
 			if data.ScaleValue then
 				fn22(data.ScaleValue)
 				pcall(function()
@@ -2464,35 +2393,6 @@ do
 			end)
 		end
 	end)
-	-- ตั้งค่าลิงก์ Raw ของสคริปต์เต็มก่อนใช้งาน Auto-Execute หลังย้ายเซิร์ฟเวอร์
-	-- นำไฟล์นี้ไปโฮสต์ แล้วใส่ URL ที่เปิดเนื้อหาโค้ดโดยตรง (เช่น GitHub Raw)
-	local ALAYNA_SCRIPT_URL = "https://raw.githubusercontent.com/fithub466-cyber/Edit-script-/refs/heads/main/autofarmLrapX"
-	local function QueueAlaynaAfterTeleport()
-		if not ALAYNA_SCRIPT_URL or ALAYNA_SCRIPT_URL == "" or ALAYNA_SCRIPT_URL == "ใส่ลิงก์_RAW_ของสคริปต์ตรงนี้" then
-			pcall(function()
-				ShowToast("LrapX Hub", "ตั้งค่า ALAYNA_SCRIPT_URL เป็นลิงก์ Raw ก่อน จึงจะรันอัตโนมัติได้")
-			end)
-			return false
-		end
-		local queue = (syn and syn.queue_on_teleport)
-			or queue_on_teleport
-			or (fluxus and fluxus.queue_on_teleport)
-		if type(queue) ~= "function" then
-			pcall(function()
-				ShowToast("LrapX Hub", "Executor นี้ไม่มี queue_on_teleport")
-			end)
-			return false
-		end
-		local loader = "local url = " .. string.format("%q", ALAYNA_SCRIPT_URL) .. "; local ok, err = pcall(function() loadstring(game:HttpGet(url))() end); if not ok then warn('[Alayna Auto-Execute] '..tostring(err)) end"
-		local ok = pcall(queue, loader)
-		if not ok then
-			pcall(function()
-				ShowToast("LrapX Hub", "ตั้งคิวรันอัตโนมัติไม่สำเร็จ")
-			end)
-			return false
-		end
-		return true
-	end
 	SwitchToSmallestServer = function()
 		local tbl14 = {}
 		local response = game:HttpGet(string.format("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100", game.PlaceId))
@@ -2510,52 +2410,10 @@ do
 		if #tbl14 > 0 then
 			local v6 = tbl14[math.random(1, #tbl14)]
 			pcall(SaveConfig)
-			-- ตั้งคิวให้โหลดสคริปต์ใหม่หลัง Teleport ก่อนสั่งย้ายเซิร์ฟเวอร์
-			QueueAlaynaAfterTeleport()
 			task.wait(0.2)
 			TeleportService:TeleportToPlaceInstance(game.PlaceId, v6, game.Players.LocalPlayer)
 		end
 	end
-	-- เมื่อผู้เล่นตายจริง ให้รอจนตัวละครเกิดใหม่ก่อนย้ายไปเซิร์ฟเวอร์อื่น
-	local deathHopPending = false
-	local deathHopBusy = false
-	local function BindDeathServerHop(characterForDeath)
-		if not characterForDeath then return end
-		local deathHumanoid = characterForDeath:FindFirstChildOfClass("Humanoid") or characterForDeath:WaitForChild("Humanoid", 10)
-		if not deathHumanoid then return end
-		deathHumanoid.Died:Connect(function()
-			if tbl4.DeathServerHop ~= false and not deathHopBusy then
-				deathHopPending = true
-				pcall(function() SaveConfig() end)
-			end
-		end)
-	end
-	if localPlayer.Character then
-		BindDeathServerHop(localPlayer.Character)
-	end
-	localPlayer.CharacterAdded:Connect(function(respawnedCharacter)
-		BindDeathServerHop(respawnedCharacter)
-		if not deathHopPending or deathHopBusy then return end
-		deathHopBusy = true
-		task.spawn(function()
-			local root = respawnedCharacter:WaitForChild("HumanoidRootPart", 15)
-			local newHumanoid = respawnedCharacter:FindFirstChildOfClass("Humanoid") or respawnedCharacter:WaitForChild("Humanoid", 5)
-			if root and newHumanoid and newHumanoid.Health > 0 and tbl4.DeathServerHop ~= false then
-				task.wait(1.5)
-				deathHopPending = false
-				pcall(function() ShowToast("LrapX Hub", "ตายและเกิดใหม่แล้ว กำลังย้ายเซิร์ฟเวอร์...") end)
-				pcall(SaveConfig)
-				local okHop = pcall(SwitchToSmallestServer)
-				if not okHop then
-					deathHopPending = false
-					pcall(function() ShowToast("LrapX Hub", "ย้ายเซิร์ฟเวอร์ไม่สำเร็จ ลองอีกครั้งได้") end)
-				end
-			else
-				deathHopPending = false
-			end
-			deathHopBusy = false
-		end)
-	end)
 	task.spawn(function()
 		while true do
 			task.wait(60)
@@ -3217,7 +3075,7 @@ do
 		end
 		local part = Instance.new("Part")
 		part.Name = "HiddenFlightPlatform"
-		part.Size = Vector3.new(40, 2, 40)
+		part.Size = Vector3.new(18, 2, 18)
 		part.Transparency = 1
 		part.CanCollide = true
 		part.Anchored = true
@@ -3326,7 +3184,7 @@ do
 				primaryPart = false
 			end
 		end
-		local n16 = 249 - n8 -- ลดระดับตอนขายปลา/ฝากเงินลง 3 studs
+		local n16 = 252 - n8
 		local pivot = primaryPart and ownedVehicle:GetPivot() or humanoidRootPart.CFrame
 		local y = pivot.Position.Y
 		local vector3 = Vector3.new(pivot.Position.X, 0, pivot.Position.Z)
@@ -4047,8 +3905,8 @@ do
 				humanoid:EquipTool(v5)
 				v5 = GetRodTool()
 			end
-			if v5 and ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)) then
-				Net.get("throw_rod", v5, ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)))
+			if v5 and Vector3.new(82.11319, 245.16185, 922.22076) then
+				Net.get("throw_rod", v5, Vector3.new(82.11319, 245.16185, 922.22076))
 				lastThrowTick = tick()
 			end
 		end)
@@ -4091,14 +3949,9 @@ do
 		end
 	end)
 	tbl13.SellAllFish = function()
-		local ok, result = pcall(function()
-			return Net.get("sell_all_fish")
+		pcall(function()
+			Net.get("sell_all_fish")
 		end)
-		if not ok then
-			warn("[Alayna] Sell fish remote failed: " .. tostring(result))
-			return false
-		end
-		return true, result
 	end
 	tbl13.CanSellSelectedFishOnly = function()
 		local selected = tbl4.SellFishSelected or {}
@@ -4129,65 +3982,17 @@ do
 		local v5 = tbl13:EnsureVehicle()
 		if v5 and humanoid and not humanoid.Sit then
 			tbl13:EnterVehicle(v5)
-			task.wait(0.25)
+			task.wait(0.15)
 		end
-		local sellPoint = Vector3.new(-252.746, 252.839, 379.64)
-		tbl13:SmartMoveTo(sellPoint)
+		tbl13:SmartMoveTo(Vector3.new(-252.746, 252.839, 379.64))
 		if not tbl4.AutoFarmActive or flag3 then
 			return false
 		end
-		local function GetFishInventoryCount()
-			local items = playerGui:FindFirstChild("Items")
-			local holder = items and items:FindFirstChild("ItemsHolder")
-			local scrolling = holder and holder:FindFirstChild("ItemsScrollingFrame")
-			if not scrolling then return nil end
-			local count = 0
-			for _, child in ipairs(scrolling:GetChildren()) do
-				if child:GetAttribute("ItemType") and string.lower(tostring(child:GetAttribute("ItemType"))) == "fish" then
-					count += 1
-				end
-			end
-			return count
-		end
-		-- รอให้รถ/ตัวละครไปถึงบริเวณร้านจริงก่อน ไม่ส่งคำสั่งขายขณะยังเดินทาง
-		local reachedSellPoint = false
-		for _ = 1, 20 do
-			if not tbl4.AutoFarmActive or flag3 then return false end
-			local currentPosition
-			local vehicleNow = tbl13:GetOwnedVehicle()
-			if tbl4.UseVehicle and vehicleNow and vehicleNow.PrimaryPart then
-				currentPosition = vehicleNow.PrimaryPart.Position
-			else
-				local rootNow = localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart")
-				currentPosition = rootNow and rootNow.Position
-			end
-			if currentPosition and (Vector3.new(currentPosition.X, 0, currentPosition.Z) - Vector3.new(sellPoint.X, 0, sellPoint.Z)).Magnitude <= 28 then
-				reachedSellPoint = true
-				break
-			end
-			task.wait(0.4)
-		end
-		if not reachedSellPoint then
-			-- ลองนำทางอีกครั้งกรณีรถติด/จุดขายไปไม่ถึงในรอบแรก
-			tbl13:SmartMoveTo(sellPoint)
-			task.wait(0.8)
-		end
-		task.wait(0.35)
-		local fishBefore = GetFishInventoryCount()
-		for sellAttempt = 1, 3 do
-			if not tbl4.AutoFarmActive or flag3 then return false end
-			tbl13:QuickAction(function()
-				tbl13:SellAllFish()
-			end, 0.45)
-			task.wait(0.85)
-			local fishAfter = GetFishInventoryCount()
-			if fishAfter ~= nil and (fishAfter == 0 or (fishBefore ~= nil and fishAfter < fishBefore)) then
-				break
-			end
-			fishBefore = fishAfter or fishBefore
-		end
+		tbl13:QuickAction(function()
+			tbl13:SellAllFish()
+		end, 0.3)
 		tbl13:SmoothVerticalMove(230.138, 0.3)
-		-- รอให้เงิน/ข้อมูลกระเป๋าอัปเดตก่อนตรวจยอดฝากเงิน
+		-- รอให้เงินจากการขายปลาเข้ากระเป๋าก่อนตรวจยอด
 		if tbl4.AutoFarmActive and not flag3 and tbl4.AutoDepositAfterSell then
 			task.wait(2)
 			if not tbl4.AutoFarmActive or flag3 then
@@ -4737,8 +4542,16 @@ do
 		end
 		return false
 	end
-	-- ไม่สวมคันเบ็ดอัตโนมัติตลอดเวลา:
-	-- ให้ระบบฟาร์มเรียก EnsureRodEquipped() เฉพาะเมื่อถึงจุดตกปลาเท่านั้น
+	task.spawn(function()
+		while task.wait(0.4) do
+			pcall(function()
+				if not localPlayer.Character then
+					return
+				end
+				EquipRod()
+			end)
+		end
+	end)
 	EnsureRodEquipped = function()
 		local v5 = GetRodTool()
 		if v5 and v5.Parent == localPlayer.Character then
@@ -5669,8 +5482,8 @@ do
 						EquipRod()
 						v23 = GetRodTool()
 					end
-					if v23 and ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2) then
-						Net.get("throw_rod", v23, ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)))
+					if v23 and Vector3.new(82.11319, 245.16185, 922.22076) then
+						Net.get("throw_rod", v23, Vector3.new(82.11319, 245.16185, 922.22076))
 						lastThrowTick = tick()
 					end
 				end)
@@ -6636,14 +6449,6 @@ do
 				end
 			elseif state == 283 then
 				if not tbl13:HasAnyBait() then
-					-- เหยื่อหมดแล้ว เก็บคันเบ็ดก่อนออกจากจุดตกปลา
-					pcall(function()
-						local characterNow = localPlayer.Character
-						local humanoidNow = characterNow and characterNow:FindFirstChildOfClass("Humanoid")
-						if humanoidNow then
-							humanoidNow:UnequipTools()
-						end
-					end)
 					state = 92
 				else
 					state = 284
@@ -6651,7 +6456,7 @@ do
 			elseif state == 284 then
 				EnsureRodEquipped()
 				EquipBaitOnRod()
-				v15 = (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2
+				v15 = vector2
 				v16 = GetRodTool()
 				if v16 then
 					state = 286
@@ -6659,15 +6464,8 @@ do
 					state = 285
 				end
 			elseif state == 285 then
-				-- ถ้ายังไม่มีคันเบ็ดหลังถึงจุดตกปลา ให้ลองสวมใหม่ก่อน ไม่เข้าถึง v16.Parent ตอนเป็น nil
-				pcall(EquipRod)
-				task.wait(0.15)
-				v16 = GetRodTool()
-				if v16 then
-					state = 284
-				else
-					state = 92
-				end
+				flag36 = v16
+				state = 287
 			elseif state == 286 then
 				flag36 = humanoid
 				state = 287
@@ -7324,7 +7122,7 @@ do
 		end
 	end
 	local n12 = 0
-	local n13 = 1.5 -- ลดคูลดาวน์ซื้ออุปกรณ์จาก 5 วินาที เหลือ 1.5 วินาที
+	local n13 = 5
 	BuyEquipment = function()
 		if tick() - n12 < n13 then
 			return false
@@ -7401,7 +7199,7 @@ do
 			pcall(function()
 				tbl13:WithdrawFromBank(n14)
 			end)
-			task.wait(0.1)
+			task.wait(0.35)
 		end
 		local money = tbl13:GetMoney() or 0
 		local bankMoney = tbl13:GetBankMoney() or 0
@@ -7417,8 +7215,8 @@ do
 			ShowStickyMoney("LrapX Hub", "เงินไม่พอซื้อคันเบ็ด")
 			return false
 		end
-		tbl13:SmartMoveTo(Vector3.new(-135.802, 248.81, 153.361)) -- ลดระดับตอนซื้อของลง 3 studs
-		task.wait(0.1)
+		tbl13:SmartMoveTo(Vector3.new(-135.802, 251.81, 153.361))
+		task.wait(0.2)
 		local shopZoneHardware = workspace:FindFirstChild("ShopZone_Hardware")
 		if not shopZoneHardware then
 			return false
@@ -7428,7 +7226,7 @@ do
 				pcall(function()
 					Net.get("purchase_consumable", shopZoneHardware, name)
 				end)
-				task.wait(0.1)
+				task.wait(0.3)
 			end
 			if not value then
 				for i = 1, baitAmount do
@@ -7436,14 +7234,14 @@ do
 						pcall(function()
 							Net.get("purchase_consumable", shopZoneHardware, baitSelect)
 						end)
-						task.wait(0.03)
+						task.wait(0.05)
 						continue
 					end
 					break
 				end
 			end
 		end, 0.4)
-		task.wait(0.08)
+		task.wait(0.15)
 		tbl12.lastUpdate = 0
 		fn20()
 		tbl13:SmoothVerticalMove(230.138, 0.3)
