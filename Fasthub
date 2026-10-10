@@ -2001,11 +2001,25 @@ do
 		end
 	end)
 	local function fn24()
-		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
-		if moneyTextLabel then
-			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$(%d+)")) or 0
+		-- อ่านเงินสดจากข้อมูลเกมก่อน เพราะตำแหน่ง HUD อาจเปลี่ยนหรือยังโหลดไม่เสร็จ
+		local ok, cashValue = pcall(function()
+			local moneyData = Data and Data.money
+			if moneyData and tonumber(moneyData.hand) then
+				return tonumber(moneyData.hand)
+			end
+			return nil
+		end)
+		if ok and cashValue ~= nil then
+			return cashValue
 		end
-		return 0
+		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud")
+			and playerGui.TopRightHud:FindFirstChild("Holder")
+			and playerGui.TopRightHud.Holder:FindFirstChild("Frame")
+			and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
+		if moneyTextLabel then
+			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$([%d,]+)"):gsub(",", "")) or 0
+		end
+		return nil
 	end
 	local v5 = nil
 	local function fn25()
@@ -2020,20 +2034,25 @@ do
 		end
 		return 0
 	end
-	local lastObservedCash = fn24() or 0
+	local lastObservedCash = fn24()
 	local earnedSinceRun = 0
 	task.spawn(function()
 		while task.wait(0.6) do
 			pcall(function()
 				local bankNow = fn25() or 0
-				local cashNow = fn24() or 0
+				local cashNow = fn24()
 				label.Text = "$" .. tostring(bankNow)
-				label2.Text = "$" .. tostring(cashNow)
-				-- นับเฉพาะยอดเงินสดที่เพิ่มขึ้นหลังเริ่มสคริปต์ ไม่หักเมื่อใช้เงินหรือฝากธนาคาร
-				if cashNow > lastObservedCash then
-					earnedSinceRun = earnedSinceRun + (cashNow - lastObservedCash)
+				if cashNow ~= nil then
+					label2.Text = "$" .. tostring(cashNow)
+					-- นับเฉพาะเงินสดที่เพิ่มขึ้นจริง ไม่หักกำไรเมื่อถอนเงินจาก ATM
+					-- ถ้าข้อมูลเงินเพิ่งโหลด จะตั้งค่าฐานก่อนเริ่มนับเพื่อไม่ให้นับยอดเดิมเป็นกำไร
+					if lastObservedCash == nil then
+						lastObservedCash = cashNow
+					elseif cashNow > lastObservedCash then
+						earnedSinceRun = earnedSinceRun + (cashNow - lastObservedCash)
+					end
+					lastObservedCash = cashNow
 				end
-				lastObservedCash = cashNow
 				profitLabel.Text = "$" .. tostring(earnedSinceRun)
 			end)
 		end
@@ -3184,7 +3203,7 @@ do
 				primaryPart = false
 			end
 		end
-		local n16 = 252 - n8
+		local n16 = 249 - n8 -- ลดระดับตอนขายปลา/ฝากเงินลง 3 studs
 		local pivot = primaryPart and ownedVehicle:GetPivot() or humanoidRootPart.CFrame
 		local y = pivot.Position.Y
 		local vector3 = Vector3.new(pivot.Position.X, 0, pivot.Position.Z)
@@ -3905,8 +3924,8 @@ do
 				humanoid:EquipTool(v5)
 				v5 = GetRodTool()
 			end
-			if v5 and Vector3.new(82.11319, 245.16185, 922.22076) then
-				Net.get("throw_rod", v5, Vector3.new(82.11319, 245.16185, 922.22076))
+			if v5 and ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)) then
+				Net.get("throw_rod", v5, ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)))
 				lastThrowTick = tick()
 			end
 		end)
@@ -3982,17 +4001,24 @@ do
 		local v5 = tbl13:EnsureVehicle()
 		if v5 and humanoid and not humanoid.Sit then
 			tbl13:EnterVehicle(v5)
-			task.wait(0.15)
+			task.wait(0.25)
 		end
-		tbl13:SmartMoveTo(Vector3.new(-252.746, 252.839, 379.64))
+		local sellPoint = Vector3.new(-252.746, 252.839, 379.64)
+		tbl13:SmartMoveTo(sellPoint)
 		if not tbl4.AutoFarmActive or flag3 then
 			return false
 		end
-		tbl13:QuickAction(function()
-			tbl13:SellAllFish()
-		end, 0.3)
+		-- ให้ตัวละคร/รถหยุดนิ่งที่จุดขายก่อนส่งคำสั่งขาย
+		task.wait(0.45)
+		for sellAttempt = 1, 3 do
+			if not tbl4.AutoFarmActive or flag3 then return false end
+			tbl13:QuickAction(function()
+				tbl13:SellAllFish()
+			end, 0.45)
+			task.wait(0.65)
+		end
 		tbl13:SmoothVerticalMove(230.138, 0.3)
-		-- รอให้เงินจากการขายปลาเข้ากระเป๋าก่อนตรวจยอด
+		-- รอให้เงิน/ข้อมูลกระเป๋าอัปเดตก่อนตรวจยอดฝากเงิน
 		if tbl4.AutoFarmActive and not flag3 and tbl4.AutoDepositAfterSell then
 			task.wait(2)
 			if not tbl4.AutoFarmActive or flag3 then
@@ -4542,16 +4568,8 @@ do
 		end
 		return false
 	end
-	task.spawn(function()
-		while task.wait(0.4) do
-			pcall(function()
-				if not localPlayer.Character then
-					return
-				end
-				EquipRod()
-			end)
-		end
-	end)
+	-- ไม่สวมคันเบ็ดอัตโนมัติตลอดเวลา:
+	-- ให้ระบบฟาร์มเรียก EnsureRodEquipped() เฉพาะเมื่อถึงจุดตกปลาเท่านั้น
 	EnsureRodEquipped = function()
 		local v5 = GetRodTool()
 		if v5 and v5.Parent == localPlayer.Character then
@@ -5482,8 +5500,8 @@ do
 						EquipRod()
 						v23 = GetRodTool()
 					end
-					if v23 and Vector3.new(82.11319, 245.16185, 922.22076) then
-						Net.get("throw_rod", v23, Vector3.new(82.11319, 245.16185, 922.22076))
+					if v23 and ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2) then
+						Net.get("throw_rod", v23, ((tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2 or Vector3.new(82.11319, 245.16185, 922.22076)))
 						lastThrowTick = tick()
 					end
 				end)
@@ -6449,6 +6467,14 @@ do
 				end
 			elseif state == 283 then
 				if not tbl13:HasAnyBait() then
+					-- เหยื่อหมดแล้ว เก็บคันเบ็ดก่อนออกจากจุดตกปลา
+					pcall(function()
+						local characterNow = localPlayer.Character
+						local humanoidNow = characterNow and characterNow:FindFirstChildOfClass("Humanoid")
+						if humanoidNow then
+							humanoidNow:UnequipTools()
+						end
+					end)
 					state = 92
 				else
 					state = 284
@@ -6456,7 +6482,7 @@ do
 			elseif state == 284 then
 				EnsureRodEquipped()
 				EquipBaitOnRod()
-				v15 = vector2
+				v15 = (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2
 				v16 = GetRodTool()
 				if v16 then
 					state = 286
@@ -6464,8 +6490,15 @@ do
 					state = 285
 				end
 			elseif state == 285 then
-				flag36 = v16
-				state = 287
+				-- ถ้ายังไม่มีคันเบ็ดหลังถึงจุดตกปลา ให้ลองสวมใหม่ก่อน ไม่เข้าถึง v16.Parent ตอนเป็น nil
+				pcall(EquipRod)
+				task.wait(0.15)
+				v16 = GetRodTool()
+				if v16 then
+					state = 284
+				else
+					state = 92
+				end
 			elseif state == 286 then
 				flag36 = humanoid
 				state = 287
@@ -7122,7 +7155,7 @@ do
 		end
 	end
 	local n12 = 0
-	local n13 = 5
+	local n13 = 1.5 -- ลดคูลดาวน์ซื้ออุปกรณ์จาก 5 วินาที เหลือ 1.5 วินาที
 	BuyEquipment = function()
 		if tick() - n12 < n13 then
 			return false
@@ -7199,7 +7232,7 @@ do
 			pcall(function()
 				tbl13:WithdrawFromBank(n14)
 			end)
-			task.wait(0.35)
+			task.wait(0.1)
 		end
 		local money = tbl13:GetMoney() or 0
 		local bankMoney = tbl13:GetBankMoney() or 0
@@ -7215,8 +7248,8 @@ do
 			ShowStickyMoney("LrapX Hub", "เงินไม่พอซื้อคันเบ็ด")
 			return false
 		end
-		tbl13:SmartMoveTo(Vector3.new(-135.802, 251.81, 153.361))
-		task.wait(0.2)
+		tbl13:SmartMoveTo(Vector3.new(-135.802, 248.81, 153.361)) -- ลดระดับตอนซื้อของลง 3 studs
+		task.wait(0.1)
 		local shopZoneHardware = workspace:FindFirstChild("ShopZone_Hardware")
 		if not shopZoneHardware then
 			return false
@@ -7226,7 +7259,7 @@ do
 				pcall(function()
 					Net.get("purchase_consumable", shopZoneHardware, name)
 				end)
-				task.wait(0.3)
+				task.wait(0.1)
 			end
 			if not value then
 				for i = 1, baitAmount do
@@ -7234,14 +7267,14 @@ do
 						pcall(function()
 							Net.get("purchase_consumable", shopZoneHardware, baitSelect)
 						end)
-						task.wait(0.05)
+						task.wait(0.03)
 						continue
 					end
 					break
 				end
 			end
 		end, 0.4)
-		task.wait(0.15)
+		task.wait(0.08)
 		tbl12.lastUpdate = 0
 		fn20()
 		tbl13:SmoothVerticalMove(230.138, 0.3)
