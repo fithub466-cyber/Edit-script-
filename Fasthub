@@ -186,6 +186,9 @@ do
 		VehicleSpeed = 55,
 		AutoRepairVehicle = false,
 		SellAfterFishCount = 0,
+		SellFishSelected = {},
+		AutoDepositAfterSell = false,
+		AutoDepositThreshold = 20000,
 		HopNoFishEnabled = false,
 		HopNoFishMinutes = 30,
 		HopWatchFish = {},
@@ -209,7 +212,7 @@ do
 		getgenv().NEE_LastCaughtFish = caught
 		getgenv().NEE_LastCaughtTime = tick()
 		pcall(function()
-			Notify("NEE Stats", "Caught: " .. caught)
+			Notify("LrapX Hub | สถิติ", "จับได้: " .. caught)
 		end)
 		if fn then
 			fn()
@@ -292,10 +295,10 @@ do
 	end
 	ShowStickyMoney = function(arg, arg2)
 		pcall(function()
-			local neeToasts = playerGui:FindFirstChild("NEE_Toasts")
+			local neeToasts = playerGui:FindFirstChild("LrapXHub_Toasts")
 			if not neeToasts then
 				neeToasts = Instance.new("ScreenGui")
-				neeToasts.Name = "NEE_Toasts"
+				neeToasts.Name = "LrapXHub_Toasts"
 				neeToasts.ResetOnSpawn = false
 				neeToasts.IgnoreGuiInset = true
 				neeToasts.DisplayOrder = 1000000
@@ -324,7 +327,7 @@ do
 			textLabel.TextSize = 14
 			textLabel.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
-			textLabel.Text = tostring(arg or "NEE")
+			textLabel.Text = tostring(arg or "LrapX Hub")
 			textLabel.Parent = frame
 			local textLabel2 = Instance.new("TextLabel")
 			textLabel2.BackgroundTransparency = 1
@@ -348,10 +351,10 @@ do
 	end
 	ShowToast = function(arg, arg2)
 		pcall(function()
-			local neeToasts = playerGui:FindFirstChild("NEE_Toasts")
+			local neeToasts = playerGui:FindFirstChild("LrapXHub_Toasts")
 			if not neeToasts then
 				neeToasts = Instance.new("ScreenGui")
-				neeToasts.Name = "NEE_Toasts"
+				neeToasts.Name = "LrapXHub_Toasts"
 				neeToasts.ResetOnSpawn = false
 				neeToasts.IgnoreGuiInset = true
 				neeToasts.DisplayOrder = 1000000
@@ -375,7 +378,7 @@ do
 			textLabel.TextSize = 14
 			textLabel.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
-			textLabel.Text = tostring(arg or "NEE")
+			textLabel.Text = tostring(arg or "LrapX Hub")
 			textLabel.Parent = frame
 			local textLabel2 = Instance.new("TextLabel")
 			textLabel2.BackgroundTransparency = 1
@@ -399,14 +402,14 @@ do
 	end
 	local image = "rbxassetid://89443683946153"
 	tbl6 = {
-		Background = Color3.fromRGB(248, 248, 250),
-		Panel = Color3.fromRGB(255, 255, 255),
-		PanelLight = Color3.fromRGB(240, 240, 243),
-		AccentDim = Color3.fromRGB(225, 235, 255),
-		Text = Color3.fromRGB(30, 30, 35),
-		SubText = Color3.fromRGB(130, 130, 140),
-		Stroke = Color3.fromRGB(225, 225, 230),
-		Blue = Color3.fromRGB(80, 130, 255),
+		Background = Color3.fromRGB(12, 12, 16),
+		Panel = Color3.fromRGB(20, 20, 26),
+		PanelLight = Color3.fromRGB(30, 30, 38),
+		AccentDim = Color3.fromRGB(24, 48, 82),
+		Text = Color3.fromRGB(255, 255, 255),
+		SubText = Color3.fromRGB(210, 210, 220),
+		Stroke = Color3.fromRGB(55, 60, 72),
+		Blue = Color3.fromRGB(55, 155, 255),
 		Shadow = Color3.fromRGB(0, 0, 0),
 	}
 	gothamMedium = Enum.Font.GothamMedium
@@ -486,7 +489,7 @@ do
 	TextButton = fn6("TextButton", {
 		Name = "OpenBtn",
 		Size = UDim2.fromOffset(72, 72),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundColor3 = tbl6.Panel,
 		AutoButtonColor = false,
 		Text = "",
 		ClipsDescendants = true,
@@ -533,7 +536,7 @@ do
 		Size = udim2,
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Color3.fromRGB(236, 236, 240),
+		BackgroundColor3 = Color3.fromRGB(12, 12, 16),
 		BorderSizePixel = 0,
 		Visible = false,
 		ClipsDescendants = true,
@@ -547,7 +550,7 @@ do
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
 		Image = image,
-		ImageTransparency = 0.48,
+		ImageTransparency = 0.92,
 		ScaleType = Enum.ScaleType.Crop,
 		ZIndex = 2,
 		Parent = Frame4,
@@ -556,8 +559,8 @@ do
 end
 local Frame5 = fn6("Frame", {
 	Size = UDim2.fromScale(1, 1),
-	BackgroundColor3 = Color3.fromRGB(232, 232, 236),
-	BackgroundTransparency = 0.38,
+	BackgroundColor3 = Color3.fromRGB(12, 12, 16),
+	BackgroundTransparency = 0,
 	BorderSizePixel = 0,
 	ZIndex = 3,
 	Parent = Frame4,
@@ -568,13 +571,27 @@ do
 	local Frame6 = fn6("Frame", {
 		Name = "TopBar",
 		Size = UDim2.new(1, 0, 0, 46),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-		BackgroundTransparency = 0.55,
+		BackgroundColor3 = Color3.fromRGB(18, 30, 48),
+		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		ZIndex = 5,
 		Parent = Frame4,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame6 })
+	fn6("TextLabel", {
+		Name = "HubTitle",
+		Size = UDim2.new(0, 190, 1, 0),
+		Position = UDim2.fromOffset(158, 0),
+		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamMedium,
+		Text = "LrapX Hub",
+		TextColor3 = Color3.fromRGB(55, 155, 255),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextSize = 22,
+		Font = Enum.Font.GothamBold,
+		ZIndex = 6,
+		Parent = Frame6,
+	})
 	TextLabel = fn6("TextLabel", {
 		Name = "TimerLabel",
 		Size = UDim2.new(0, 130, 1, 0),
@@ -582,9 +599,10 @@ do
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Code,
 		Text = "00:00:00",
-		TextColor3 = tbl6.Text,
+		TextColor3 = Color3.fromRGB(55, 155, 255),
 		TextXAlignment = Enum.TextXAlignment.Left,
-		TextSize = 15,
+		TextSize = 16,
+		Font = Enum.Font.Code,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
@@ -761,7 +779,7 @@ do
 		Name = "Sidebar",
 		Size = UDim2.new(0, 160, 1, -46),
 		Position = UDim2.new(0, 0, 0, 46),
-		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundColor3 = tbl6.Panel,
 		BackgroundTransparency = 0.62,
 		BorderSizePixel = 0,
 		ZIndex = 4,
@@ -1064,7 +1082,7 @@ do
 		local Frame9 = fn6("Frame", {
 			Size = UDim2.fromOffset(18, 18),
 			Position = flag8 and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundColor3 = tbl6.Panel,
 			BorderSizePixel = 0,
 			Parent = TextButton2,
 		})
@@ -1132,7 +1150,7 @@ do
 			Size = UDim2.fromOffset(16, 16),
 			Position = UDim2.new((n11 - arg3) / math.max(arg4 - arg3, 1), -8, 0.5, 0),
 			AnchorPoint = Vector2.new(0, 0.5),
-			BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+			BackgroundColor3 = tbl6.Panel,
 			BorderSizePixel = 0,
 			ZIndex = 5,
 			Active = true,
@@ -1182,6 +1200,40 @@ do
 			Frame = Frame8,
 		}
 	end
+	local function ThaiDisplayName(value)
+		local names = {
+			["Smart Select"] = "เลือกอัตโนมัติ",
+			["FishingRodUltimate"] = "คันเบ็ดขั้นสูงสุด",
+			["FishingRodAdvanced"] = "คันเบ็ดขั้นสูง",
+			["FishingRodPro"] = "คันเบ็ดมืออาชีพ",
+			["FishingRodRegular"] = "คันเบ็ดทั่วไป",
+			["Advanced Fishing rod"] = "คันเบ็ดขั้นสูง",
+			["Advanced Fishing Rod"] = "คันเบ็ดขั้นสูง",
+			["Ultimate Fishing rod"] = "คันเบ็ดขั้นสูงสุด",
+			["Pro Fishing rod"] = "คันเบ็ดมืออาชีพ",
+			["Regular Fishing rod"] = "คันเบ็ดทั่วไป",
+			["PrawntecUltimate"] = "เหยื่อกุ้งขั้นสูงสุด",
+			["PrawntecPro"] = "เหยื่อกุ้งมืออาชีพ",
+			["PrawntecRegular"] = "เหยื่อกุ้งทั่วไป",
+			["WormtecUltimate"] = "เหยื่อหนอนขั้นสูงสุด",
+			["WormtecPro"] = "เหยื่อหนอนมืออาชีพ",
+			["WormtecRegular"] = "เหยื่อหนอนทั่วไป",
+			["Bike"] = "มอเตอร์ไซค์",
+			["Car"] = "รถยนต์",
+			["Level 40 +"] = "เลเวล 40 ขึ้นไป",
+			["Level 70 +"] = "เลเวล 70 ขึ้นไป",
+			["Bass"] = "ปลากะพง (Bass)",
+			["Perch"] = "ปลาเพิร์ช (Perch)",
+			["Salmon"] = "ปลาแซลมอน (Salmon)",
+			["Northern Pike"] = "ปลานอร์เทิร์นไพค์ (Northern Pike)",
+			["Dolphinfish"] = "ปลาโดราโด (Dolphinfish)",
+			["Coelacanth"] = "ปลาซีลาแคนท์ (Coelacanth)",
+			["Tuna"] = "ปลาทูน่า (Tuna)",
+			["Sailfish"] = "ปลากระโทงใบ (Sailfish)",
+			["Marlin"] = "ปลามาร์ลิน (Marlin)",
+		}
+		return names[tostring(value)] or tostring(value)
+	end
 	local function fn23(arg, arg2, arg3, arg4, arg5)
 		arg3 = arg3 or { "Smart Select" }
 		local v5 = arg4 or arg3[1]
@@ -1215,7 +1267,7 @@ do
 			BackgroundColor3 = tbl6.PanelLight,
 			AutoButtonColor = false,
 			Font = gotham,
-			Text = tostring(v5),
+			Text = ThaiDisplayName(v5),
 			TextColor3 = tbl6.Text,
 			TextSize = 14,
 			ZIndex = 9,
@@ -1250,14 +1302,14 @@ do
 					Size = UDim2.new(1, -4, 0, 26),
 					BackgroundTransparency = 1,
 					Font = gotham,
-					Text = v6,
+					Text = ThaiDisplayName(v6),
 					TextColor3 = tbl6.Text,
 					TextSize = 14,
 					ZIndex = 31,
 					Parent = ScrollingFrame2,
 				}).MouseButton1Click:Connect(function()
 					v5 = v6
-					TextButton2.Text = v6
+					TextButton2.Text = ThaiDisplayName(v6)
 					fn24()
 					if arg5 then
 						arg5(v6)
@@ -1286,7 +1338,7 @@ do
 		return {
 			Set = function(arg6, arg7)
 				v5 = arg7
-				TextButton2.Text = tostring(arg7)
+				TextButton2.Text = ThaiDisplayName(arg7)
 			end,
 			SetValues = function(arg6, arg7)
 				fn25(arg7)
@@ -1313,13 +1365,14 @@ do
 	end)
 	label = fn13(FishFarm, "🏦 ยอดเงินในธนาคาร", "$0").Label
 	label2 = fn13(FishFarm, "💸 เงินสดในมือ", "$0").Label
-	fn12(FishFarm, "إعدادات المعدات")
+	local profitLabel = fn13(FishFarm, "📈 เงินที่หาได้ตั้งแต่รันสคริปต์", "$0").Label
+	fn12(FishFarm, "ตั้งค่าอุปกรณ์")
 	tbl7 = {}
 	tbl4.AutoBuyEnabled = true
 	tbl7.AutoBuyToggle = { Set = function(arg, arg2)
 		tbl4.AutoBuyEnabled = arg2 and true or false
 	end }
-	tbl7.RodDropdown = fn23(FishFarm, "نوع السنارة", {
+	tbl7.RodDropdown = fn23(FishFarm, "ประเภทคันเบ็ด", {
 		"Smart Select",
 		"FishingRodUltimate",
 		"FishingRodAdvanced",
@@ -1328,7 +1381,7 @@ do
 	}, tbl4.RodSelect, function(rodSelect)
 		tbl4.RodSelect = rodSelect
 	end)
-	tbl7.BaitDropdown = fn23(FishFarm, "نوع الطعم", {
+	tbl7.BaitDropdown = fn23(FishFarm, "ประเภทเหยื่อ", {
 		"Smart Select",
 		"PrawntecUltimate",
 		"PrawntecPro",
@@ -1338,10 +1391,10 @@ do
 	}, tbl4.BaitSelect, function(baitSelect)
 		tbl4.BaitSelect = baitSelect
 	end)
-	tbl7.BaitAmountSlider = fn16(FishFarm, "الحد الأقصى للطعم", 1, 100, tbl4.BaitAmount or 10, function(baitAmount)
+	tbl7.BaitAmountSlider = fn16(FishFarm, "จำนวนเหยื่อสูงสุด", 1, 100, tbl4.BaitAmount or 10, function(baitAmount)
 		tbl4.BaitAmount = baitAmount
 	end)
-	fn12(FishFarm, "اعدادات المركبه")
+	fn12(FishFarm, "ตั้งค่ายานพาหนะ")
 	tbl4.UseVehicle = true
 	tbl7.UseVehicleToggle = {
 		Set = function()
@@ -1395,7 +1448,7 @@ do
 		if not table.find(Car, vehicleSelect2) then
 			vehicleSelect2 = "Smart Select"
 		end
-		tbl7.VehicleSelectDropdown = fn23(FishFarm, "اختر سيارتك", Car, vehicleSelect2, function(vehicleSelect3)
+		tbl7.VehicleSelectDropdown = fn23(FishFarm, "เลือกรถ", Car, vehicleSelect2, function(vehicleSelect3)
 			tbl4.VehicleSelect = vehicleSelect3
 			vehicleSelect = vehicleSelect3
 			n9 = tick()
@@ -1410,7 +1463,7 @@ do
 			end
 		end)
 	end
-	tbl7.VehicleTypeDropdown = fn23(FishFarm, "نوع المركبة", { "Bike", "Car" }, tbl4.VehicleType or "Bike", function(vehicleType)
+	tbl7.VehicleTypeDropdown = fn23(FishFarm, "ประเภทยานพาหนะ", { "Bike", "Car" }, tbl4.VehicleType or "Bike", function(vehicleType)
 		tbl4.VehicleType = vehicleType
 		if vehicleType == "Bike" then
 			tbl4.VehicleSelect = "Smart Select"
@@ -1425,17 +1478,17 @@ do
 	if tbl4.VehicleType == "Car" then
 		fn19()
 	end
-	tbl7.VehicleSpeedSlider = fn16(FishFarm, "سرعة المركبة", 20, 120, tbl4.VehicleSpeed or 55, function(vehicleSpeed)
+	tbl7.VehicleSpeedSlider = fn16(FishFarm, "ความเร็วยานพาหนะ", 20, 120, tbl4.VehicleSpeed or 55, function(vehicleSpeed)
 		tbl4.VehicleSpeed = vehicleSpeed
 	end)
-	tbl7.AutoRepairToggle = fn15(FishFarm, "إصلاح المركبة تلقائي", false, function(autoRepairVehicle)
+	tbl7.AutoRepairToggle = fn15(FishFarm, "ซ่อมยานพาหนะอัตโนมัติ", false, function(autoRepairVehicle)
 		tbl4.AutoRepairVehicle = autoRepairVehicle
 	end)
-	local v6 = fn12(FishFarm, "منطقة الصيد")
+	local v6 = fn12(FishFarm, "พื้นที่ตกปลา")
 	if v6 then
 		v6.LayoutOrder = 300
 	end
-	tbl7.ZoneDropdown = fn23(FishFarm, "المستوى", { "Level 40 +", "Level 70 +" }, tbl4.ZoneSelect or "Level 70 +", function(zoneSelect)
+	tbl7.ZoneDropdown = fn23(FishFarm, "ระดับ", { "Level 40 +", "Level 70 +" }, tbl4.ZoneSelect or "Level 70 +", function(zoneSelect)
 		tbl4.ZoneSelect = zoneSelect
 		if zoneSelect == "Level 70 +" then
 			CreateHopWatch()
@@ -1481,8 +1534,8 @@ do
 		flag8 = true
 		Frame8.Visible = true
 		Frame8.LayoutOrder = 302
-		fn12(Frame8, "تغيير السيرفر")
-		fn15(Frame8, "تغيير السيرفر إذا ما جاءت الأسماك", tbl4.HopNoFishEnabled == true, function(hopNoFishEnabled)
+		fn12(Frame8, "เปลี่ยนเซิร์ฟเวอร์")
+		fn15(Frame8, "เปลี่ยนเซิร์ฟเวอร์เมื่อไม่มีปลา", tbl4.HopNoFishEnabled == true, function(hopNoFishEnabled)
 			tbl4.HopNoFishEnabled = hopNoFishEnabled
 			lastWatchedCatchTime = tick()
 			local v7 = lastWatchedCatchTime
@@ -1494,17 +1547,17 @@ do
 				pcall(SaveConfig)
 			end)
 		end)
-		HopRemainLabel = fn12(Frame8, "الوقت المتبقي:")
+		HopRemainLabel = fn12(Frame8, "เวลาที่เหลือ:")
 		if HopRemainLabel then
 			HopRemainLabel.TextSize = 15
 			HopRemainLabel.TextColor3 = Color3.fromRGB(50, 50, 58)
 			HopRemainLabel.Visible = tbl4.HopNoFishEnabled == true
 		end
-		fn16(Frame8, "المدة (دقائق)", 5, 120, tbl4.HopNoFishMinutes or 30, function(hopNoFishMinutes)
+		fn16(Frame8, "ระยะเวลา (นาที)", 5, 120, tbl4.HopNoFishMinutes or 30, function(hopNoFishMinutes)
 			tbl4.HopNoFishMinutes = hopNoFishMinutes
 			lastWatchedCatchTime = tick()
 		end)
-		fn12(Frame8, "حدد الأسماك المطلوبة")
+		fn12(Frame8, "เลือกปลาที่ต้องการ")
 		tbl4.HopWatchFish = tbl4.HopWatchFish or {}
 		getgenv().NEE_WatchFish = getgenv().NEE_WatchFish or {}
 		for k, v7 in pairs(tbl4.HopWatchFish) do
@@ -1523,7 +1576,7 @@ do
 			end)
 		end
 	end
-	local v7 = fn12(FishFarm, "التحكم والبيع")
+	local v7 = fn12(FishFarm, "การควบคุมและขาย")
 	if v7 then
 		v7.LayoutOrder = 400
 	end
@@ -1535,10 +1588,123 @@ do
 	else
 		DestroyHopWatch()
 	end
-	tbl7.SellAfterFishSlider = fn16(FishFarm, "بيع بعد عدد السمك", 0, 15, tbl4.SellAfterFishCount or 0, function(sellAfterFishCount)
+	tbl7.SellAfterFishSlider = fn16(FishFarm, "ขายหลังจับปลาได้ตามจำนวน", 0, 15, tbl4.SellAfterFishCount or 0, function(sellAfterFishCount)
 		tbl4.SellAfterFishCount = sellAfterFishCount
 	end)
-	tbl7.AutoFarmToggle = fn15(FishFarm, "تشغيل Auto Farm", false, function(autoFarmActive)
+
+	tbl4.SellFishSelected = tbl4.SellFishSelected or {}
+	tbl7.SellFishToggles = {}
+	fn12(FishFarm, "เลือกชนิดปลาที่อนุญาตให้ขายอัตโนมัติ")
+
+	-- เมนู Select แบบเดียวกับตัวเลือกรถ แต่เลือกปลาได้หลายชนิด
+	local SellFishNames = { "Bass", "Perch", "Salmon", "Northern Pike", "Dolphinfish", "Coelacanth", "Tuna", "Sailfish", "Marlin" }
+	local SellFishSelectFrame = fn6("Frame", {
+		Name = "SellFishMultiSelect",
+		Size = UDim2.new(1, 0, 0, 44),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Parent = FishFarm,
+	})
+	local SellFishSelectButton = fn6("TextButton", {
+		Name = "SelectButton",
+		Size = UDim2.new(1, 0, 0, 40),
+		Position = UDim2.fromOffset(0, 0),
+		BackgroundColor3 = tbl6.Panel,
+		BorderSizePixel = 0,
+		AutoButtonColor = true,
+		Font = gothamMedium,
+		Text = "เลือกชนิดปลาได้หลายรายการ  ▼",
+		TextColor3 = tbl6.Text,
+		TextSize = 14,
+		Parent = SellFishSelectFrame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 10), Parent = SellFishSelectButton })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.2, Parent = SellFishSelectButton })
+
+	local SellFishOptionsFrame = fn6("ScrollingFrame", {
+		Name = "Options",
+		Size = UDim2.new(1, 0, 0, 0),
+		Position = UDim2.fromOffset(0, 44),
+		BackgroundColor3 = tbl6.Panel,
+		BorderSizePixel = 0,
+		Visible = false,
+		ScrollBarThickness = 5,
+		ScrollingDirection = Enum.ScrollingDirection.Y,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		ZIndex = 20,
+		Parent = SellFishSelectFrame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 10), Parent = SellFishOptionsFrame })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.2, Parent = SellFishOptionsFrame })
+	fn6("UIListLayout", { Padding = UDim.new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder, Parent = SellFishOptionsFrame })
+
+	local function UpdateSellFishSelectText()
+		local selectedNames = {}
+		for _, name in ipairs(SellFishNames) do
+			if tbl4.SellFishSelected[name] == true then
+				table.insert(selectedNames, ThaiDisplayName(name))
+			end
+		end
+		if #selectedNames == 0 then
+			SellFishSelectButton.Text = "เลือกชนิดปลา (ยังไม่ได้เลือก)  ▼"
+		else
+			SellFishSelectButton.Text = "เลือกแล้ว " .. tostring(#selectedNames) .. " ชนิด  ▼"
+		end
+		for _, name in ipairs(SellFishNames) do
+			local option = tbl7.SellFishToggles[name]
+			if option then
+				option.Text = (tbl4.SellFishSelected[name] == true and "✓  " or "□  ") .. ThaiDisplayName(name)
+			end
+		end
+	end
+
+	for index, fishName in ipairs(SellFishNames) do
+		local option = fn6("TextButton", {
+			Name = "Fish_" .. fishName:gsub("%W", ""),
+			Size = UDim2.new(1, -8, 0, 34),
+			BackgroundColor3 = tbl6.PanelLight,
+			BorderSizePixel = 0,
+			AutoButtonColor = true,
+			Font = gothamMedium,
+			Text = "",
+			TextColor3 = tbl6.Text,
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			ZIndex = 21,
+			LayoutOrder = index,
+			ZIndex = 21,
+			Parent = SellFishOptionsFrame,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 7), Parent = option })
+		tbl7.SellFishToggles[fishName] = option
+		option.Activated:Connect(function()
+			tbl4.SellFishSelected[fishName] = not (tbl4.SellFishSelected[fishName] == true)
+			UpdateSellFishSelectText()
+			pcall(SaveConfig)
+		end)
+	end
+	SellFishSelectButton.Activated:Connect(function()
+		SellFishOptionsFrame.Visible = not SellFishOptionsFrame.Visible
+		SellFishOptionsFrame.Size = UDim2.new(1, 0, 0, SellFishOptionsFrame.Visible and 220 or 0)
+		SellFishSelectFrame.Size = UDim2.new(1, 0, 0, SellFishOptionsFrame.Visible and 264 or 44)
+		SellFishSelectButton.Text = SellFishSelectButton.Text:gsub("▼", "▲")
+		if not SellFishOptionsFrame.Visible then
+			SellFishSelectButton.Text = SellFishSelectButton.Text:gsub("▲", "▼")
+		end
+	end)
+	UpdateSellFishSelectText()
+	tbl7.AutoDepositAfterSellToggle = fn15(FishFarm, "ฝากเงินอัตโนมัติหลังขายปลา", tbl4.AutoDepositAfterSell == true, function(enabled)
+		tbl4.AutoDepositAfterSell = enabled and true or false
+		pcall(SaveConfig)
+	end)
+	tbl7.AutoDepositThresholdSlider = fn16(FishFarm, "ฝากเมื่อเงินสดถึงจำนวน ($)", 1000, 1000000, tbl4.AutoDepositThreshold or 20000, function(amount)
+		tbl4.AutoDepositThreshold = math.floor(tonumber(amount) or 20000)
+		pcall(SaveConfig)
+	end)
+	fn13(FishFarm, "หมายเหตุการขาย", "เลือกปลาได้หลายชนิดจากเมนู Select ระบบจะสั่งขายเมื่อปลาในกระเป๋าเป็นชนิดที่เลือกทั้งหมด เพื่อป้องกันการขายปลาที่ไม่ได้เลือก")
+
+	tbl7.AutoFarmToggle = fn15(FishFarm, "เปิดฟาร์มอัตโนมัติ", false, function(autoFarmActive)
 		tbl4.AutoFarmActive = autoFarmActive
 		if autoFarmActive then
 			tbl4.UseVehicle = true
@@ -1584,7 +1750,7 @@ do
 			end)
 		end
 	end)
-	tbl7.RespawnToggle = fn15(FishFarm, "Auto Respawn", false, function(respawn)
+	tbl7.RespawnToggle = fn15(FishFarm, "เกิดใหม่อัตโนมัติ", false, function(respawn)
 		tbl4.Respawn = respawn
 	end)
 	local layoutOrder = 220
@@ -1618,19 +1784,91 @@ do
 	n10 = 0
 	flag7 = false
 	tbl7.SkipFishToggles = {}
-	fn12(v5, "تسكيب السمك على الخط")
-	tbl7.SkipBadFishToggle = fn15(v5, "تفعيل تسكيب السمك", false, function(arg)
+	fn12(v5, "ข้ามปลาอัตโนมัติ")
+	tbl7.SkipBadFishToggle = fn15(v5, "เปิดใช้งานการข้ามปลา", false, function(arg)
 		flag6 = arg
 	end)
-	tbl7.SkipDelaySlider = fn16(v5, "تأخير التسكيب", 0, 15, 0, function(arg)
+	tbl7.SkipDelaySlider = fn16(v5, "เวลาหน่วงก่อนข้าม", 0, 15, 0, function(arg)
 		n10 = arg
 	end)
-	fn12(v5, "اختر الأسماك")
-	for _, v8 in ipairs(tbl) do
-		tbl7.SkipFishToggles[v8] = fn15(v5, v8, false, function(arg)
-			tbl8[v8] = arg
-		end)
+	fn12(v5, "เลือกปลา")
+	-- Multi-select dropdown styled to match the vehicle selector
+	local FishSelectFrame = fn6("Frame", {
+		Name = "FishMultiSelect",
+		Size = UDim2.new(1, 0, 0, 46),
+		BackgroundColor3 = tbl6.Panel,
+		BackgroundTransparency = 0.18,
+		BorderSizePixel = 0,
+		ZIndex = 8,
+		Parent = v5,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = FishSelectFrame })
+	fn7(FishSelectFrame)
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Transparency = 0.2, Parent = FishSelectFrame })
+	fn6("TextLabel", {
+		Size = UDim2.new(0.42, 0, 1, 0), Position = UDim2.fromOffset(14, 0),
+		BackgroundTransparency = 1, Font = gothamMedium, Text = "เลือกชนิดปลา",
+		TextColor3 = tbl6.Text, TextXAlignment = Enum.TextXAlignment.Left, TextSize = 14,
+		ZIndex = 9, Parent = FishSelectFrame,
+	})
+	local FishSelectButton = fn6("TextButton", {
+		Name = "ValueChip", Size = UDim2.new(0.53, -10, 0, 28),
+		Position = UDim2.new(0.45, 0, 0.5, -14), BackgroundColor3 = tbl6.PanelLight,
+		AutoButtonColor = false, Font = gotham, Text = "เลือกปลา ▾", TextColor3 = tbl6.Text,
+		TextSize = 13, TextTruncate = Enum.TextTruncate.AtEnd, ZIndex = 10, Parent = FishSelectFrame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = FishSelectButton })
+	local FishSelectList = fn6("ScrollingFrame", {
+		Name = "Options", Size = UDim2.new(0.55, 0, 0, 0),
+		Position = UDim2.new(0.45, 0, 1, 3), BackgroundColor3 = tbl6.Panel,
+		BorderSizePixel = 0, Visible = false, ZIndex = 30, ScrollBarThickness = 3,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y, CanvasSize = UDim2.new(),
+		ScrollingDirection = Enum.ScrollingDirection.Y, Parent = FishSelectFrame,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = FishSelectList })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Parent = FishSelectList })
+	fn6("UIListLayout", { Padding = UDim.new(0, 3), SortOrder = Enum.SortOrder.LayoutOrder, Parent = FishSelectList })
+	local FishOptionButtons = {}
+	local function RefreshFishSelectText()
+		local selectedCount = 0
+		for _, fishName in ipairs(tbl) do
+			if tbl8[fishName] then selectedCount += 1 end
+		end
+		FishSelectButton.Text = (selectedCount == 0 and "ไม่ได้เลือกปลา" or ("เลือกแล้ว " .. selectedCount .. "/" .. #tbl .. " ชนิด")) .. (FishSelectList.Visible and " ▴" or " ▾")
+		for fishName, optionButton in pairs(FishOptionButtons) do
+			optionButton.Text = (tbl8[fishName] and "✓  " or "□  ") .. ThaiDisplayName(fishName)
+			optionButton.TextColor3 = tbl8[fishName] and tbl6.Accent or tbl6.Text
+			optionButton.BackgroundColor3 = tbl8[fishName] and tbl6.PanelLight or tbl6.Panel
+		end
 	end
+	for index, fishName in ipairs(tbl) do
+		local optionButton = fn6("TextButton", {
+			Name = "FishOption_" .. tostring(fishName), Size = UDim2.new(1, -8, 0, 30),
+			BackgroundColor3 = tbl6.Panel, BorderSizePixel = 0, AutoButtonColor = false,
+			Font = gotham, Text = "□  " .. ThaiDisplayName(fishName), TextColor3 = tbl6.Text,
+			TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = index,
+			ZIndex = 31, Parent = FishSelectList,
+		})
+		fn6("UICorner", { CornerRadius = UDim.new(0, 6), Parent = optionButton })
+		FishOptionButtons[fishName] = optionButton
+		optionButton.Activated:Connect(function()
+			tbl8[fishName] = not tbl8[fishName]
+			RefreshFishSelectText()
+		end)
+		tbl7.SkipFishToggles[fishName] = {
+			Set = function(_, enabled)
+				tbl8[fishName] = enabled and true or false
+				RefreshFishSelectText()
+			end
+		}
+	end
+	FishSelectButton.Activated:Connect(function()
+		FishSelectList.Visible = not FishSelectList.Visible
+		FishSelectList.Size = UDim2.new(0.55, 0, 0, FishSelectList.Visible and math.min(#tbl * 33 + 6, 180) or 0)
+		FishSelectButton.Text = FishSelectButton.Text:gsub(" ▾$", ""):gsub(" ▴$", "") .. (FishSelectList.Visible and " ▴" or " ▾")
+	end)
+	RefreshFishSelectText()
+
 	local tbl11 = {
 		Bass = true,
 		Perch = true,
@@ -1640,8 +1878,8 @@ do
 		Coelacanth = true,
 		Tuna = true,
 	}
-	fn12(v5, "تحكم سريع")
-	fn14(v5, "🗑️ تسكيب السمك الخايس", function()
+	fn12(v5, "ควบคุมด่วน")
+	fn14(v5, "🗑️ ข้ามปลาที่ไม่ต้องการ", function()
 		for _, v8 in ipairs(tbl) do
 			local flag9 = tbl11[v8] == true
 			tbl8[v8] = flag9
@@ -1650,7 +1888,7 @@ do
 			end
 		end
 	end)
-	fn14(v5, "❌ إلغاء تحديد الكل", function()
+	fn14(v5, "❌ ยกเลิกการเลือกทั้งหมด", function()
 		for _, v8 in ipairs(tbl) do
 			tbl8[v8] = false
 			if tbl7.SkipFishToggles[v8] then
@@ -1658,8 +1896,8 @@ do
 			end
 		end
 	end)
-	fn12(Statistics, "إحصائيات صيد السمك")
-	local totalFishCaught = fn13(Statistics, "Total Fish Caught", "0")
+	fn12(Statistics, "สถิติการจับปลา")
+	local totalFishCaught = fn13(Statistics, "จำนวนปลาที่จับได้ทั้งหมด", "0")
 	local tbl12 = {}
 	for _, v8 in ipairs(tbl) do
 		tbl12[v8] = fn13(Statistics, v8, "× 0")
@@ -1675,28 +1913,28 @@ do
 		end)
 	end
 end
-fn12(v3, "Anti-AFK")
-tbl7.AntiKickToggle = fn15(v3, "يمنع الطرد", false, function(arg)
+fn12(v3, "ป้องกันการหลุดเมื่อไม่อยู่")
+tbl7.AntiKickToggle = fn15(v3, "ป้องกันการถูกเตะออก", false, function(arg)
 	EnableAntiKick(arg)
 	task.defer(function()
 		pcall(SaveConfig)
 	end)
 end)
-fn12(Server, "السيرفر")
-tbl7.ServerSwitchToggle = fn15(Server, "تغيير السيرفر التلقائي", false, function(arg)
+fn12(Server, "เซิร์ฟเวอร์")
+tbl7.ServerSwitchToggle = fn15(Server, "เปลี่ยนเซิร์ฟเวอร์อัตโนมัติ", false, function(arg)
 	flag2 = arg
 	if arg then
 		now = tick()
 	end
 end)
-tbl7.ServerIntervalSlider = fn16(Server, "الفترة (دقائق)", 5, 120, 30, function(arg)
+tbl7.ServerIntervalSlider = fn16(Server, "ช่วงเวลา (นาที)", 5, 120, 30, function(arg)
 	n2 = arg
 end)
-fn14(Server, "Hop Server الآن", function()
+fn14(Server, "เปลี่ยนเซิร์ฟเวอร์ตอนนี้", function()
 	task.spawn(SwitchToSmallestServer)
 end)
-fn14(Server, "Rejoin نفس السيرفر", function()
-	ShowToast("NEE", "جاري الريجون...")
+fn14(Server, "เข้าเซิร์ฟเวอร์เดิมอีกครั้ง", function()
+	ShowToast("LrapX Hub", "กำลังเข้าเซิร์ฟเวอร์เดิม...")
 	task.spawn(function()
 		pcall(SaveConfig)
 		task.wait(0.15)
@@ -1710,18 +1948,18 @@ fn14(Server, "Rejoin نفس السيرفر", function()
 		end
 	end)
 end)
-fn12(Server, "الإعدادات")
-fn14(Server, "حفظ الإعدادات", function()
+fn12(Server, "การตั้งค่า")
+fn14(Server, "บันทึกการตั้งค่า", function()
 	SaveConfig()
-	ShowToast("NEE", "تم حفظ الإعدادات")
+	ShowToast("LrapX Hub", "บันทึกการตั้งค่าแล้ว")
 end)
-fn14(Server, "حذف الإعدادات", function()
+fn14(Server, "ลบการตั้งค่า", function()
 	DeleteConfig()
-	ShowToast("NEE", "تم الحذف")
+	ShowToast("LrapX Hub", "ลบแล้ว")
 end)
-fn12(Dev, "نسخ رابط الدسكورد")
-fn14(Dev, "Discord", function()
-	ShowToast("NEE", "تم نسخ رابط الدسكورد")
+fn12(Dev, "คัดลอกลิงก์ดิสคอร์ด")
+fn14(Dev, "ดิสคอร์ด", function()
+	ShowToast("LrapX Hub", "คัดลอกลิงก์ Discord แล้ว")
 end)
 local vector2, tbl9, tbl10, tbl11, tbl12, fn20, tbl13, fn21
 do
@@ -1746,13 +1984,13 @@ do
 			ImageLabel.Size = UDim2.fromScale(1, 1)
 		end
 	end
-	tbl7.MenuScaleSlider = fn16(v4, "حجم القائمة %", 65, 100, 100, function(arg)
+	tbl7.MenuScaleSlider = fn16(v4, "ขนาดเมนู %", 65, 100, 100, function(arg)
 		fn22(arg / 100)
 	end)
-	tbl7.ButtonScaleSlider = fn16(v4, "حجم زر الفتح %", 50, 100, 100, function(arg)
+	tbl7.ButtonScaleSlider = fn16(v4, "ขนาดปุ่มเปิดเมนู %", 50, 100, 100, function(arg)
 		fn23(arg / 100)
 	end)
-	fn14(v4, "استعادة الحجم الافتراضي", function()
+	fn14(v4, "คืนค่าขนาดเริ่มต้น", function()
 		fn22(1)
 		fn23(1)
 		if tbl7.MenuScaleSlider then
@@ -1763,9 +2001,18 @@ do
 		end
 	end)
 	local function fn24()
+		-- ใช้ข้อมูลเงินสดจริงจาก Data ก่อน เพราะข้อความ HUD อาจยังไม่อัปเดตหรือใช้รูปแบบย่อ
+		local ok, cash = pcall(function()
+			return Data and Data.money and tonumber(Data.money.hand)
+		end)
+		if ok and cash ~= nil then
+			return cash
+		end
 		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
-		if moneyTextLabel then
-			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$(%d+)")) or 0
+		if moneyTextLabel and moneyTextLabel.Text then
+			local text = moneyTextLabel.Text:gsub(",", "")
+			local amount = text:match("%$%s*([%d%.]+)") or text:match("([%d%.]+)")
+			return tonumber(amount) or 0
 		end
 		return 0
 	end
@@ -1782,11 +2029,21 @@ do
 		end
 		return 0
 	end
+	local lastObservedCash = fn24() or 0
+	local earnedSinceRun = 0
 	task.spawn(function()
 		while task.wait(0.6) do
 			pcall(function()
-				label.Text = "$" .. tostring(fn25() or 0)
-				label2.Text = "$" .. tostring(fn24() or 0)
+				local bankNow = fn25() or 0
+				local cashNow = fn24() or 0
+				label.Text = "$" .. tostring(bankNow)
+				label2.Text = "$" .. tostring(cashNow)
+				-- นับเฉพาะยอดเงินสดที่เพิ่มขึ้นหลังเริ่มสคริปต์ ไม่หักเมื่อใช้เงินหรือฝากธนาคาร
+				if cashNow > lastObservedCash then
+					earnedSinceRun = earnedSinceRun + (cashNow - lastObservedCash)
+				end
+				lastObservedCash = cashNow
+				profitLabel.Text = "$" .. tostring(earnedSinceRun)
 			end)
 		end
 	end)
@@ -1807,10 +2064,10 @@ do
 		getgenv().FishFarmLoaded = false
 	end)
 	tbl7.BankBalanceBtn = { SetDesc = function(arg, bank)
-		label.Text = "Bank: " .. bank
+		label.Text = "เงินในธนาคาร: " .. bank
 	end }
 	tbl7.HandBalanceBtn = { SetDesc = function(arg, hand)
-		label2.Text = "Hand: " .. hand
+		label2.Text = "เงินสด: " .. hand
 	end }
 	local function fn26()
 		if tbl4.VehicleType == "Car" then
@@ -1901,6 +2158,9 @@ do
 			VehicleSpeed = tbl4.VehicleSpeed,
 			AutoRepairVehicle = tbl4.AutoRepairVehicle,
 			SellAfterFishCount = tbl4.SellAfterFishCount,
+			SellFishSelected = tbl4.SellFishSelected,
+			AutoDepositAfterSell = tbl4.AutoDepositAfterSell,
+			AutoDepositThreshold = tbl4.AutoDepositThreshold,
 			ScaleValue = n11,
 			ButtonScaleValue = n12,
 			HopNoFishEnabled = tbl4.HopNoFishEnabled,
@@ -2017,6 +2277,14 @@ do
 					tbl7.SellAfterFishSlider:Set(data.SellAfterFishCount)
 				end)
 			end
+			if data.AutoDepositAfterSell ~= nil then tbl4.AutoDepositAfterSell = data.AutoDepositAfterSell == true end
+			if tonumber(data.AutoDepositThreshold) then tbl4.AutoDepositThreshold = math.max(1000, tonumber(data.AutoDepositThreshold)) end
+			if type(data.SellFishSelected) == "table" then
+				tbl4.SellFishSelected = data.SellFishSelected
+				for fishName, toggle in pairs(tbl7.SellFishToggles or {}) do
+					pcall(function() toggle:Set(tbl4.SellFishSelected[fishName] == true) end)
+				end
+			end
 			if data.Respawn ~= nil then
 				tbl4.Respawn = data.Respawn
 				pcall(function()
@@ -2127,9 +2395,9 @@ do
 				local n17 = math.floor(n15 % 3600 / 60)
 				local n18 = math.floor(n15 % 60)
 				if n16 > 0 then
-					HopRemainLabel.Text = string.format("الوقت المتبقي: %02d:%02d:%02d", n16, n17, n18)
+					HopRemainLabel.Text = string.format("เวลาที่เหลือ: %02d:%02d:%02d", n16, n17, n18)
 				else
-					HopRemainLabel.Text = string.format("الوقت المتبقي: %02d:%02d", n17, n18)
+					HopRemainLabel.Text = string.format("เวลาที่เหลือ: %02d:%02d", n17, n18)
 				end
 			end)
 		end
@@ -3694,6 +3962,31 @@ do
 			Net.get("sell_all_fish")
 		end)
 	end
+	tbl13.CanSellSelectedFishOnly = function()
+		local selected = tbl4.SellFishSelected or {}
+		local anySelected = false
+		for _, fishName in ipairs(tbl) do
+			if selected[fishName] == true then anySelected = true break end
+		end
+		if not anySelected then return true end -- preserve legacy behavior when no fish are selected
+		local items = playerGui:FindFirstChild("Items")
+		local holder = items and items:FindFirstChild("ItemsHolder")
+		local scrolling = holder and holder:FindFirstChild("ItemsScrollingFrame")
+		if not scrolling then return false end
+		local selectedCount = 0
+		for _, child in ipairs(scrolling:GetChildren()) do
+			if child.Name ~= "Folder" and child.Name ~= "UIGridLayout" and child.Name ~= "ItemTemplate" then
+				local itemType = child:GetAttribute("ItemType")
+				if itemType and string.lower(tostring(itemType)) == "fish" then
+					local label = child:FindFirstChild("ItemName")
+					local fishName = label and label.Text or ""
+					if selected[fishName] ~= true then return false end
+					selectedCount += 1
+				end
+			end
+		end
+		return selectedCount > 0
+	end
 	tbl13.SellFishWithPath = function()
 		local v5 = tbl13:EnsureVehicle()
 		if v5 and humanoid and not humanoid.Sit then
@@ -3708,8 +4001,18 @@ do
 			tbl13:SellAllFish()
 		end, 0.3)
 		tbl13:SmoothVerticalMove(230.138, 0.3)
-		if tbl4.AutoFarmActive and not flag3 then
-			DepositAllMoney()
+		-- รอให้เงินจากการขายปลาเข้ากระเป๋าก่อนตรวจยอด
+		if tbl4.AutoFarmActive and not flag3 and tbl4.AutoDepositAfterSell then
+			task.wait(2)
+			if not tbl4.AutoFarmActive or flag3 then
+				fn4()
+				return false
+			end
+			local cashNow = tbl13:GetMoney() or 0
+			local threshold = tonumber(tbl4.AutoDepositThreshold) or 20000
+			if cashNow >= threshold then
+				DepositAllMoney()
+			end
 		end
 		fn4()
 		return true
@@ -5433,7 +5736,7 @@ do
 					state = 145
 				end
 			elseif state == 144 then
-				flag26 = n >= tbl4.SellAfterFishCount
+				flag26 = n >= tbl4.SellAfterFishCount and tbl13:CanSellSelectedFishOnly()
 				state = 145
 			elseif state == 145 then
 				if flag26 then
@@ -6616,7 +6919,7 @@ do
 					state = 374
 				end
 			elseif state == 373 then
-				value5 = n >= tbl4.SellAfterFishCount
+				value5 = n >= tbl4.SellAfterFishCount and tbl13:CanSellSelectedFishOnly()
 				state = 374
 			elseif state == 374 then
 				if value5 then
@@ -6793,7 +7096,7 @@ do
 				flag9 = false
 				return
 			elseif state == 414 then
-				ShowToast("NEE", "تم إيقاف الفارم")
+				ShowToast("LrapX Hub", "ปิดระบบฟาร์มแล้ว")
 				tbl4.AutoFarmActive = false
 				pcall(function()
 					tbl7.AutoFarmToggle:Set(false)
@@ -6801,7 +7104,7 @@ do
 				flag9 = false
 				return
 			elseif state == 415 then
-				ShowToast("NEE", "تم إيقاف الفارم")
+				ShowToast("LrapX Hub", "ปิดระบบฟาร์มแล้ว")
 				tbl4.AutoFarmActive = false
 				pcall(function()
 					tbl7.AutoFarmToggle:Set(false)
@@ -6812,7 +7115,7 @@ do
 				flag9 = false
 				return
 			elseif state == 417 then
-				ShowToast("NEE", "ما قدرت أجيب سيارة — تأكد من الفلوس")
+				ShowToast("LrapX Hub", "ซื้อรถไม่สำเร็จ — โปรดตรวจสอบเงิน")
 				tbl4.AutoFarmActive = false
 				pcall(function()
 					tbl7.AutoFarmToggle:Set(false)
@@ -6918,7 +7221,7 @@ do
 					tbl7.AutoFarmToggle:Set(false)
 				end
 			end)
-			ShowStickyMoney("NEE", "ماعندك فلوس كافيه لشراء سناره")
+			ShowStickyMoney("LrapX Hub", "เงินไม่พอซื้อคันเบ็ด")
 			return false
 		end
 		tbl13:SmartMoveTo(Vector3.new(-135.802, 251.81, 153.361))
