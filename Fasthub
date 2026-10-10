@@ -2001,18 +2001,9 @@ do
 		end
 	end)
 	local function fn24()
-		-- ใช้ข้อมูลเงินสดจริงจาก Data ก่อน เพราะข้อความ HUD อาจยังไม่อัปเดตหรือใช้รูปแบบย่อ
-		local ok, cash = pcall(function()
-			return Data and Data.money and tonumber(Data.money.hand)
-		end)
-		if ok and cash ~= nil then
-			return cash
-		end
 		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
-		if moneyTextLabel and moneyTextLabel.Text then
-			local text = moneyTextLabel.Text:gsub(",", "")
-			local amount = text:match("%$%s*([%d%.]+)") or text:match("([%d%.]+)")
-			return tonumber(amount) or 0
+		if moneyTextLabel then
+			return tonumber(moneyTextLabel.Text:gsub(",", ""):match("%$(%d+)")) or 0
 		end
 		return 0
 	end
