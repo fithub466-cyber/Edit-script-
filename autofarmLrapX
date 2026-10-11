@@ -2097,8 +2097,8 @@ do
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 		["Level 70 +"] = {
-			Pos = Vector3.new(-21.744, 241.054, 652.132),
-			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
+			Pos = Vector3.new(21.745, 242.354, 643.734),
+			CastPositions = { Vector3.new(253.602, 244.828, 751451) },
 		},
 	}
 	tbl10 = {
@@ -3906,7 +3906,7 @@ do
 				v5 = GetRodTool()
 			end
 			if v5 and Vector3.new(82.11319, 245.16185, 922.22076) then
-				Net.get("throw_rod", v5, Vector3.new(82.11319, 245.16185, 922.22076))
+				Net.get("throw_rod", v5, (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions[1]) or Vector3.new(82.11319, 245.16185, 922.22076))
 				lastThrowTick = tick()
 			end
 		end)
@@ -5483,7 +5483,7 @@ do
 						v23 = GetRodTool()
 					end
 					if v23 and Vector3.new(82.11319, 245.16185, 922.22076) then
-						Net.get("throw_rod", v23, Vector3.new(82.11319, 245.16185, 922.22076))
+						Net.get("throw_rod", v23, (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions[1]) or Vector3.new(82.11319, 245.16185, 922.22076))
 						lastThrowTick = tick()
 					end
 				end)
@@ -6374,72 +6374,50 @@ do
 				end
 			elseif state == 267 then
 				ownedVehicle5 = tbl13:GetOwnedVehicle()
-				if ownedVehicle5 then
-					state = 269
-				else
-					state = 268
-				end
+				state = 268
 			elseif state == 268 then
-				flag35 = ownedVehicle5
-				state = 270
+				if humanoid and humanoid.Sit then
+					tbl13:ExitVehicle()
+					task.wait(0.15)
+				end
+				state = 269
 			elseif state == 269 then
-				flag35 = humanoid
-				state = 270
-			elseif state == 270 then
-				if flag35 then
-					state = 271
-				else
-					state = 272
-				end
-			elseif state == 271 then
-				flag35 = not humanoid.Sit
-				state = 272
-			elseif state == 272 then
-				if flag35 then
-					state = 273
-				else
-					state = 274
-				end
-			elseif state == 273 then
-				tbl13:EnterVehicle(ownedVehicle5)
-				task.wait(0.05)
-				state = 274
-			elseif state == 274 then
-				ownedVehicle6 = tbl13:GetOwnedVehicle()
-				if ownedVehicle6 then
-					state = 275
-				else
-					state = 276
-				end
-			elseif state == 275 then
-				ownedVehicle6 = ownedVehicle6.PrimaryPart
-				state = 276
-			elseif state == 276 then
-				if ownedVehicle6 then
-					state = 278
-				else
-					state = 277
-				end
-			elseif state == 277 then
-				ownedVehicle6 = humanoidRootPart
-				state = 278
-			elseif state == 278 then
-				if ownedVehicle6 then
-					state = 279
-				else
-					state = 280
-				end
-			elseif state == 279 then
-				ownedVehicle6 = math.abs(ownedVehicle6.Position.Y - n7) > 2
-				state = 280
-			elseif state == 280 then
-				if ownedVehicle6 then
-					state = 281
-				else
-					state = 282
-				end
-			elseif state == 281 then
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				pcall(function()
+					local vehiclesFolder = workspace:FindFirstChild("Vehicles")
+					local roofCollider = nil
+					local vehicleRoot = ownedVehicle5 and (ownedVehicle5.PrimaryPart or ownedVehicle5:FindFirstChildWhichIsA("BasePart", true))
+					-- ใช้ Colliders ของรถที่ผู้เล่นกำลังขับอยู่ ไม่ผูกกับชื่อรถ Urus หรือรถรุ่นใดรุ่นหนึ่ง
+					local collidersFolder = ownedVehicle5 and ownedVehicle5:FindFirstChild("Colliders", true)
+					if not collidersFolder and vehiclesFolder and ownedVehicle5 then
+						local sameVehicle = vehiclesFolder:FindFirstChild(ownedVehicle5.Name)
+						collidersFolder = sameVehicle and sameVehicle:FindFirstChild("Colliders", true)
+					end
+					local colliderChildren = collidersFolder and collidersFolder:GetChildren()
+					-- ลองใช้ Collider ลำดับที่ 5 ก่อน ตามโครงสร้างรถที่ผู้ใช้ระบุ
+					local fifthCollider = colliderChildren and colliderChildren[5]
+					if fifthCollider and fifthCollider:IsA("BasePart") then
+						roofCollider = fifthCollider
+					end
+					-- ถ้ารถรุ่นอื่นไม่มีชิ้นที่ 5 หรือโครงสร้างต่างกัน ให้เลือกชิ้นส่วน Collider ที่ใกล้รถคันนั้นที่สุด
+					if not roofCollider and vehicleRoot and colliderChildren then
+						local nearestDistance = math.huge
+						for _, collider in ipairs(colliderChildren) do
+							if collider:IsA("BasePart") then
+								local distance = (collider.Position - vehicleRoot.Position).Magnitude
+								if distance < nearestDistance then
+									nearestDistance = distance
+									roofCollider = collider
+								end
+							end
+						end
+					end
+					if roofCollider and humanoidRootPart then
+						humanoidRootPart.CFrame = roofCollider.CFrame * CFrame.new(0, roofCollider.Size.Y / 2 + 3, 0)
+						humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+						humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+					end
+				end)
+				task.wait(0.15)
 				state = 282
 			elseif state == 282 then
 				if flag3 then
