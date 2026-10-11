@@ -2089,7 +2089,8 @@ do
 	local n13 = 870
 	vector2 = Vector3.new(82.11319, 245.16185, 922.22076)
 	local function fn27(arg)
-		return Vector3.new(arg.X, 230.138, arg.Z)
+		local zone = tbl9 and tbl9[tbl4.ZoneSelect]
+		return Vector3.new(arg.X, (zone and zone.Pos and zone.Pos.Y) or 230.138, arg.Z)
 	end
 	tbl9 = {
 		["Level 40 +"] = {
@@ -2097,7 +2098,7 @@ do
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 		["Level 70 +"] = {
-			Pos = Vector3.new(-21.744, 241.054, 652.132),
+			Pos = Vector3.new(21.745, 239.854, 643.734),
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 	}
@@ -3497,24 +3498,32 @@ do
 		end
 	end
 end
+-- Vehicle recovery: do not teleport the vehicle every 0.4s to a hard-coded Y.
+-- Repeated forced pivots can trigger the game's teleport detector and auto-respawn flow.
+local lastVehicleRecoveryAt = 0
 task.spawn(function()
-	while task.wait(0.4) do
-		if not (not tbl4.AutoFarmActive or not tbl4.UseVehicle) then
+	while task.wait(1.5) do
+		if tbl4.AutoFarmActive and tbl4.UseVehicle and not flag3 and tick() - lastVehicleRecoveryAt >= 8 then
 			pcall(function()
 				local vehicles = workspace:FindFirstChild("Vehicles")
-				if not vehicles then
-					return
-				end
-				for _, child in pairs(vehicles:GetChildren()) do
+				if not vehicles then return end
+				local targetZone = tbl9 and tbl9[tbl4.ZoneSelect]
+				local targetY = targetZone and targetZone.Pos and targetZone.Pos.Y
+				if not targetY then return end
+				for _, child in ipairs(vehicles:GetChildren()) do
 					if child:GetAttribute("OwnerUserId") == userId and child.PrimaryPart then
-						if child.PrimaryPart.Position.Y < n7 - 1 then
-							child:PivotTo(CFrame.new(child.PrimaryPart.Position.X, 230.138, child.PrimaryPart.Position.Z) * child:GetPivot().Rotation)
-							for _, descendant in pairs(child:GetDescendants()) do
+						-- Recover only if the vehicle has genuinely fallen far below the selected zone.
+						if child.PrimaryPart.Position.Y < targetY - 25 then
+							lastVehicleRecoveryAt = tick()
+							local pivot = child:GetPivot()
+							child:PivotTo(CFrame.new(pivot.Position.X, targetY + 2, pivot.Position.Z) * pivot.Rotation)
+							for _, descendant in ipairs(child:GetDescendants()) do
 								if descendant:IsA("BasePart") then
 									descendant.AssemblyLinearVelocity = Vector3.zero
 									descendant.AssemblyAngularVelocity = Vector3.zero
 								end
 							end
+							break
 						end
 					end
 				end
@@ -3906,7 +3915,7 @@ do
 				v5 = GetRodTool()
 			end
 			if v5 and Vector3.new(82.11319, 245.16185, 922.22076) then
-				Net.get("throw_rod", v5, Vector3.new(82.11319, 245.16185, 922.22076))
+				Net.get("throw_rod", v5, (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions[1]) or Vector3.new(82.11319, 245.16185, 922.22076))
 				lastThrowTick = tick()
 			end
 		end)
@@ -3991,7 +4000,7 @@ do
 		tbl13:QuickAction(function()
 			tbl13:SellAllFish()
 		end, 0.3)
-		tbl13:SmoothVerticalMove(230.138, 0.3)
+		tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 		-- รอให้เงินจากการขายปลาเข้ากระเป๋าก่อนตรวจยอด
 		if tbl4.AutoFarmActive and not flag3 and tbl4.AutoDepositAfterSell then
 			task.wait(2)
@@ -4135,7 +4144,7 @@ do
 				end
 				if tbl13:GetMoney() <= 0 then
 					if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
-						tbl13:SmoothVerticalMove(230.138, 0.3)
+						tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 					end
 					return true
 				end
@@ -4318,7 +4327,7 @@ do
 				tbl13:EnterVehicle(ownedVehicle)
 			end
 			if humanoid and humanoid.Sit then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 			end
 		end
 		local vehicleHealth2, v11, v12, v13, v14 = tbl13:GetVehicleHealth(v7 or vehicleNameFromInventory)
@@ -4327,109 +4336,81 @@ do
 		end
 		return false
 	end
+	-- ป้องกันการเรียกกู้รถซ้อนกันและเสกรถซ้ำจากการอ่านสถานะคลาดเคลื่อน
+	local forceRespawnBusy = false
+	local lastForceRespawnAt = 0
 	tbl13.ForceRespawnVehicle = function()
-		if humanoid and humanoid.Sit then
-			pcall(function()
-				Net.get("exit_seat")
-			end)
-			task.wait(0.12)
+		if not tbl4.AutoFarmActive then
+			return false
 		end
-		local ownedVehicle = tbl13:GetOwnedVehicle()
-		if ownedVehicle and ownedVehicle.PrimaryPart then
-			tbl13:EnterVehicle(ownedVehicle)
-			pcall(function()
-				Net.send("lock_vehicle", ownedVehicle, true)
-			end)
-			local n12 = 0
-			while humanoid and not humanoid.Sit and n12 < 6 and tbl4.AutoFarmActive do
-				tbl13:EnterVehicle(ownedVehicle)
-				task.wait(0.08)
-				n12 += 1
-			end
-			if humanoid and humanoid.Sit then
-				return true
-			end
+		-- ถ้าฟังก์ชันกู้รถกำลังทำงานอยู่ ห้ามเริ่มรอบใหม่
+		if forceRespawnBusy then
+			return false
 		end
-		local v5 = tbl13:RespawnAndMountVehicle()
-		if v5 and v5.PrimaryPart and humanoid and humanoid.Sit then
-			pcall(function()
-				Net.send("lock_vehicle", v5, true)
-			end)
-			return true
-		end
-		tbl4.Respawn = true
-		pcall(function()
-			if tbl7.RespawnToggle then
-				tbl7.RespawnToggle:Set(true)
-			end
-		end)
-		pcall(function()
-			Net.send("request_respawn")
-		end)
-		task.wait(0.4)
-		pcall(function()
-			Net.send("death_screen_request_respawn")
-		end)
-		task.wait(0.4)
-		local n12 = 0
-		while n12 < 25 do
-			task.wait(0.4)
-			local character2 = localPlayer.Character
-			if character2 and character2.Parent and character2:FindFirstChild("Humanoid") and character2:FindFirstChild("HumanoidRootPart") then
-				local humanoid2 = character2:FindFirstChildOfClass("Humanoid")
-				local flag8 = humanoid2 and humanoid2.Health > 0
-				if flag8 then
-					local dead = Enum.HumanoidStateType.Dead
-					flag8 = humanoid2:GetState() ~= dead
-				end
-				if flag8 then
-					break
-				else
-					n12 += 1
-				end
-			else
-				n12 += 1
-			end
-		end
-		task.wait(0.8)
-		character = localPlayer.Character
-		if character then
-			humanoid = character:FindFirstChildOfClass("Humanoid") or humanoid
-			humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or humanoidRootPart
-			backpack = localPlayer:FindFirstChild("Backpack") or backpack
-		end
-		for i = 1, 4 do
-			if not tbl4.AutoFarmActive then
+		-- จำกัดการเริ่มกู้รถ ไม่ให้ระบบหลายจุดเรียกติดกันจนรถเกิดซ้ำ
+		if tick() - lastForceRespawnAt < 8 then
+			local currentVehicle = tbl13:GetOwnedVehicle()
+			if currentVehicle and currentVehicle.PrimaryPart then
+				if humanoid and humanoid.Sit then return true end
+				pcall(function() tbl13:EnterVehicle(currentVehicle) end)
 				return false
 			end
-			local ownedVehicle2 = tbl13:GetOwnedVehicle()
-			if ownedVehicle2 and ownedVehicle2.PrimaryPart then
-				tbl13:EnterVehicle(ownedVehicle2)
-				pcall(function()
-					Net.send("lock_vehicle", ownedVehicle2, true)
-				end)
-				local n13 = 0
-				while humanoid and not humanoid.Sit and n13 < 8 and tbl4.AutoFarmActive do
-					tbl13:EnterVehicle(ownedVehicle2)
-					task.wait(0.08)
-					n13 += 1
+			return false
+		end
+		forceRespawnBusy = true
+		lastForceRespawnAt = tick()
+		local result = false
+		local ok = pcall(function()
+			character = localPlayer.Character
+			humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+			-- ใช้รถที่มีอยู่ก่อนเสมอ ห้ามออกจากรถแล้วสั่งเกิดใหม่โดยไม่จำเป็น
+			local ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and ownedVehicle.PrimaryPart then
+				if humanoid and humanoid.Sit then
+					pcall(function() Net.send("lock_vehicle", ownedVehicle, true) end)
+					result = true
+					return
+				end
+				pcall(function() tbl13:EnterVehicle(ownedVehicle) end)
+				local tries = 0
+				while humanoid and not humanoid.Sit and tries < 8 and tbl4.AutoFarmActive do
+					-- ตรวจว่ารถยังเป็นคันเดิมก่อนลองขึ้นอีกครั้ง
+					local checkVehicle = tbl13:GetOwnedVehicle()
+					if not (checkVehicle and checkVehicle.PrimaryPart) then break end
+					pcall(function() tbl13:EnterVehicle(checkVehicle) end)
+					task.wait(0.1)
+					tries += 1
 				end
 				if humanoid and humanoid.Sit then
-					return true
+					pcall(function() Net.send("lock_vehicle", ownedVehicle, true) end)
+					result = true
+					return
 				end
+				-- รถยังอยู่แต่ขึ้นไม่ได้: อย่าสั่ง respawn เพราะอาจทำให้เกิดรถซ้ำ
+				return
 			end
-			local v6 = tbl13:RespawnAndMountVehicle()
-			if v6 and v6.PrimaryPart and humanoid and humanoid.Sit then
-				local function fn30()
-					Net.send("lock_vehicle", v6, true)
-				end
-				pcall(fn30)
-				return true
+			-- ยืนยันอีกครั้งว่ารถหายจริงก่อนพยายามกู้คืน
+			task.wait(0.35)
+			ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and ownedVehicle.PrimaryPart then return end
+			local inventoryName = tbl13:GetVehicleNameFromInventory()
+			if not inventoryName then return end
+			local mounted = tbl13:RespawnAndMountVehicle()
+			if mounted and mounted.PrimaryPart then
+				result = true
+				return
 			end
-			task.wait(1.2)
+			-- ไม่ส่ง request_respawn/death_screen_request_respawn ซ้ำจากทุกลูป
+		end)
+		forceRespawnBusy = false
+		if not ok then
+			warn("[AutoFarm] Vehicle recovery failed safely")
+			return false
 		end
-		return false
+		return result
 	end
+
 	local tbl14 = {
 		"FishingRodUltimate",
 		"FishingRodAdvanced",
@@ -4838,7 +4819,7 @@ do
 								if ownedVehicle then
 									tbl13:EnterVehicle(ownedVehicle)
 									if humanoid and humanoid.Sit then
-										tbl13:SmoothVerticalMove(230.138, 0.35)
+										tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 									end
 								end
 							end
@@ -5041,7 +5022,8 @@ do
 				flag11 = value <= 0
 				state = 18
 			elseif state == 18 then
-				if flag11 then
+				-- อย่าเสกรถใหม่เมื่อระบบอ่านค่าเลือดรถไม่ได้ชั่วคราว; ทำเฉพาะเมื่อมีค่าเลือดจริงและรถพังเท่านั้น
+				if flag11 and type(value) == "number" and value <= 0 then
 					state = 19
 				else
 					state = 22
@@ -5394,7 +5376,7 @@ do
 					state = 87
 				end
 			elseif state == 86 then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 				state = 87
 			elseif state == 87 then
 				if tbl4.AutoBuyEnabled then
@@ -5483,7 +5465,7 @@ do
 						v23 = GetRodTool()
 					end
 					if v23 and Vector3.new(82.11319, 245.16185, 922.22076) then
-						Net.get("throw_rod", v23, Vector3.new(82.11319, 245.16185, 922.22076))
+						Net.get("throw_rod", v23, (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions[1]) or Vector3.new(82.11319, 245.16185, 922.22076))
 						lastThrowTick = tick()
 					end
 				end)
@@ -6331,7 +6313,7 @@ do
 					state = 259
 				end
 			elseif state == 258 then
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 259
 			elseif state == 259 then
 				task.wait(0.2)
@@ -6374,72 +6356,39 @@ do
 				end
 			elseif state == 267 then
 				ownedVehicle5 = tbl13:GetOwnedVehicle()
-				if ownedVehicle5 then
-					state = 269
-				else
-					state = 268
-				end
+				state = 268
 			elseif state == 268 then
-				flag35 = ownedVehicle5
-				state = 270
+				if humanoid and humanoid.Sit then
+					tbl13:ExitVehicle()
+					task.wait(0.15)
+				end
+				state = 269
 			elseif state == 269 then
-				flag35 = humanoid
-				state = 270
-			elseif state == 270 then
-				if flag35 then
-					state = 271
-				else
-					state = 272
-				end
-			elseif state == 271 then
-				flag35 = not humanoid.Sit
-				state = 272
-			elseif state == 272 then
-				if flag35 then
-					state = 273
-				else
-					state = 274
-				end
-			elseif state == 273 then
-				tbl13:EnterVehicle(ownedVehicle5)
-				task.wait(0.05)
-				state = 274
-			elseif state == 274 then
-				ownedVehicle6 = tbl13:GetOwnedVehicle()
-				if ownedVehicle6 then
-					state = 275
-				else
-					state = 276
-				end
-			elseif state == 275 then
-				ownedVehicle6 = ownedVehicle6.PrimaryPart
-				state = 276
-			elseif state == 276 then
-				if ownedVehicle6 then
-					state = 278
-				else
-					state = 277
-				end
-			elseif state == 277 then
-				ownedVehicle6 = humanoidRootPart
-				state = 278
-			elseif state == 278 then
-				if ownedVehicle6 then
-					state = 279
-				else
-					state = 280
-				end
-			elseif state == 279 then
-				ownedVehicle6 = math.abs(ownedVehicle6.Position.Y - n7) > 2
-				state = 280
-			elseif state == 280 then
-				if ownedVehicle6 then
-					state = 281
-				else
-					state = 282
-				end
-			elseif state == 281 then
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				-- TP ขึ้นหลังคาทุกครั้งที่ลงรถ ณ จุดฟาร์ม รวมถึงรอบกลับมาจากขายปลา
+				pcall(function()
+					character = localPlayer.Character
+					humanoid = character and character:FindFirstChildOfClass("Humanoid")
+					humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+					local vehicle = tbl13:GetOwnedVehicle()
+					-- ถ้าระบบรถยังคืนค่า nil ชั่วคราว ให้ใช้รถที่บันทึกไว้จากขั้นตอนก่อนหน้า
+					if not (vehicle and vehicle.Parent) and ownedVehicle5 and ownedVehicle5.Parent then
+						vehicle = ownedVehicle5
+					end
+					if vehicle and vehicle.Parent and humanoidRootPart then
+						local boxCFrame, boxSize = vehicle:GetBoundingBox()
+						local roofPosition = boxCFrame.Position + Vector3.new(0, boxSize.Y / 2 + 3, 0)
+						humanoidRootPart.Anchored = false
+						humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+						humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+						humanoidRootPart.CFrame = CFrame.new(roofPosition) * (boxCFrame - boxCFrame.Position)
+						task.wait(0.2)
+						-- ยืนยันอีกครั้งหลังตัวละคร/ฟิสิกส์อัปเดต เพื่อกันรอบถัดไปที่ TP ไม่ติด
+						if humanoidRootPart.Parent and (humanoidRootPart.Position - roofPosition).Magnitude > 5 then
+							humanoidRootPart.CFrame = CFrame.new(roofPosition) * (boxCFrame - boxCFrame.Position)
+						end
+					end
+				end)
+				task.wait(0.15)
 				state = 282
 			elseif state == 282 then
 				if flag3 then
@@ -6965,7 +6914,7 @@ do
 				end
 			elseif state == 384 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 398
 			elseif state == 385 then
 				now5 = tick()
@@ -7029,7 +6978,7 @@ do
 				end
 			elseif state == 397 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 398
 			elseif state == 398 then
 				state = 399
@@ -7244,7 +7193,7 @@ do
 		task.wait(0.15)
 		tbl12.lastUpdate = 0
 		fn20()
-		tbl13:SmoothVerticalMove(230.138, 0.3)
+		tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 		fn4()
 		return true
 	end
