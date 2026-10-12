@@ -1,0 +1,334 @@
+-- JSONBin Diagnostic Panel
+-- Modern dark UI / Delta iPad
+-- เก็บเฉพาะ metadata และรายชื่อ child ชั้นแรกของบริการที่กำหนด
+
+local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local BIN_ID = "6acd4dfcac6210605a2bc930"
+local API_KEY = "$2a$10$WD/CrFD4Q5/iZ4qunRck5eL/cVrqGER3MFM42vOEN3tPHk.Lmpk9O"
+
+local API_URL = "https://api.jsonbin.io/v3/b/" .. BIN_ID
+
+local function getRequestFunction()
+    if typeof(request) == "function" then
+        return request
+    elseif typeof(http_request) == "function" then
+        return http_request
+    elseif syn and typeof(syn.request) == "function" then
+        return syn.request
+    end
+    return nil
+end
+
+-- UI
+local gui = Instance.new("ScreenGui")
+gui.Name = "DiagnosticPanel"
+gui.ResetOnSpawn = false
+gui.DisplayOrder = 999
+
+local parent
+pcall(function()
+    if gethui then
+        parent = gethui()
+    end
+end)
+if not parent then
+    parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+gui.Parent = parent
+
+local main = Instance.new("Frame")
+main.Name = "Main"
+main.Size = UDim2.fromOffset(360, 300)
+main.Position = UDim2.new(0.5, -180, 0.5, -150)
+main.BackgroundColor3 = Color3.fromRGB(19, 22, 31)
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 14)
+mainCorner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(74, 90, 130)
+stroke.Transparency = 0.35
+stroke.Thickness = 1
+stroke.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -55, 0, 42)
+title.Position = UDim2.fromOffset(18, 8)
+title.BackgroundTransparency = 1
+title.Text = "DIAGNOSTIC PANEL"
+title.TextColor3 = Color3.fromRGB(235, 240, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 17
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = main
+
+local subtitle = Instance.new("TextLabel")
+subtitle.Size = UDim2.new(1, -36, 0, 24)
+subtitle.Position = UDim2.fromOffset(18, 47)
+subtitle.BackgroundTransparency = 1
+subtitle.Text = "Roblox Client  /  JSONBin"
+subtitle.TextColor3 = Color3.fromRGB(140, 153, 180)
+subtitle.Font = Enum.Font.Gotham
+subtitle.TextSize = 12
+subtitle.TextXAlignment = Enum.TextXAlignment.Left
+subtitle.Parent = main
+
+local statusDot = Instance.new("Frame")
+statusDot.Size = UDim2.fromOffset(8, 8)
+statusDot.Position = UDim2.fromOffset(20, 88)
+statusDot.BackgroundColor3 = Color3.fromRGB(240, 190, 80)
+statusDot.BorderSizePixel = 0
+statusDot.Parent = main
+
+local dotCorner = Instance.new("UICorner")
+dotCorner.CornerRadius = UDim.new(1, 0)
+dotCorner.Parent = statusDot
+
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -55, 0, 22)
+status.Position = UDim2.fromOffset(35, 81)
+status.BackgroundTransparency = 1
+status.Text = "พร้อมเริ่มต้น"
+status.TextColor3 = Color3.fromRGB(190, 200, 220)
+status.Font = Enum.Font.Gotham
+status.TextSize = 12
+status.TextXAlignment = Enum.TextXAlignment.Left
+status.Parent = main
+
+local info = Instance.new("TextLabel")
+info.Size = UDim2.new(1, -36, 0, 58)
+info.Position = UDim2.fromOffset(18, 112)
+info.BackgroundColor3 = Color3.fromRGB(27, 31, 43)
+info.BorderSizePixel = 0
+info.Text = "ข้อมูล: ยังไม่ได้เก็บ\nปลายทาง: JSONBin"
+info.TextColor3 = Color3.fromRGB(175, 187, 210)
+info.Font = Enum.Font.Gotham
+info.TextSize = 12
+info.TextXAlignment = Enum.TextXAlignment.Left
+info.Parent = main
+
+local infoCorner = Instance.new("UICorner")
+infoCorner.CornerRadius = UDim.new(0, 8)
+infoCorner.Parent = info
+
+local infoPadding = Instance.new("UIPadding")
+infoPadding.PaddingLeft = UDim.new(0, 12)
+infoPadding.Parent = info
+
+local start = Instance.new("TextButton")
+start.Size = UDim2.new(1, -36, 0, 42)
+start.Position = UDim2.fromOffset(18, 184)
+start.BackgroundColor3 = Color3.fromRGB(89, 105, 230)
+start.BorderSizePixel = 0
+start.Text = "เก็บข้อมูลและส่ง"
+start.TextColor3 = Color3.new(1, 1, 1)
+start.Font = Enum.Font.GothamBold
+start.TextSize = 14
+start.Parent = main
+
+local startCorner = Instance.new("UICorner")
+startCorner.CornerRadius = UDim.new(0, 9)
+startCorner.Parent = start
+
+local close = Instance.new("TextButton")
+close.Size = UDim2.fromOffset(30, 30)
+close.Position = UDim2.new(1, -40, 0, 12)
+close.BackgroundColor3 = Color3.fromRGB(45, 49, 64)
+close.BorderSizePixel = 0
+close.Text = "×"
+close.TextColor3 = Color3.new(1, 1, 1)
+close.Font = Enum.Font.GothamBold
+close.TextSize = 20
+close.Parent = main
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 8)
+closeCorner.Parent = close
+
+local function setStatus(message, color)
+    status.Text = message
+    statusDot.BackgroundColor3 = color
+end
+
+-- ข้อมูลวินิจฉัยพื้นฐานเท่านั้น
+local function buildDump()
+    local data = {
+        meta = {
+            gameId = game.GameId,
+            placeId = game.PlaceId,
+            placeVersion = game.PlaceVersion,
+            clientTime = os.time(),
+            isStudio = RunService:IsStudio(),
+            isClient = RunService:IsClient()
+        },
+        services = {}
+    }
+
+    local names = {
+        "Workspace",
+        "ReplicatedStorage",
+        "ReplicatedFirst",
+        "Lighting",
+        "SoundService",
+        "StarterGui",
+        "StarterPack",
+        "StarterPlayer",
+        "Teams"
+    }
+
+    for _, name in ipairs(names) do
+        local ok, result = pcall(function()
+            local service = game:GetService(name)
+            local children = {}
+
+            for _, child in ipairs(service:GetChildren()) do
+                table.insert(children, {
+                    name = child.Name,
+                    className = child.ClassName
+                })
+            end
+
+            return {
+                childCount = #children,
+                children = children
+            }
+        end)
+
+        data.services[name] = ok and result or {
+            error = "Unable to read service"
+        }
+    end
+
+    return data
+end
+
+local busy = false
+
+start.Activated:Connect(function()
+    if busy then return end
+    busy = true
+    start.Text = "กำลังดำเนินการ..."
+    start.BackgroundColor3 = Color3.fromRGB(70, 78, 140)
+    setStatus("กำลังสร้างข้อมูล", Color3.fromRGB(240, 190, 80))
+
+    local ok, result = pcall(buildDump)
+    if not ok then
+        setStatus("สร้างข้อมูลไม่สำเร็จ", Color3.fromRGB(240, 90, 90))
+        info.Text = "เกิดข้อผิดพลาด\n" .. tostring(result)
+        busy = false
+        start.Text = "ลองอีกครั้ง"
+        start.BackgroundColor3 = Color3.fromRGB(89, 105, 230)
+        return
+    end
+
+    local encodedOk, json = pcall(function()
+        return HttpService:JSONEncode(result)
+    end)
+
+    if not encodedOk then
+        setStatus("แปลง JSON ไม่สำเร็จ", Color3.fromRGB(240, 90, 90))
+        info.Text = "ไม่สามารถสร้าง JSON ได้"
+        busy = false
+        start.Text = "ลองอีกครั้ง"
+        start.BackgroundColor3 = Color3.fromRGB(89, 105, 230)
+        return
+    end
+
+    info.Text = "ข้อมูลพร้อมแล้ว\nขนาด: " .. #json .. " bytes"
+
+    if API_KEY == "$2a$10$WD/CrFD4Q5/iZ4qunRck5eL/cVrqGER3MFM42vOEN3tPHk.Lmpk9O" then
+        setStatus("ต้องตั้งค่า API Key", Color3.fromRGB(240, 190, 80))
+        info.Text = info.Text .. "\nยังไม่ได้ส่งข้อมูล"
+    else
+        local send = getRequestFunction()
+
+        if not send then
+            setStatus("ไม่พบ HTTP request", Color3.fromRGB(240, 90, 90))
+            info.Text = info.Text .. "\nExecutor ไม่รองรับ request ที่รู้จัก"
+        else
+            local requestOk, response = pcall(function()
+                return send({
+                    Url = API_URL,
+                    Method = "PUT",
+                    Headers = {
+                        ["Content-Type"] = "application/json",
+                        ["X-Master-Key"] = API_KEY
+                    },
+                    Body = json
+                })
+            end)
+
+            if requestOk then
+                local code = response.StatusCode or response.Status or 0
+                if code >= 200 and code < 300 then
+                    setStatus("ส่งข้อมูลสำเร็จ", Color3.fromRGB(70, 210, 145))
+                    info.Text = "สถานะ HTTP: " .. code .. "\nขนาด: " .. #json .. " bytes"
+                else
+                    setStatus("ส่งไม่สำเร็จ", Color3.fromRGB(240, 90, 90))
+                    info.Text = "สถานะ HTTP: " .. code .. "\nตรวจสอบ Bin และสิทธิ์ API"
+                end
+            else
+                setStatus("คำขอล้มเหลว", Color3.fromRGB(240, 90, 90))
+                info.Text = "ส่งคำขอไม่ได้\nตรวจสอบการรองรับ HTTP"
+            end
+        end
+    end
+
+    busy = false
+    start.Text = "เก็บข้อมูลและส่ง"
+    start.BackgroundColor3 = Color3.fromRGB(89, 105, 230)
+end)
+
+close.Activated:Connect(function()
+    gui:Destroy()
+end)
+
+-- ลากหน้าต่างด้วยเมาส์หรือสัมผัส
+local UserInputService = game:GetService("UserInputService")
+local dragging = false
+local dragStart
+local startPos
+local dragInput
+
+title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = main.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - dragStart
+        main.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+setStatus("พร้อมเริ่มต้น", Color3.fromRGB(70, 210, 145))
+print("[Diagnostic Panel] UI ready")
