@@ -1393,12 +1393,11 @@ do
 	local FishFarm = fn21("ฟาร์มปลา", "rbxassetid://10723407317", 1)
 	local Money = fn21("การเงิน / ฝากเงิน", "rbxassetid://10734901094", 2)
 	local Vehicle = fn21("ยานพาหนะ", "rbxassetid://10734903978", 3)
-	local v5 = fn21("ตัวกรองปลา", "rbxassetid://10734898355", 4)
-	local Statistics = fn21("สถิติ", "rbxassetid://10734896260", 5)
-	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 6)
-	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 7)
-	Dev = fn21("ข้อมูลสคริปต์", "rbxassetid://10734901807", 8)
-	v4 = fn21("ตั้งค่า UI", "rbxassetid://10734903978", 9)
+	local Statistics = fn21("สถิติ", "rbxassetid://10734896260", 4)
+	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 5)
+	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 6)
+	Dev = fn21("ข้อมูลสคริปต์", "rbxassetid://10734901807", 7)
+	v4 = fn21("ตั้งค่า UI", "rbxassetid://10734903978", 8)
 	fn20("ฟาร์มปลา")
 	task.defer(function()
 		pcall(fn10)
@@ -1544,15 +1543,17 @@ do
 	if tbl7.ZoneDropdown.Frame then
 		tbl7.ZoneDropdown.Frame.LayoutOrder = 301
 	end
+	-- ระบบเปลี่ยนเซิร์ฟเวอร์เมื่อไม่พบปลาถูกจัดไว้ในหมวดเซิร์ฟเวอร์
+	fn12(Server, "เปลี่ยนเซิร์ฟเวอร์เมื่อไม่มีปลา")
 	local Frame8 = fn6("Frame", {
 		Name = "HopWatchHolder",
 		Size = UDim2.new(1, 0, 0, 0),
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
-		LayoutOrder = 302,
+		LayoutOrder = 20,
 		Visible = false,
-		Parent = FishFarm,
+		Parent = Server,
 	})
 	fn6("UIListLayout", { Padding = UDim.new(0, 8), SortOrder = Enum.SortOrder.LayoutOrder, Parent = Frame8 })
 	lastWatchedCatchTime = lastWatchedCatchTime or tick()
@@ -1623,7 +1624,7 @@ do
 		v7.LayoutOrder = 400
 	end
 	if Frame8 then
-		Frame8.LayoutOrder = 302
+		Frame8.LayoutOrder = 20
 	end
 	if tbl4.ZoneSelect == "Level 70 +" then
 		CreateHopWatch()
@@ -1804,14 +1805,14 @@ do
 	n10 = 0
 	flag7 = false
 	tbl7.SkipFishToggles = {}
-	fn12(v5, "ข้ามปลาอัตโนมัติ")
-	tbl7.SkipBadFishToggle = fn15(v5, "เปิดใช้งานการข้ามปลา", false, function(arg)
+	fn12(FishFarm, "ข้ามปลาอัตโนมัติ")
+	tbl7.SkipBadFishToggle = fn15(FishFarm, "เปิดใช้งานการข้ามปลา", false, function(arg)
 		flag6 = arg
 	end)
-	tbl7.SkipDelaySlider = fn16(v5, "เวลาหน่วงก่อนข้าม", 0, 15, 0, function(arg)
+	tbl7.SkipDelaySlider = fn16(FishFarm, "เวลาหน่วงก่อนข้าม", 0, 15, 0, function(arg)
 		n10 = arg
 	end)
-	fn12(v5, "เลือกปลา")
+	fn12(FishFarm, "เลือกปลา")
 	-- Multi-select dropdown styled to match the vehicle selector
 	local FishSelectFrame = fn6("Frame", {
 		Name = "FishMultiSelect",
@@ -1820,7 +1821,7 @@ do
 		BackgroundTransparency = 0.18,
 		BorderSizePixel = 0,
 		ZIndex = 8,
-		Parent = v5,
+		Parent = FishFarm,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(0, 12), Parent = FishSelectFrame })
 	fn7(FishSelectFrame)
@@ -1898,7 +1899,7 @@ do
 		Coelacanth = true,
 		Tuna = true,
 	}
-	fn12(v5, "ควบคุมด่วน")
+	fn12(FishFarm, "ควบคุมด่วน")
 	fn14(v5, "🗑️ ข้ามปลาที่ไม่ต้องการ", function()
 		for _, v8 in ipairs(tbl) do
 			local flag9 = tbl11[v8] == true
