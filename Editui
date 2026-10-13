@@ -480,7 +480,7 @@ do
 		Size = UDim2.fromOffset(72, 72),
 		Position = UDim2.fromOffset(2, 4),
 		BackgroundColor3 = tbl6.Shadow,
-		BackgroundTransparency = 0.8,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ZIndex = 15,
 		Parent = Frame,
@@ -490,6 +490,7 @@ do
 		Name = "OpenBtn",
 		Size = UDim2.fromOffset(72, 72),
 		BackgroundColor3 = Color3.fromRGB(24, 24, 30),
+		BackgroundTransparency = 1,
 		AutoButtonColor = false,
 		Text = "",
 		ClipsDescendants = true,
@@ -497,13 +498,13 @@ do
 		Parent = Frame,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TextButton })
-	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 2, Parent = TextButton })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 2, Transparency = 1, Parent = TextButton })
 	ImageLabel = fn6("ImageLabel", {
 		Size = UDim2.fromScale(1, 1),
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://130451026897638",
+		Image = "rbxassetid://105484873700750",
 		ImageColor3 = Color3.fromRGB(255, 255, 255),
 		ImageTransparency = 0,
 		ScaleType = Enum.ScaleType.Fit,
@@ -512,10 +513,10 @@ do
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ImageLabel })
 	TextButton.MouseEnter:Connect(function()
-		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(36, 36, 44) })
+		fn8(TextButton, TweenInfo.new(0.15), { BackgroundTransparency = 1 })
 	end)
 	TextButton.MouseLeave:Connect(function()
-		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(24, 24, 30) })
+		fn8(TextButton, TweenInfo.new(0.15), { BackgroundTransparency = 1 })
 	end)
 	udim2 = UDim2.fromOffset(550, 550)
 	Frame3 = fn6("Frame", {
@@ -583,7 +584,7 @@ do
 		Size = UDim2.fromOffset(30, 30),
 		Position = UDim2.fromOffset(14, 8),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://130451026897638",
+		Image = "rbxassetid://105484873700750",
 		ImageTransparency = 0,
 		ScaleType = Enum.ScaleType.Fit,
 		ZIndex = 6,
