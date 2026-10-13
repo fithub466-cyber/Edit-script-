@@ -503,7 +503,7 @@ do
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://119572049696363",
+		Image = "rbxassetid://115653579666883",
 		ImageColor3 = Color3.fromRGB(255, 255, 255),
 		ScaleType = Enum.ScaleType.Crop,
 		ZIndex = 17,
@@ -578,10 +578,21 @@ do
 		Parent = Frame4,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame6 })
+	local HeaderLogo = fn6("ImageLabel", {
+		Name = "HeaderLogo",
+		Size = UDim2.fromOffset(30, 30),
+		Position = UDim2.fromOffset(14, 8),
+		BackgroundTransparency = 1,
+		Image = "rbxassetid://115653579666883",
+		ScaleType = Enum.ScaleType.Fit,
+		ZIndex = 6,
+		Parent = Frame6,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HeaderLogo })
 	fn6("TextLabel", {
 		Name = "HubTitle",
 		Size = UDim2.new(0, 130, 1, 0),
-		Position = UDim2.fromOffset(18, 0),
+		Position = UDim2.fromOffset(52, 0),
 		BackgroundTransparency = 1,
 		Text = "LRAPX HUB",
 		TextColor3 = Color3.fromRGB(245, 45, 58),
@@ -593,8 +604,8 @@ do
 	})
 	TextLabel = fn6("TextLabel", {
 		Name = "TimerLabel",
-		Size = UDim2.new(0, 190, 1, 0),
-		Position = UDim2.fromOffset(158, 0),
+		Size = UDim2.new(0, 160, 1, 0),
+		Position = UDim2.fromOffset(188, 0),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Code,
 		Text = "00:00:00",
@@ -620,28 +631,39 @@ do
 		Parent = Frame7,
 	})
 	local function fn12(arg, arg2)
+		-- ปุ่มวงกลม 3 สี: ย่อ=เหลือง, ขยาย=เขียว, ปิด=แดง
+		local buttonColor = Color3.fromRGB(245, 190, 45)
+		if arg == "▢" then
+			buttonColor = Color3.fromRGB(45, 190, 95)
+		elseif arg == "×" then
+			buttonColor = Color3.fromRGB(235, 55, 65)
+		end
 		local TextButton2 = fn6("TextButton", {
 			Size = UDim2.fromOffset(22, 22),
-			BackgroundTransparency = 1,
+			BackgroundColor3 = buttonColor,
+			BackgroundTransparency = 0,
+			BorderSizePixel = 0,
 			AutoButtonColor = false,
-			Font = Enum.Font.Gotham,
+			Font = Enum.Font.GothamBold,
 			Text = arg,
-			TextColor3 = Color3.fromRGB(140, 140, 148),
+			TextColor3 = Color3.fromRGB(35, 25, 25),
 			TextSize = arg2 or 16,
 			ZIndex = 6,
 			Parent = Frame7,
 		})
+		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TextButton2 })
+		fn6("UIStroke", { Color = buttonColor:Lerp(Color3.new(0, 0, 0), 0.2), Thickness = 1, Transparency = 0.15, Parent = TextButton2 })
 		TextButton2.MouseEnter:Connect(function()
-			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(30, 30, 35) })
+			fn8(TextButton2, TweenInfo.new(0.12), { BackgroundColor3 = buttonColor:Lerp(Color3.new(1, 1, 1), 0.12) })
 		end)
 		TextButton2.MouseLeave:Connect(function()
-			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(140, 140, 148) })
+			fn8(TextButton2, TweenInfo.new(0.12), { BackgroundColor3 = buttonColor })
 		end)
 		return TextButton2
 	end
-	v = fn12("−", 18)
-	local v3 = fn12("▢", 14)
-	v2 = fn12("×", 18)
+	local v3 = fn12("▢", 14) -- ซ้าย: เขียว
+	v = fn12("−", 18) -- กลาง: เหลือง
+	v2 = fn12("×", 18) -- ขวา: แดง
 	local flag6 = false
 	v3.MouseButton1Click:Connect(function()
 		flag6 = not flag6
@@ -1119,7 +1141,7 @@ do
 			Position = UDim2.fromOffset(14, 6),
 			BackgroundTransparency = 1,
 			Font = gothamMedium,
-			Text = arg2 .. ": " .. n11,
+			Text = (currentLanguage == "EN" and (translations[arg2] or arg2) or arg2) .. ": " .. n11,
 			TextColor3 = tbl6.Text,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextSize = 13,
@@ -1162,7 +1184,7 @@ do
 			local n12 = (n11 - arg3) / math.max(arg4 - arg3, 1)
 			Frame10.Size = UDim2.new(n12, 0, 1, 0)
 			Frame11.Position = UDim2.new(n12, -8, 0.5, 0)
-			TextLabel2.Text = arg2 .. ": " .. n11
+			TextLabel2.Text = (currentLanguage == "EN" and (translations[arg2] or arg2) or arg2) .. ": " .. n11
 		end
 		local function fn24(arg7)
 			fn23(arg3 + (arg4 - arg3) * math.clamp((arg7.Position.X - Frame9.AbsolutePosition.X) / math.max(Frame9.AbsoluteSize.X, 1), 0, 1))
@@ -1198,7 +1220,9 @@ do
 			Frame = Frame8,
 		}
 	end
+	local currentLanguage = "TH"
 	local function ThaiDisplayName(value)
+		if currentLanguage == "EN" then return tostring(value) end
 		local names = {
 			["Smart Select"] = "เลือกอัตโนมัติ",
 			["FishingRodUltimate"] = "คันเบ็ดขั้นสูงสุด",
@@ -1774,6 +1798,156 @@ do
 			end
 		end)
 	end)
+
+	-- PIGHUB UI layer for Alayna fishing automation
+	pcall(function()
+		if ScreenGui then ScreenGui.Enabled = false end
+	end)
+	local PighubWindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
+	PighubWindUI:AddTheme({
+		Name = "MacOS Dark",
+		Accent = Color3.fromHex("#18181b"),
+		Background = Color3.fromHex("#101010"),
+		BackgroundTransparency = 0.05,
+		Outline = Color3.fromHex("#2a2a2e"),
+		Text = Color3.fromHex("#ffffff"),
+		Placeholder = Color3.fromHex("#7a7a7a"),
+		Button = Color3.fromHex("#2c2c30"),
+		Icon = Color3.fromHex("#a1a1aa"),
+		Hover = Color3.fromHex("#ffffff"),
+		WindowBackground = Color3.fromHex("#101010"),
+		WindowShadow = Color3.fromHex("#000000"),
+		WindowTopbarTitle = Color3.fromHex("#ffffff"),
+		WindowTopbarAuthor = Color3.fromHex("#a1a1a1"),
+		WindowTopbarIcon = Color3.fromHex("#ffffff"),
+		WindowTopbarButtonIcon = Color3.fromHex("#a1a1a1"),
+		TabBackground = Color3.fromHex("#18181b"),
+		TabTitle = Color3.fromHex("#ffffff"),
+		TabIcon = Color3.fromHex("#a1a1a1"),
+		ElementBackground = Color3.fromHex("#1c1c1f"),
+		ElementTitle = Color3.fromHex("#ffffff"),
+		ElementDesc = Color3.fromHex("#a1a1a1"),
+		ElementIcon = Color3.fromHex("#a1a1a1"),
+		PopupBackground = Color3.fromHex("#101010"),
+		PopupBackgroundTransparency = 0,
+		PopupTitle = Color3.fromHex("#ffffff"),
+		PopupContent = Color3.fromHex("#a1a1a1"),
+		PopupIcon = Color3.fromHex("#a1a1a1"),
+		Toggle = Color3.fromHex("#2c2c30"),
+		ToggleBar = Color3.fromHex("#ffffff"),
+		Checkbox = Color3.fromHex("#2c2c30"),
+		CheckboxIcon = Color3.fromHex("#ffffff"),
+		Slider = Color3.fromHex("#2c2c30"),
+		SliderThumb = Color3.fromHex("#ffffff"),
+	})
+	PighubWindUI:SetTheme("MacOS Dark")
+	local PighubWindow = PighubWindUI:CreateWindow({
+		Title = "Alayna | PigHub UI",
+		Icon = "fish",
+		Author = "Fishing Hub",
+		Folder = "AlaynaFish",
+		Size = UDim2.fromOffset(580, 460),
+		MinSize = Vector2.new(560, 350),
+		MaxSize = Vector2.new(850, 560),
+		ToggleKey = Enum.KeyCode.K,
+		Transparent = true,
+		Theme = "MacOS Dark",
+		Resizable = true,
+		SideBarWidth = 200,
+		BackgroundImageTransparency = 1,
+		HideSearchBar = true,
+		ScrollBarEnabled = false,
+	})
+	PighubWindow:EditOpenButton({
+		Title = "Alayna Fish Hub",
+		Icon = "rbxassetid://133989391698158",
+		CornerRadius = UDim.new(0, 14),
+		StrokeThickness = 3,
+		Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromHex("#2C2C2E")),
+			ColorSequenceKeypoint.new(1, Color3.fromHex("#45454a"))
+		}),
+		OnlyMobile = false,
+		Enabled = true,
+		Draggable = true,
+	})
+	local FarmTab = PighubWindow:Tab({ Title = "Fish Farm", Icon = "fish" })
+	local SettingsTab = PighubWindow:Tab({ Title = "Settings", Icon = "settings" })
+	local StatsTab = PighubWindow:Tab({ Title = "Stats", Icon = "chart-no-axes-combined" })
+	FarmTab:Toggle({
+		Title = "เปิดฟาร์มปลาอัตโนมัติ",
+		Desc = "เริ่ม/หยุดระบบฟาร์มจากสคริปต์ Alayna",
+		Value = false,
+		Callback = function(value)
+			if tbl7.AutoFarmToggle then tbl7.AutoFarmToggle:Set(value) end
+		end,
+	})
+	FarmTab:Toggle({
+		Title = "เกิดใหม่อัตโนมัติ",
+		Value = false,
+		Callback = function(value)
+			if tbl7.RespawnToggle then tbl7.RespawnToggle:Set(value) end
+		end,
+	})
+	FarmTab:Toggle({
+		Title = "ข้ามปลาอัตโนมัติ",
+		Value = false,
+		Callback = function(value)
+			if tbl7.SkipBadFishToggle then tbl7.SkipBadFishToggle:Set(value) end
+		end,
+	})
+	FarmTab:Toggle({
+		Title = "ฝากเงินหลังขายปลา",
+		Value = false,
+		Callback = function(value)
+			if tbl7.AutoDepositAfterSellToggle then tbl7.AutoDepositAfterSellToggle:Set(value) end
+		end,
+	})
+	SettingsTab:Button({
+		Title = "เปิด UI เดิมของ Alayna",
+		Desc = "ใช้เมื่อต้องการเข้าถึงตัวเลือกที่ยังไม่ได้ย้ายมา",
+		Callback = function()
+			pcall(function() if ScreenGui then ScreenGui.Enabled = true end end)
+		end,
+	})
+	SettingsTab:Button({
+		Title = "บันทึกการตั้งค่า",
+		Callback = function()
+			pcall(SaveConfig)
+			PighubWindUI:Notify({Title = "Alayna", Content = "บันทึกการตั้งค่าแล้ว", Duration = 2})
+		end,
+	})
+	local runtimeStart = tick()
+	local moneyAtStart = 0
+	local function readMoney()
+		local plr = game:GetService("Players").LocalPlayer
+		local total = 0
+		local ls = plr and plr:FindFirstChild("leaderstats")
+		if ls then
+			for _, name in ipairs({"Cash", "Money", "Coins", "Bank", "Banked"}) do
+				local v = ls:FindFirstChild(name)
+				if v and (v:IsA("IntValue") or v:IsA("NumberValue")) then total += v.Value end
+			end
+		end
+		return total
+	end
+	moneyAtStart = readMoney()
+	local statsParagraph = StatsTab:Paragraph({
+		Title = "สถิติการทำงาน",
+		Desc = "เวลาใช้งาน: 00:00:00\nเงินที่เพิ่มขึ้น: 0",
+	})
+	task.spawn(function()
+		while task.wait(1) do
+			local elapsed = math.max(0, math.floor(tick() - runtimeStart))
+			local hh = math.floor(elapsed / 3600)
+			local mm = math.floor((elapsed % 3600) / 60)
+			local ss = elapsed % 60
+			local gained = readMoney() - moneyAtStart
+			pcall(function()
+				statsParagraph:SetDesc(string.format("เวลาใช้งาน: %02d:%02d:%02d\nเงินที่เปลี่ยนแปลงสุทธิ: %s", hh, mm, ss, tostring(gained)))
+			end)
+		end
+	end)
 	tbl8 = {}
 	for _, v8 in ipairs(tbl) do
 		tbl8[v8] = false
@@ -1999,7 +2173,6 @@ do
 		end
 	end)
 	fn12(v4, "ตั้งค่าภาษา / LANGUAGE")
-	local currentLanguage = "TH"
 	local translations = {
 		["ปรับ UI"] = "UI Settings", ["ระบบฟาร์มปลา"] = "Fish Farm", ["ข้ามปลา"] = "Skip Fish",
 		["สถิติ"] = "Statistics", ["ป้องกันเตะ"] = "Anti-Kick", ["เซิร์ฟเวอร์"] = "Server",
@@ -2012,6 +2185,30 @@ do
 		["ซ่อมยานพาหนะอัตโนมัติ"] = "Auto Repair Vehicle", ["พื้นที่ตกปลา"] = "Fishing Area",
 		["ระดับ"] = "Level", ["เลือกภาษา"] = "Language", ["บันทึกการตั้งค่า"] = "Save Settings",
 		["ลบการตั้งค่า"] = "Delete Settings", ["เปลี่ยนเซิร์ฟเวอร์ตอนนี้"] = "Switch Server Now",
+		["ประเภทคันเบ็ด"] = "Rod Type", ["ประเภทเหยื่อ"] = "Bait Type", ["จำนวนเหยื่อ"] = "Bait Amount",
+		["เลือกชนิดปลาได้หลายรายการ  ▼"] = "Select multiple fish types  ▼",
+		["เลือกชนิดปลา"] = "Select Fish", ["เลือกปลา ▾"] = "Select Fish ▾",
+		["เลือกชนิดปลา (ยังไม่ได้เลือก)  ▼"] = "Select Fish (none selected)  ▼",
+		["เลือกแล้ว "] = "Selected ", ["ชนิด  ▼"] = " types  ▼",
+		["🏦 ยอดเงินในธนาคาร"] = "🏦 Bank Balance", ["💸 เงินสดในมือ"] = "💸 Cash on Hand",
+		["📈 เงินที่หาได้ตั้งแต่รันสคริปต์"] = "📈 Money Earned This Session",
+		["ตั้งค่าอุปกรณ์"] = "Equipment Settings", ["ตั้งค่ายานพาหนะ"] = "Vehicle Settings",
+		["ซ่อมรถอัตโนมัติ"] = "Auto Repair Vehicle", ["ขายปลาอัตโนมัติ"] = "Auto Sell Fish",
+		["ฝากเงินอัตโนมัติ"] = "Auto Deposit", ["จำนวนปลาก่อนขาย"] = "Fish Count Before Selling",
+		["ข้ามมินิเกม"] = "Skip Minigame", ["ตกปลาอัตโนมัติ"] = "Auto Fishing",
+		["เลือกปลาที่จะข้าม"] = "Select Fish to Skip", ["รายการปลาที่ข้าม"] = "Skipped Fish List",
+		["ระดับ 40 ขึ้นไป"] = "Level 40+", ["เลเวล 40 ขึ้นไป"] = "Level 40+", ["เลเวล 70 ขึ้นไป"] = "Level 70+",
+		["ประเภทคันเบ็ด:"] = "Rod Type:", ["ขนาดเมนู %:"] = "Menu Size %:",
+		["ขนาดปุ่มเปิดเมนู %:"] = "Open Button Size %:", ["พื้นที่ตกปลา"] = "Fishing Area",
+		["เลือกอัตโนมัติ"] = "Smart Select", ["คันเบ็ดขั้นสูงสุด"] = "Ultimate Fishing Rod",
+		["คันเบ็ดขั้นสูง"] = "Advanced Fishing Rod", ["คันเบ็ดมืออาชีพ"] = "Pro Fishing Rod",
+		["คันเบ็ดทั่วไป"] = "Regular Fishing Rod", ["เหยื่อกุ้งขั้นสูงสุด"] = "Ultimate Prawn Bait",
+		["เหยื่อกุ้งมืออาชีพ"] = "Pro Prawn Bait", ["เหยื่อกุ้งทั่วไป"] = "Regular Prawn Bait",
+		["เหยื่อหนอนขั้นสูงสุด"] = "Ultimate Worm Bait", ["เหยื่อหนอนมืออาชีพ"] = "Pro Worm Bait",
+		["เหยื่อหนอนทั่วไป"] = "Regular Worm Bait", ["มอเตอร์ไซค์"] = "Bike", ["รถยนต์"] = "Car",
+		["สถานะ: กำลังทำงาน"] = "Status: Running", ["สถานะ: หยุดทำงาน"] = "Status: Stopped",
+		["เปิด"] = "ON", ["ปิด"] = "OFF", ["เริ่ม"] = "Start", ["หยุด"] = "Stop",
+
 		["เข้าเซิร์ฟเวอร์เดิมอีกครั้ง"] = "Rejoin Current Server", ["การตั้งค่า"] = "Settings",
 		["คัดลอกลิงก์ดิสคอร์ด"] = "Copy Discord Link", ["ดิสคอร์ด"] = "Discord",
 		["ประเภทยานพาหนะ"] = "Vehicle Type", ["เลือกรถ"] = "Select Car", ["ความเร็วยานพาหนะ"] = "Vehicle Speed",
@@ -2021,15 +2218,28 @@ do
 	}
 	local reverseTranslations = {}
 	for thai, english in pairs(translations) do reverseTranslations[english] = thai end
+	local function L(text)
+		text = tostring(text or "")
+		if currentLanguage == "EN" then return translations[text] or text end
+		return reverseTranslations[text] or text
+	end
 	local function ApplyLanguage(lang)
 		currentLanguage = lang
 		for _, obj in ipairs(ScreenGui:GetDescendants()) do
 			if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
 				local txt = obj.Text
 				if lang == "EN" then
-					if translations[txt] then obj.Text = translations[txt] end
+					if translations[txt] then obj.Text = translations[txt]
+					elseif txt:find("เลือกแล้ว ", 1, true) then obj.Text = txt:gsub("เลือกแล้ว ", "Selected "):gsub(" ชนิด", " types")
+					elseif txt:find("เงินในธนาคาร:", 1, true) then obj.Text = txt:gsub("เงินในธนาคาร:", "Bank Balance:")
+					elseif txt:find("เงินสด:", 1, true) then obj.Text = txt:gsub("เงินสด:", "Cash:")
+					end
 				else
-					if reverseTranslations[txt] then obj.Text = reverseTranslations[txt] end
+					if reverseTranslations[txt] then obj.Text = reverseTranslations[txt]
+					elseif txt:find("Selected ", 1, true) then obj.Text = txt:gsub("Selected ", "เลือกแล้ว "):gsub(" types", " ชนิด")
+					elseif txt:find("Bank Balance:", 1, true) then obj.Text = txt:gsub("Bank Balance:", "เงินในธนาคาร:")
+					elseif txt:find("Cash:", 1, true) then obj.Text = txt:gsub("Cash:", "เงินสด:")
+					end
 				end
 			end
 		end
