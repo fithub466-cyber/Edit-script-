@@ -1900,7 +1900,7 @@ do
 		Tuna = true,
 	}
 	fn12(FishFarm, "ควบคุมด่วน")
-	fn14(v5, "🗑️ ข้ามปลาที่ไม่ต้องการ", function()
+	fn14(FishFarm, "🗑️ ข้ามปลาที่ไม่ต้องการ", function()
 		for _, v8 in ipairs(tbl) do
 			local flag9 = tbl11[v8] == true
 			tbl8[v8] = flag9
@@ -1909,7 +1909,7 @@ do
 			end
 		end
 	end)
-	fn14(v5, "❌ ยกเลิกการเลือกทั้งหมด", function()
+	fn14(FishFarm, "❌ ยกเลิกการเลือกทั้งหมด", function()
 		for _, v8 in ipairs(tbl) do
 			tbl8[v8] = false
 			if tbl7.SkipFishToggles[v8] then
