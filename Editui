@@ -518,7 +518,7 @@ do
 	TextButton.MouseLeave:Connect(function()
 		fn8(TextButton, TweenInfo.new(0.15), { BackgroundTransparency = 1 })
 	end)
-	udim2 = UDim2.fromOffset(700, 600)
+	udim2 = UDim2.fromOffset(760, 500)
 	Frame3 = fn6("Frame", {
 		Name = "ShadowHolder",
 		Size = udim2,
@@ -683,7 +683,7 @@ do
 	local flag6 = false
 	v3.MouseButton1Click:Connect(function()
 		flag6 = not flag6
-		local udim22 = flag6 and UDim2.fromOffset(760, 650) or UDim2.fromOffset(700, 600)
+		local udim22 = flag6 and UDim2.fromOffset(800, 520) or UDim2.fromOffset(760, 500)
 		udim2 = udim22
 		if menuOpen then
 			fn8(Frame4, TweenInfo.new(0.2), { Size = udim22 })
@@ -1390,22 +1390,24 @@ do
 			Frame = Frame8,
 		}
 	end
-	local FishFarm = fn21("ระบบฟาร์มปลา", "rbxassetid://10723407317", 1)
-	local v5 = fn21("ข้ามปลา", "rbxassetid://10734898355", 2)
-	local Statistics = fn21("สถิติ", "rbxassetid://10734896260", 3)
-	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 4)
-	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 5)
-	Dev = fn21("ผู้พัฒนา", "rbxassetid://10734901807", 6)
-	v4 = fn21("ปรับ UI", "rbxassetid://10734903978", 7)
-	fn20("ระบบฟาร์มปลา")
+	local FishFarm = fn21("ฟาร์มปลา", "rbxassetid://10723407317", 1)
+	local Money = fn21("การเงิน / ฝากเงิน", "rbxassetid://10734901094", 2)
+	local Vehicle = fn21("ยานพาหนะ", "rbxassetid://10734903978", 3)
+	local v5 = fn21("ตัวกรองปลา", "rbxassetid://10734898355", 4)
+	local Statistics = fn21("สถิติ", "rbxassetid://10734896260", 5)
+	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 6)
+	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 7)
+	Dev = fn21("ข้อมูลสคริปต์", "rbxassetid://10734901807", 8)
+	v4 = fn21("ตั้งค่า UI", "rbxassetid://10734903978", 9)
+	fn20("ฟาร์มปลา")
 	task.defer(function()
 		pcall(fn10)
 	end)
-	label = fn13(FishFarm, "🏦 ยอดเงินในธนาคาร", "$0").Label
-	label2 = fn13(FishFarm, "💸 เงินสดในมือ", "$0").Label
+	label = fn13(Money, "🏦 ยอดเงินในธนาคาร", "$0").Label
+	label2 = fn13(Money, "💸 เงินสดในมือ", "$0").Label
 	-- ย้ายตัวจับเวลาออกจากแถบด้านบน มาไว้ใต้ฟังก์ชันเงินสดและใช้รูปแบบการ์ดเดียวกัน
-	TextLabel = fn13(FishFarm, "⏱ เวลาใช้งาน", "00:00:00").Label
-	local profitLabel = fn13(FishFarm, "📈 เงินที่หาได้ตั้งแต่รันสคริปต์", "$0").Label
+	TextLabel = fn13(Money, "⏱ เวลาใช้งาน", "00:00:00").Label
+	local profitLabel = fn13(Money, "📈 เงินที่หาได้ตั้งแต่รันสคริปต์", "$0").Label
 	fn12(FishFarm, "ตั้งค่าอุปกรณ์")
 	tbl7 = {}
 	tbl4.AutoBuyEnabled = true
@@ -1434,7 +1436,7 @@ do
 	tbl7.BaitAmountSlider = fn16(FishFarm, "จำนวนเหยื่อสูงสุด", 1, 100, tbl4.BaitAmount or 10, function(baitAmount)
 		tbl4.BaitAmount = baitAmount
 	end)
-	fn12(FishFarm, "ตั้งค่ายานพาหนะ")
+	fn12(Vehicle, "ตั้งค่ายานพาหนะ")
 	tbl4.UseVehicle = true
 	tbl7.UseVehicleToggle = {
 		Set = function()
@@ -1488,7 +1490,7 @@ do
 		if not table.find(Car, vehicleSelect2) then
 			vehicleSelect2 = "Smart Select"
 		end
-		tbl7.VehicleSelectDropdown = fn23(FishFarm, "เลือกรถ", Car, vehicleSelect2, function(vehicleSelect3)
+		tbl7.VehicleSelectDropdown = fn23(Vehicle, "เลือกรถ", Car, vehicleSelect2, function(vehicleSelect3)
 			tbl4.VehicleSelect = vehicleSelect3
 			vehicleSelect = vehicleSelect3
 			n9 = tick()
@@ -1503,7 +1505,7 @@ do
 			end
 		end)
 	end
-	tbl7.VehicleTypeDropdown = fn23(FishFarm, "ประเภทยานพาหนะ", { "Bike", "Car" }, tbl4.VehicleType or "Bike", function(vehicleType)
+	tbl7.VehicleTypeDropdown = fn23(Vehicle, "ประเภทยานพาหนะ", { "Bike", "Car" }, tbl4.VehicleType or "Bike", function(vehicleType)
 		tbl4.VehicleType = vehicleType
 		if vehicleType == "Bike" then
 			tbl4.VehicleSelect = "Smart Select"
@@ -1518,10 +1520,10 @@ do
 	if tbl4.VehicleType == "Car" then
 		fn19()
 	end
-	tbl7.VehicleSpeedSlider = fn16(FishFarm, "ความเร็วยานพาหนะ", 20, 120, tbl4.VehicleSpeed or 55, function(vehicleSpeed)
+	tbl7.VehicleSpeedSlider = fn16(Vehicle, "ความเร็วยานพาหนะ", 20, 120, tbl4.VehicleSpeed or 55, function(vehicleSpeed)
 		tbl4.VehicleSpeed = vehicleSpeed
 	end)
-	tbl7.AutoRepairToggle = fn15(FishFarm, "ซ่อมยานพาหนะอัตโนมัติ", false, function(autoRepairVehicle)
+	tbl7.AutoRepairToggle = fn15(Vehicle, "ซ่อมยานพาหนะอัตโนมัติ", false, function(autoRepairVehicle)
 		tbl4.AutoRepairVehicle = autoRepairVehicle
 	end)
 	local v6 = fn12(FishFarm, "พื้นที่ตกปลา")
@@ -1734,15 +1736,15 @@ do
 		end
 	end)
 	UpdateSellFishSelectText()
-	tbl7.AutoDepositAfterSellToggle = fn15(FishFarm, "ฝากเงินอัตโนมัติหลังขายปลา", tbl4.AutoDepositAfterSell == true, function(enabled)
+	tbl7.AutoDepositAfterSellToggle = fn15(Money, "ฝากเงินอัตโนมัติหลังขายปลา", tbl4.AutoDepositAfterSell == true, function(enabled)
 		tbl4.AutoDepositAfterSell = enabled and true or false
 		pcall(SaveConfig)
 	end)
-	tbl7.AutoDepositThresholdSlider = fn16(FishFarm, "ฝากเมื่อเงินสดถึงจำนวน ($)", 1000, 1000000, tbl4.AutoDepositThreshold or 20000, function(amount)
+	tbl7.AutoDepositThresholdSlider = fn16(Money, "ฝากเมื่อเงินสดถึงจำนวน ($)", 1000, 1000000, tbl4.AutoDepositThreshold or 20000, function(amount)
 		tbl4.AutoDepositThreshold = math.floor(tonumber(amount) or 20000)
 		pcall(SaveConfig)
 	end)
-	fn13(FishFarm, "หมายเหตุการขาย", "เลือกปลาได้หลายชนิดจากเมนู Select ระบบจะสั่งขายเมื่อปลาในกระเป๋าเป็นชนิดที่เลือกทั้งหมด เพื่อป้องกันการขายปลาที่ไม่ได้เลือก")
+	fn13(Money, "หมายเหตุการฝาก/ขาย", "เลือกปลาได้หลายชนิดจากเมนู Select ระบบจะสั่งขายเมื่อปลาในกระเป๋าเป็นชนิดที่เลือกทั้งหมด เพื่อป้องกันการขายปลาที่ไม่ได้เลือก")
 
 	tbl7.AutoFarmToggle = fn15(FishFarm, "เปิดฟาร์มอัตโนมัติ", false, function(autoFarmActive)
 		tbl4.AutoFarmActive = autoFarmActive
@@ -1793,29 +1795,7 @@ do
 	tbl7.RespawnToggle = fn15(FishFarm, "เกิดใหม่อัตโนมัติ", false, function(respawn)
 		tbl4.Respawn = respawn
 	end)
-	local layoutOrder = 220
-	task.defer(function()
-		pcall(function()
-			local frame = tbl7.VehicleTypeDropdown and tbl7.VehicleTypeDropdown.Frame
-			local flag9 = false
-			local layoutOrder2 = 10
-			for _, child in ipairs(FishFarm:GetChildren()) do
-				if child:IsA("GuiObject") and child.Name ~= "HopWatchHolder" then
-					if child == frame then
-						child.LayoutOrder = layoutOrder
-						flag9 = true
-						layoutOrder2 = 230
-					elseif flag9 then
-						child.LayoutOrder = layoutOrder2
-						layoutOrder2 += 10
-					else
-						child.LayoutOrder = layoutOrder2
-						layoutOrder2 += 10
-					end
-				end
-			end
-		end)
-	end)
+
 	tbl8 = {}
 	for _, v8 in ipairs(tbl) do
 		tbl8[v8] = false
@@ -2043,6 +2023,7 @@ do
 	fn12(v4, "ตั้งค่าภาษา / LANGUAGE")
 	local translations = {
 		["ปรับ UI"] = "UI Settings", ["ระบบฟาร์มปลา"] = "Fish Farm", ["ข้ามปลา"] = "Skip Fish",
+		["การเงิน / ฝากเงิน"] = "Finance / Deposit", ["ยานพาหนะ"] = "Vehicle",
 		["สถิติ"] = "Statistics", ["ป้องกันเตะ"] = "Anti-Kick", ["เซิร์ฟเวอร์"] = "Server",
 		["ผู้พัฒนา"] = "Developer", ["ตั้งค่าภาษา / LANGUAGE"] = "LANGUAGE SETTINGS",
 		["ภาษาไทย"] = "Thai", ["ภาษาอังกฤษ"] = "English", ["เลือกภาษาไทย"] = "Switch language to Thai",
