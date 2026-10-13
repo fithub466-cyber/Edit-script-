@@ -589,19 +589,39 @@ do
 		Parent = Frame6,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HeaderLogo })
-	fn6("TextLabel", {
+	local HubTitle = fn6("TextLabel", {
 		Name = "HubTitle",
 		Size = UDim2.new(0, 130, 1, 0),
 		Position = UDim2.fromOffset(52, 0),
 		BackgroundTransparency = 1,
-		Text = "LRAPX HUB",
+		Text = "LrapX Hub",
+		RichText = true,
 		TextColor3 = Color3.fromRGB(245, 45, 58),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextSize = 20,
 		Font = Enum.Font.GothamBold,
+		TextStrokeTransparency = 0.8,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
+	-- PigHub-style animated rainbow lettering; keeps the original Alayna UI layout.
+	task.spawn(function()
+		local brand = "LrapX Hub"
+		while HubTitle and HubTitle.Parent do
+			local parts = {}
+			local phase = tick() * 0.22
+			for i = 1, #brand do
+				local ch = brand:sub(i, i)
+				local hue = (phase + (i / #brand)) % 1
+				local color = Color3.fromHSV(hue, 0.82, 1)
+				local hex = string.format("#%02X%02X%02X", math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255))
+				local safeChar = ch == "&" and "&amp;" or ch == "<" and "&lt;" or ch == ">" and "&gt;" or ch
+				table.insert(parts, '<font color="' .. hex .. '">' .. safeChar .. '</font>')
+			end
+			HubTitle.Text = table.concat(parts)
+			task.wait(0.12)
+		end
+	end)
 	TextLabel = fn6("TextLabel", {
 		Name = "TimerLabel",
 		Size = UDim2.new(0, 160, 1, 0),
@@ -1797,156 +1817,6 @@ do
 				end
 			end
 		end)
-	end)
-
-	-- PIGHUB UI layer for Alayna fishing automation
-	pcall(function()
-		if ScreenGui then ScreenGui.Enabled = false end
-	end)
-	local PighubWindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-	PighubWindUI:AddTheme({
-		Name = "MacOS Dark",
-		Accent = Color3.fromHex("#18181b"),
-		Background = Color3.fromHex("#101010"),
-		BackgroundTransparency = 0.05,
-		Outline = Color3.fromHex("#2a2a2e"),
-		Text = Color3.fromHex("#ffffff"),
-		Placeholder = Color3.fromHex("#7a7a7a"),
-		Button = Color3.fromHex("#2c2c30"),
-		Icon = Color3.fromHex("#a1a1aa"),
-		Hover = Color3.fromHex("#ffffff"),
-		WindowBackground = Color3.fromHex("#101010"),
-		WindowShadow = Color3.fromHex("#000000"),
-		WindowTopbarTitle = Color3.fromHex("#ffffff"),
-		WindowTopbarAuthor = Color3.fromHex("#a1a1a1"),
-		WindowTopbarIcon = Color3.fromHex("#ffffff"),
-		WindowTopbarButtonIcon = Color3.fromHex("#a1a1a1"),
-		TabBackground = Color3.fromHex("#18181b"),
-		TabTitle = Color3.fromHex("#ffffff"),
-		TabIcon = Color3.fromHex("#a1a1a1"),
-		ElementBackground = Color3.fromHex("#1c1c1f"),
-		ElementTitle = Color3.fromHex("#ffffff"),
-		ElementDesc = Color3.fromHex("#a1a1a1"),
-		ElementIcon = Color3.fromHex("#a1a1a1"),
-		PopupBackground = Color3.fromHex("#101010"),
-		PopupBackgroundTransparency = 0,
-		PopupTitle = Color3.fromHex("#ffffff"),
-		PopupContent = Color3.fromHex("#a1a1a1"),
-		PopupIcon = Color3.fromHex("#a1a1a1"),
-		Toggle = Color3.fromHex("#2c2c30"),
-		ToggleBar = Color3.fromHex("#ffffff"),
-		Checkbox = Color3.fromHex("#2c2c30"),
-		CheckboxIcon = Color3.fromHex("#ffffff"),
-		Slider = Color3.fromHex("#2c2c30"),
-		SliderThumb = Color3.fromHex("#ffffff"),
-	})
-	PighubWindUI:SetTheme("MacOS Dark")
-	local PighubWindow = PighubWindUI:CreateWindow({
-		Title = "Alayna | PigHub UI",
-		Icon = "fish",
-		Author = "Fishing Hub",
-		Folder = "AlaynaFish",
-		Size = UDim2.fromOffset(580, 460),
-		MinSize = Vector2.new(560, 350),
-		MaxSize = Vector2.new(850, 560),
-		ToggleKey = Enum.KeyCode.K,
-		Transparent = true,
-		Theme = "MacOS Dark",
-		Resizable = true,
-		SideBarWidth = 200,
-		BackgroundImageTransparency = 1,
-		HideSearchBar = true,
-		ScrollBarEnabled = false,
-	})
-	PighubWindow:EditOpenButton({
-		Title = "Alayna Fish Hub",
-		Icon = "rbxassetid://133989391698158",
-		CornerRadius = UDim.new(0, 14),
-		StrokeThickness = 3,
-		Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromHex("#2C2C2E")),
-			ColorSequenceKeypoint.new(1, Color3.fromHex("#45454a"))
-		}),
-		OnlyMobile = false,
-		Enabled = true,
-		Draggable = true,
-	})
-	local FarmTab = PighubWindow:Tab({ Title = "Fish Farm", Icon = "fish" })
-	local SettingsTab = PighubWindow:Tab({ Title = "Settings", Icon = "settings" })
-	local StatsTab = PighubWindow:Tab({ Title = "Stats", Icon = "chart-no-axes-combined" })
-	FarmTab:Toggle({
-		Title = "เปิดฟาร์มปลาอัตโนมัติ",
-		Desc = "เริ่ม/หยุดระบบฟาร์มจากสคริปต์ Alayna",
-		Value = false,
-		Callback = function(value)
-			if tbl7.AutoFarmToggle then tbl7.AutoFarmToggle:Set(value) end
-		end,
-	})
-	FarmTab:Toggle({
-		Title = "เกิดใหม่อัตโนมัติ",
-		Value = false,
-		Callback = function(value)
-			if tbl7.RespawnToggle then tbl7.RespawnToggle:Set(value) end
-		end,
-	})
-	FarmTab:Toggle({
-		Title = "ข้ามปลาอัตโนมัติ",
-		Value = false,
-		Callback = function(value)
-			if tbl7.SkipBadFishToggle then tbl7.SkipBadFishToggle:Set(value) end
-		end,
-	})
-	FarmTab:Toggle({
-		Title = "ฝากเงินหลังขายปลา",
-		Value = false,
-		Callback = function(value)
-			if tbl7.AutoDepositAfterSellToggle then tbl7.AutoDepositAfterSellToggle:Set(value) end
-		end,
-	})
-	SettingsTab:Button({
-		Title = "เปิด UI เดิมของ Alayna",
-		Desc = "ใช้เมื่อต้องการเข้าถึงตัวเลือกที่ยังไม่ได้ย้ายมา",
-		Callback = function()
-			pcall(function() if ScreenGui then ScreenGui.Enabled = true end end)
-		end,
-	})
-	SettingsTab:Button({
-		Title = "บันทึกการตั้งค่า",
-		Callback = function()
-			pcall(SaveConfig)
-			PighubWindUI:Notify({Title = "Alayna", Content = "บันทึกการตั้งค่าแล้ว", Duration = 2})
-		end,
-	})
-	local runtimeStart = tick()
-	local moneyAtStart = 0
-	local function readMoney()
-		local plr = game:GetService("Players").LocalPlayer
-		local total = 0
-		local ls = plr and plr:FindFirstChild("leaderstats")
-		if ls then
-			for _, name in ipairs({"Cash", "Money", "Coins", "Bank", "Banked"}) do
-				local v = ls:FindFirstChild(name)
-				if v and (v:IsA("IntValue") or v:IsA("NumberValue")) then total += v.Value end
-			end
-		end
-		return total
-	end
-	moneyAtStart = readMoney()
-	local statsParagraph = StatsTab:Paragraph({
-		Title = "สถิติการทำงาน",
-		Desc = "เวลาใช้งาน: 00:00:00\nเงินที่เพิ่มขึ้น: 0",
-	})
-	task.spawn(function()
-		while task.wait(1) do
-			local elapsed = math.max(0, math.floor(tick() - runtimeStart))
-			local hh = math.floor(elapsed / 3600)
-			local mm = math.floor((elapsed % 3600) / 60)
-			local ss = elapsed % 60
-			local gained = readMoney() - moneyAtStart
-			pcall(function()
-				statsParagraph:SetDesc(string.format("เวลาใช้งาน: %02d:%02d:%02d\nเงินที่เปลี่ยนแปลงสุทธิ: %s", hh, mm, ss, tostring(gained)))
-			end)
-		end
 	end)
 	tbl8 = {}
 	for _, v8 in ipairs(tbl) do
