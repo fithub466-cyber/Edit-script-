@@ -402,14 +402,14 @@ do
 	end
 	local image = "rbxassetid://89443683946153"
 	tbl6 = {
-		Background = Color3.fromRGB(12, 12, 16),
-		Panel = Color3.fromRGB(20, 20, 26),
-		PanelLight = Color3.fromRGB(30, 30, 38),
-		AccentDim = Color3.fromRGB(72, 16, 22),
-		Text = Color3.fromRGB(255, 255, 255),
-		SubText = Color3.fromRGB(210, 210, 220),
-		Stroke = Color3.fromRGB(55, 60, 72),
-		Blue = Color3.fromRGB(245, 45, 58),
+		Background = Color3.fromRGB(16, 17, 22),
+		Panel = Color3.fromRGB(24, 26, 33),
+		PanelLight = Color3.fromRGB(34, 37, 46),
+		AccentDim = Color3.fromRGB(32, 70, 118),
+		Text = Color3.fromRGB(245, 247, 255),
+		SubText = Color3.fromRGB(164, 171, 186),
+		Stroke = Color3.fromRGB(52, 58, 72),
+		Blue = Color3.fromRGB(70, 135, 255),
 		Shadow = Color3.fromRGB(0, 0, 0),
 	}
 	gothamMedium = Enum.Font.GothamMedium
@@ -518,7 +518,7 @@ do
 	TextButton.MouseLeave:Connect(function()
 		fn8(TextButton, TweenInfo.new(0.15), { BackgroundTransparency = 1 })
 	end)
-	udim2 = UDim2.fromOffset(550, 550)
+	udim2 = UDim2.fromOffset(700, 600)
 	Frame3 = fn6("Frame", {
 		Name = "ShadowHolder",
 		Size = udim2,
@@ -537,7 +537,7 @@ do
 		Size = udim2,
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		BackgroundColor3 = Color3.fromRGB(12, 12, 16),
+		BackgroundColor3 = Color3.fromRGB(16, 17, 22),
 		BorderSizePixel = 0,
 		Visible = false,
 		ClipsDescendants = true,
@@ -547,6 +547,13 @@ do
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame4 })
 	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Parent = Frame4 })
+	local mainGradient = Instance.new("UIGradient")
+	mainGradient.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 22, 29)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(14, 15, 20))
+	})
+	mainGradient.Rotation = 90
+	mainGradient.Parent = Frame4
 	local ImageLabel2 = fn6("ImageLabel", {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundTransparency = 1,
@@ -560,7 +567,7 @@ do
 end
 local Frame5 = fn6("Frame", {
 	Size = UDim2.fromScale(1, 1),
-	BackgroundColor3 = Color3.fromRGB(12, 12, 16),
+	BackgroundColor3 = Color3.fromRGB(16, 17, 22),
 	BackgroundTransparency = 0,
 	BorderSizePixel = 0,
 	ZIndex = 3,
@@ -572,7 +579,7 @@ do
 	local Frame6 = fn6("Frame", {
 		Name = "TopBar",
 		Size = UDim2.new(1, 0, 0, 46),
-		BackgroundColor3 = Color3.fromRGB(18, 8, 10),
+		BackgroundColor3 = Color3.fromRGB(22, 25, 33),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		ZIndex = 5,
@@ -598,7 +605,7 @@ do
 		BackgroundTransparency = 1,
 		Text = "LrapX Hub",
 		RichText = true,
-		TextColor3 = Color3.fromRGB(245, 45, 58),
+		TextColor3 = Color3.fromRGB(90, 155, 255),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextSize = 20,
 		Font = Enum.Font.GothamBold,
@@ -676,7 +683,7 @@ do
 	local flag6 = false
 	v3.MouseButton1Click:Connect(function()
 		flag6 = not flag6
-		local udim22 = flag6 and UDim2.fromOffset(720, 620) or UDim2.fromOffset(550, 550)
+		local udim22 = flag6 and UDim2.fromOffset(760, 650) or UDim2.fromOffset(700, 600)
 		udim2 = udim22
 		if menuOpen then
 			fn8(Frame4, TweenInfo.new(0.2), { Size = udim22 })
@@ -1102,7 +1109,7 @@ do
 		local TextButton2 = fn6("TextButton", {
 			Size = UDim2.fromOffset(42, 22),
 			Position = UDim2.new(1, -54, 0.5, -11),
-			BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(205, 205, 210),
+			BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(65, 71, 84),
 			Text = "",
 			BorderSizePixel = 0,
 			Parent = Frame8,
@@ -1118,7 +1125,7 @@ do
 		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = Frame9 })
 		TextButton2.MouseButton1Click:Connect(function()
 			flag8 = not flag8
-			fn8(TextButton2, TweenInfo.new(0.2), { BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(205, 205, 210) })
+			fn8(TextButton2, TweenInfo.new(0.2), { BackgroundColor3 = flag8 and tbl6.Blue or Color3.fromRGB(65, 71, 84) })
 			fn8(Frame9, TweenInfo.new(0.2), { Position = flag8 and UDim2.new(1, -20, 0.5, -9) or UDim2.new(0, 2, 0.5, -9) })
 			if arg4 then
 				arg4(flag8)
@@ -1160,7 +1167,7 @@ do
 			Name = "SliderTrack",
 			Size = UDim2.new(1, -28, 0, 6),
 			Position = UDim2.fromOffset(14, 36),
-			BackgroundColor3 = Color3.fromRGB(215, 215, 220),
+			BackgroundColor3 = Color3.fromRGB(54, 60, 74),
 			BorderSizePixel = 0,
 			Active = true,
 			Parent = Frame8,
