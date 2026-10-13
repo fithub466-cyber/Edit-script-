@@ -624,19 +624,6 @@ do
 			task.wait(0.12)
 		end
 	end)
-	TextLabel = fn6("TextLabel", {
-		Name = "TimerLabel",
-		Size = UDim2.new(0, 160, 1, 0),
-		Position = UDim2.fromOffset(188, 0),
-		BackgroundTransparency = 1,
-		Font = Enum.Font.Code,
-		Text = "00:00:00",
-		TextColor3 = Color3.fromRGB(245, 45, 58),
-		TextXAlignment = Enum.TextXAlignment.Center,
-		TextSize = 16,
-		ZIndex = 6,
-		Parent = Frame6,
-	})
 	local Frame7 = fn6("Frame", {
 		Size = UDim2.fromOffset(92, 28),
 		Position = UDim2.new(1, -104, 0.5, 0),
@@ -1409,6 +1396,8 @@ do
 	end)
 	label = fn13(FishFarm, "🏦 ยอดเงินในธนาคาร", "$0").Label
 	label2 = fn13(FishFarm, "💸 เงินสดในมือ", "$0").Label
+	-- ย้ายตัวจับเวลาออกจากแถบด้านบน มาไว้ใต้ฟังก์ชันเงินสดและใช้รูปแบบการ์ดเดียวกัน
+	TextLabel = fn13(FishFarm, "⏱ เวลาใช้งาน", "00:00:00").Label
 	local profitLabel = fn13(FishFarm, "📈 เงินที่หาได้ตั้งแต่รันสคริปต์", "$0").Label
 	fn12(FishFarm, "ตั้งค่าอุปกรณ์")
 	tbl7 = {}
