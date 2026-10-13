@@ -323,7 +323,7 @@ do
 			textLabel.BackgroundTransparency = 1
 			textLabel.Size = UDim2.new(1, -18, 0, 22)
 			textLabel.Position = UDim2.fromOffset(12, 8)
-			textLabel.Font = Enum.Font.GothamMedium
+			textLabel.Font = Enum.Font.Arcade
 			textLabel.TextSize = 14
 			textLabel.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
@@ -333,7 +333,7 @@ do
 			textLabel2.BackgroundTransparency = 1
 			textLabel2.Size = UDim2.new(1, -18, 0, 24)
 			textLabel2.Position = UDim2.fromOffset(12, 30)
-			textLabel2.Font = Enum.Font.Gotham
+			textLabel2.Font = Enum.Font.Arcade
 			textLabel2.TextSize = 13
 			textLabel2.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel2.TextColor3 = Color3.fromRGB(180, 50, 50)
@@ -374,7 +374,7 @@ do
 			textLabel.BackgroundTransparency = 1
 			textLabel.Size = UDim2.new(1, -18, 0, 22)
 			textLabel.Position = UDim2.fromOffset(12, 8)
-			textLabel.Font = Enum.Font.GothamMedium
+			textLabel.Font = Enum.Font.Arcade
 			textLabel.TextSize = 14
 			textLabel.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel.TextColor3 = Color3.fromRGB(30, 30, 35)
@@ -384,7 +384,7 @@ do
 			textLabel2.BackgroundTransparency = 1
 			textLabel2.Size = UDim2.new(1, -18, 0, 20)
 			textLabel2.Position = UDim2.fromOffset(12, 30)
-			textLabel2.Font = Enum.Font.Gotham
+			textLabel2.Font = Enum.Font.Arcade
 			textLabel2.TextSize = 12
 			textLabel2.TextXAlignment = Enum.TextXAlignment.Left
 			textLabel2.TextColor3 = Color3.fromRGB(110, 110, 120)
@@ -412,8 +412,8 @@ do
 		Blue = Color3.fromRGB(55, 155, 255),
 		Shadow = Color3.fromRGB(0, 0, 0),
 	}
-	gothamMedium = Enum.Font.GothamMedium
-	gotham = Enum.Font.Gotham
+	gothamMedium = Enum.Font.Arcade
+	gotham = Enum.Font.Arcade
 	fn6 = function(arg, arg2)
 		local instance = Instance.new(arg)
 		for k, v in pairs(arg2) do
@@ -580,27 +580,29 @@ do
 	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame6 })
 	fn6("TextLabel", {
 		Name = "HubTitle",
-		Size = UDim2.new(0, 130, 1, 0),
-		Position = UDim2.fromOffset(18, 0),
+		Size = UDim2.new(0, 190, 1, 0),
+		Position = UDim2.fromOffset(158, 0),
 		BackgroundTransparency = 1,
-		Text = "LRAPX HUB",
+		Font = Enum.Font.Arcade,
+		Text = "LrapX Hub",
 		TextColor3 = Color3.fromRGB(55, 155, 255),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextSize = 20,
-		Font = Enum.Font.GothamBold,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextSize = 22,
+		Font = Enum.Font.Arcade,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
 	TextLabel = fn6("TextLabel", {
 		Name = "TimerLabel",
-		Size = UDim2.new(0, 190, 1, 0),
-		Position = UDim2.fromOffset(158, 0),
+		Size = UDim2.new(0, 130, 1, 0),
+		Position = UDim2.fromOffset(18, 0),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.Code,
+		Font = Enum.Font.Arcade,
 		Text = "00:00:00",
 		TextColor3 = Color3.fromRGB(55, 155, 255),
-		TextXAlignment = Enum.TextXAlignment.Center,
+		TextXAlignment = Enum.TextXAlignment.Left,
 		TextSize = 16,
+		Font = Enum.Font.Arcade,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
@@ -624,7 +626,7 @@ do
 			Size = UDim2.fromOffset(22, 22),
 			BackgroundTransparency = 1,
 			AutoButtonColor = false,
-			Font = Enum.Font.Gotham,
+			Font = Enum.Font.Arcade,
 			Text = arg,
 			TextColor3 = Color3.fromRGB(140, 140, 148),
 			TextSize = arg2 or 16,
@@ -899,6 +901,99 @@ do
 		end)
 		return ScrollingFrame2
 	end
+
+	-- LrapX Hub language settings (English / Thai)
+	local currentLanguage = "English"
+	local languageFont = Enum.Font.Arcade
+	local normalFont = Enum.Font.Gotham
+	local languageTextRegistry = {}
+	local function RegisterLanguageText(guiObject, englishText, thaiText)
+		if guiObject and guiObject:IsA("TextLabel") or guiObject and guiObject:IsA("TextButton") then
+			languageTextRegistry[guiObject] = { English = englishText, Thai = thaiText }
+			guiObject.Text = currentLanguage == "Thai" and thaiText or englishText
+			guiObject.Font = currentLanguage == "Thai" and normalFont or languageFont
+		end
+	end
+	local SettingsPage = fn21("Settings", "rbxassetid://6031280882", 99)
+	fn12 = fn12 or function() end
+	local settingsHeader = fn6("TextLabel", {
+		Name = "SettingsHeader", Size = UDim2.new(1, 0, 0, 30),
+		BackgroundTransparency = 1, Font = languageFont, Text = "UI Settings",
+		TextColor3 = tbl6.Text, TextSize = 20, TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = SettingsPage,
+	})
+	local languageDescription = fn6("TextLabel", {
+		Name = "LanguageDescription", Size = UDim2.new(1, 0, 0, 26),
+		BackgroundTransparency = 1, Font = languageFont, Text = "Language / ภาษา",
+		TextColor3 = tbl6.SubText, TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left,
+		Parent = SettingsPage,
+	})
+	local languageButton = fn6("TextButton", {
+		Name = "LanguageSelector", Size = UDim2.new(1, 0, 0, 40),
+		BackgroundColor3 = tbl6.PanelLight, BorderSizePixel = 0,
+		Font = languageFont, Text = "Language: English  ▼", TextColor3 = tbl6.Text,
+		TextSize = 15, AutoButtonColor = true, Parent = SettingsPage,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = languageButton })
+	fn6("UIStroke", { Color = tbl6.Stroke, Thickness = 1, Parent = languageButton })
+	local languageOptions = fn6("Frame", {
+		Name = "LanguageOptions", Size = UDim2.new(1, 0, 0, 82),
+		BackgroundColor3 = tbl6.Panel, BorderSizePixel = 0, Visible = false,
+		Parent = SettingsPage,
+	})
+	fn6("UICorner", { CornerRadius = UDim.new(0, 8), Parent = languageOptions })
+	fn6("UIListLayout", { Padding = UDim.new(0, 4), SortOrder = Enum.SortOrder.LayoutOrder, Parent = languageOptions })
+	local englishButton = fn6("TextButton", {
+		Name = "EnglishOption", Size = UDim2.new(1, -8, 0, 36),
+		BackgroundColor3 = tbl6.PanelLight, BorderSizePixel = 0,
+		Font = languageFont, Text = "English (Minecraft font)", TextColor3 = tbl6.Text,
+		TextSize = 14, LayoutOrder = 1, Parent = languageOptions,
+	})
+	local thaiButton = fn6("TextButton", {
+		Name = "ThaiOption", Size = UDim2.new(1, -8, 0, 36),
+		BackgroundColor3 = tbl6.PanelLight, BorderSizePixel = 0,
+		Font = normalFont, Text = "ภาษาไทย (ฟอนต์ปกติ)", TextColor3 = tbl6.Text,
+		TextSize = 14, LayoutOrder = 2, Parent = languageOptions,
+	})
+	for _, button in ipairs({englishButton, thaiButton}) do
+		fn6("UICorner", { CornerRadius = UDim.new(0, 6), Parent = button })
+	end
+	languageOptions.Size = UDim2.new(1, 0, 0, 82)
+	local function SetLanguage(language)
+		currentLanguage = language
+		local selectedFont = language == "Thai" and normalFont or languageFont
+		languageButton.Font = selectedFont
+		englishButton.Font = languageFont
+		thaiButton.Font = normalFont
+		settingsHeader.Font = selectedFont
+		languageDescription.Font = selectedFont
+		languageButton.Text = language == "Thai" and "ภาษา: ไทย  ▼" or "Language: English  ▼"
+		settingsHeader.Text = language == "Thai" and "ตั้งค่า UI" or "UI Settings"
+		languageDescription.Text = language == "Thai" and "ภาษา / Language" or "Language / ภาษา"
+		englishButton.Text = language == "Thai" and "English (ฟอนต์ Minecraft)" or "English (Minecraft font)"
+		thaiButton.Text = language == "Thai" and "ภาษาไทย (ฟอนต์ปกติ)" or "Thai (Normal font)"
+		-- Apply the selected font to all existing UI text. Thai uses Gotham for readable Thai glyphs.
+		for _, descendant in ipairs(ScreenGui:GetDescendants()) do
+			if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+				descendant.Font = selectedFont
+			end
+		end
+		-- Keep the language selector's option fonts distinct.
+		englishButton.Font = languageFont
+		thaiButton.Font = normalFont
+	end
+	languageButton.Activated:Connect(function()
+		languageOptions.Visible = not languageOptions.Visible
+	end)
+	englishButton.Activated:Connect(function()
+		SetLanguage("English")
+		languageOptions.Visible = false
+	end)
+	thaiButton.Activated:Connect(function()
+		SetLanguage("Thai")
+		languageOptions.Visible = false
+	end)
+
 	fn12 = function(arg, arg2)
 		return fn6("TextLabel", {
 			Size = UDim2.new(1, 0, 0, 20),
@@ -2092,14 +2187,11 @@ do
 	tbl9 = {
 		["Level 40 +"] = {
 			Pos = Vector3.new(-308.574, 230.938, 552.806),
-			-- คงพิกัดโยนเบ็ด Level 40+ เดิมไว้
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 		["Level 70 +"] = {
-			-- ลดตำแหน่งตกปลาแนวตั้งลง 0.5 หน่วย โดยคงแกน X/Z เดิม
-			Pos = Vector3.new(21.745, 241.854, 643.734),
-			-- พิกัดโยนเบ็ดใหม่สำหรับ Level 70+ เท่านั้น
-			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
+			Pos = Vector3.new(21.745, 242.354, 643.734),
+			CastPositions = { Vector3.new(253.602, 244.828, 751451) },
 		},
 	}
 	tbl10 = {
@@ -3933,73 +4025,6 @@ do
 			end
 		end
 	end)
-	-- ตรวจจับกรณีสายเบ็ดค้าง หรือถึงจุดตกปลาแล้วไม่จับปลาเป็นเวลานาน
-	-- หากอยู่ใกล้จุดตกปลาและไม่มีปลาที่จับได้เพิ่ม 90 วินาที จะรีตัวละครแล้วกลับไปจุดตกปลาใหม่
-	local stuckRecoveryBusy = false
-	local stuckRecoveryFishCount = tbl3.totalFish or 0
-	local stuckRecoveryLastFishTime = tick()
-	task.spawn(function()
-		while task.wait(5) do
-			local currentFishCount = tbl3.totalFish or 0
-			if currentFishCount ~= stuckRecoveryFishCount then
-				stuckRecoveryFishCount = currentFishCount
-				stuckRecoveryLastFishTime = tick()
-			end
-			if not tbl4.AutoFarmActive or flag3 or isSliderOpen() or stuckRecoveryBusy then
-				stuckRecoveryLastFishTime = tick()
-				continue
-			end
-			local fishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-			local currentCharacter = localPlayer.Character
-			local currentRoot = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
-			if not fishingZone or not fishingZone.Pos or not currentRoot then
-				continue
-			end
-			-- ไม่รีตัวระหว่างเดินทางไปขายปลา/ซื้อของ หรืออยู่ห่างจากจุดตกปลา
-			if (currentRoot.Position - fishingZone.Pos).Magnitude <= 120 and tick() - stuckRecoveryLastFishTime >= 90 then
-				stuckRecoveryBusy = true
-				stuckRecoveryLastFishTime = tick()
-				local oldCharacter = currentCharacter
-				ForceNextCast = false
-				flag7 = false
-				pcall(function()
-					local currentHumanoid = oldCharacter:FindFirstChildOfClass("Humanoid")
-					if currentHumanoid then
-						currentHumanoid.Health = 0
-					else
-						Net.send("request_respawn")
-						Net.send("death_screen_request_respawn")
-					end
-				end)
-				local waited = 0
-				while tbl4.AutoFarmActive and not flag3 and waited < 25 do
-					task.wait(0.25)
-					waited = waited + 0.25
-					local newCharacter = localPlayer.Character
-					if newCharacter and newCharacter ~= oldCharacter and newCharacter:FindFirstChild("HumanoidRootPart") and newCharacter:FindFirstChildOfClass("Humanoid") then
-						character = newCharacter
-						humanoid = newCharacter:FindFirstChildOfClass("Humanoid")
-						humanoidRootPart = newCharacter:FindFirstChild("HumanoidRootPart")
-						backpack = localPlayer:FindFirstChild("Backpack")
-						task.wait(1)
-						if tbl4.AutoFarmActive and not flag3 then
-							local currentZone = tbl9 and tbl9[tbl4.ZoneSelect]
-							if currentZone and currentZone.Pos then
-								tbl13:SmartMoveTo(currentZone.Pos)
-							end
-							if tbl4.AutoFarmActive and not flag3 then
-								ForceNextCast = true
-								lastThrowTick = 0
-								stuckRecoveryLastFishTime = tick()
-							end
-						end
-						break
-					end
-				end
-				stuckRecoveryBusy = false
-			end
-		end
-	end)
 	task.spawn(function()
 		while true do
 			task.wait(0.4)
@@ -4071,17 +4096,6 @@ do
 			local threshold = tonumber(tbl4.AutoDepositThreshold) or 20000
 			if cashNow >= threshold then
 				DepositAllMoney()
-			end
-		end
-		-- หลังขายปลา/ฝากเงิน ให้กลับไปยังจุดตกปลาของโซนที่เลือกเสมอ
-		-- ใช้ tbl9 ปัจจุบันเพื่อไม่ให้กลับไปพิกัดเก่าหากเปลี่ยนโซน
-		if tbl4.AutoFarmActive and not flag3 then
-			local fishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-			if fishingZone and fishingZone.Pos then
-				tbl13:SmartMoveTo(fishingZone.Pos)
-				if tbl4.AutoFarmActive and not flag3 then
-					tbl13:SmoothVerticalMove(230.138, 0.3)
-				end
 			end
 		end
 		fn4()
@@ -5001,9 +5015,6 @@ do
 	local flag9 = false
 	StartAutoFarm = function()
 		local state = 1
-		-- TP ขึ้นหลังคาใหม่ทุกครั้งที่เดินทางออกไปแล้วกลับถึงจุดตกปลา
-		local didFishingSpotRoofTeleport = false
-		local roofTeleportZone = tbl4.ZoneSelect
 		local ownedVehicle, vehicleHealth, destroyed, vehicleDataFromData, flag10, sit, value, flag11, v6, flag12, flag13, sit2, ownedVehicle2, flag14, flag15, flag16, n12, character2, humanoid2, humanoidRootPart2, humanoid3, flag17, humanoid4, humanoidRootPart3, flag18, flag19, flag20, ownedVehicle3, sit3, value2, value3, flag21, v7, totalFish, v8, v9, v10, flag22, flag23, flag24, flag25, v11, flag26, flag27, flag28, flag29, v12, flag30, autoFarmActive, value4, flag31, autoFarmActive2, vehicleHealth2, v13, v14, flag32, autoFarmActive3, sit4, ownedVehicle4, flag33, flag34, sit5, pos, position, ownedVehicle5, flag35, ownedVehicle6, v15, v16, flag36, flag37, v17, v18, now3, v19, n13, n14, autoFarmActive4, flag38, flag39, flag40, v20, flag41, flag42, flag43, now4, autoFarmActive5, v21, n15, flag44, flag45, flag46, autoFarmActive6, value5, flag47, autoFarmActive7, now5, flag48, autoFarmActive8, v22, autoFarmActive9
 		while true do
 			if state == 1 then
@@ -6464,23 +6475,6 @@ do
 				end
 				state = 269
 			elseif state == 269 then
-				-- TP ขึ้นหลังคาเมื่อถึงจุดตกปลา; เมื่อออกห่างแล้วกลับมา จะ TP ใหม่อีกครั้ง
-				local currentFishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-				if roofTeleportZone ~= tbl4.ZoneSelect then
-					roofTeleportZone = tbl4.ZoneSelect
-					didFishingSpotRoofTeleport = false
-				end
-				local targetIsFishingSpot = false
-				if currentFishingZone and currentFishingZone.Pos and humanoidRootPart then
-					local playerPos = humanoidRootPart.Position
-					targetIsFishingSpot = (Vector3.new(playerPos.X, 0, playerPos.Z) - Vector3.new(currentFishingZone.Pos.X, 0, currentFishingZone.Pos.Z)).Magnitude <= 18
-				end
-				-- ออกจากบริเวณจุดตกปลาแล้วรีเซ็ต เพื่อให้การกลับมาถึงครั้งถัดไป TP ใหม่
-				if not targetIsFishingSpot then
-					didFishingSpotRoofTeleport = false
-				end
-				local shouldTeleportRoof = targetIsFishingSpot and not didFishingSpotRoofTeleport
-				if tbl4.AutoFarmActive and not flag3 and shouldTeleportRoof then
 				pcall(function()
 					local vehiclesFolder = workspace:FindFirstChild("Vehicles")
 					local roofCollider = nil
@@ -6516,10 +6510,6 @@ do
 						humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
 					end
 				end)
-					if targetIsFishingSpot then
-						didFishingSpotRoofTeleport = true
-					end
-				end
 				task.wait(0.15)
 				state = 282
 			elseif state == 282 then
@@ -6537,8 +6527,7 @@ do
 			elseif state == 284 then
 				EnsureRodEquipped()
 				EquipBaitOnRod()
-				-- ใช้พิกัดโยนเบ็ดเดียวกับครั้งแรกของโซนที่เลือก เพื่อไม่ให้ครั้งถัดไปเปลี่ยนจุด
-				v15 = (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2
+				v15 = vector2
 				v16 = GetRodTool()
 				if v16 then
 					state = 286
