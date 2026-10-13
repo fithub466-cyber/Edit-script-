@@ -405,11 +405,11 @@ do
 		Background = Color3.fromRGB(12, 12, 16),
 		Panel = Color3.fromRGB(20, 20, 26),
 		PanelLight = Color3.fromRGB(30, 30, 38),
-		AccentDim = Color3.fromRGB(72, 16, 22),
+		AccentDim = Color3.fromRGB(24, 48, 82),
 		Text = Color3.fromRGB(255, 255, 255),
 		SubText = Color3.fromRGB(210, 210, 220),
 		Stroke = Color3.fromRGB(55, 60, 72),
-		Blue = Color3.fromRGB(245, 45, 58),
+		Blue = Color3.fromRGB(55, 155, 255),
 		Shadow = Color3.fromRGB(0, 0, 0),
 	}
 	gothamMedium = Enum.Font.GothamMedium
@@ -503,10 +503,9 @@ do
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://115653579666883",
+		Image = "rbxassetid://119572049696363",
 		ImageColor3 = Color3.fromRGB(255, 255, 255),
-		ImageTransparency = 0,
-		ScaleType = Enum.ScaleType.Fit,
+		ScaleType = Enum.ScaleType.Crop,
 		ZIndex = 17,
 		Parent = TextButton,
 	})
@@ -572,68 +571,38 @@ do
 	local Frame6 = fn6("Frame", {
 		Name = "TopBar",
 		Size = UDim2.new(1, 0, 0, 46),
-		BackgroundColor3 = Color3.fromRGB(18, 8, 10),
+		BackgroundColor3 = Color3.fromRGB(18, 30, 48),
 		BackgroundTransparency = 0,
 		BorderSizePixel = 0,
 		ZIndex = 5,
 		Parent = Frame4,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(0, 18), Parent = Frame6 })
-	local HeaderLogo = fn6("ImageLabel", {
-		Name = "HeaderLogo",
-		Size = UDim2.fromOffset(30, 30),
-		Position = UDim2.fromOffset(14, 8),
-		BackgroundTransparency = 1,
-		Image = "rbxassetid://115653579666883",
-		ImageTransparency = 0,
-		ScaleType = Enum.ScaleType.Fit,
-		ZIndex = 6,
-		Parent = Frame6,
-	})
-	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = HeaderLogo })
-	local HubTitle = fn6("TextLabel", {
+	fn6("TextLabel", {
 		Name = "HubTitle",
-		Size = UDim2.new(0, 130, 1, 0),
-		Position = UDim2.fromOffset(52, 0),
+		Size = UDim2.new(0, 190, 1, 0),
+		Position = UDim2.fromOffset(158, 0),
 		BackgroundTransparency = 1,
+		Font = Enum.Font.GothamMedium,
 		Text = "LrapX Hub",
-		RichText = true,
-		TextColor3 = Color3.fromRGB(245, 45, 58),
-		TextXAlignment = Enum.TextXAlignment.Left,
-		TextSize = 20,
+		TextColor3 = Color3.fromRGB(55, 155, 255),
+		TextXAlignment = Enum.TextXAlignment.Center,
+		TextSize = 22,
 		Font = Enum.Font.GothamBold,
-		TextStrokeTransparency = 0.8,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
-	-- PigHub-style animated rainbow lettering; keeps the original Alayna UI layout.
-	task.spawn(function()
-		local brand = "LrapX Hub"
-		while HubTitle and HubTitle.Parent do
-			local parts = {}
-			local phase = tick() * 0.22
-			for i = 1, #brand do
-				local ch = brand:sub(i, i)
-				local hue = (phase + (i / #brand)) % 1
-				local color = Color3.fromHSV(hue, 0.82, 1)
-				local hex = string.format("#%02X%02X%02X", math.floor(color.R * 255), math.floor(color.G * 255), math.floor(color.B * 255))
-				local safeChar = ch == "&" and "&amp;" or ch == "<" and "&lt;" or ch == ">" and "&gt;" or ch
-				table.insert(parts, '<font color="' .. hex .. '">' .. safeChar .. '</font>')
-			end
-			HubTitle.Text = table.concat(parts)
-			task.wait(0.12)
-		end
-	end)
 	TextLabel = fn6("TextLabel", {
 		Name = "TimerLabel",
-		Size = UDim2.new(0, 160, 1, 0),
-		Position = UDim2.fromOffset(188, 0),
+		Size = UDim2.new(0, 130, 1, 0),
+		Position = UDim2.fromOffset(18, 0),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Code,
 		Text = "00:00:00",
-		TextColor3 = Color3.fromRGB(245, 45, 58),
-		TextXAlignment = Enum.TextXAlignment.Center,
+		TextColor3 = Color3.fromRGB(55, 155, 255),
+		TextXAlignment = Enum.TextXAlignment.Left,
 		TextSize = 16,
+		Font = Enum.Font.Code,
 		ZIndex = 6,
 		Parent = Frame6,
 	})
@@ -653,39 +622,28 @@ do
 		Parent = Frame7,
 	})
 	local function fn12(arg, arg2)
-		-- ปุ่มวงกลม 3 สี: ย่อ=เหลือง, ขยาย=เขียว, ปิด=แดง
-		local buttonColor = Color3.fromRGB(245, 190, 45)
-		if arg == "▢" then
-			buttonColor = Color3.fromRGB(45, 190, 95)
-		elseif arg == "×" then
-			buttonColor = Color3.fromRGB(235, 55, 65)
-		end
 		local TextButton2 = fn6("TextButton", {
 			Size = UDim2.fromOffset(22, 22),
-			BackgroundColor3 = buttonColor,
-			BackgroundTransparency = 0,
-			BorderSizePixel = 0,
+			BackgroundTransparency = 1,
 			AutoButtonColor = false,
-			Font = Enum.Font.GothamBold,
+			Font = Enum.Font.Gotham,
 			Text = arg,
-			TextColor3 = Color3.fromRGB(35, 25, 25),
+			TextColor3 = Color3.fromRGB(140, 140, 148),
 			TextSize = arg2 or 16,
 			ZIndex = 6,
 			Parent = Frame7,
 		})
-		fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = TextButton2 })
-		fn6("UIStroke", { Color = buttonColor:Lerp(Color3.new(0, 0, 0), 0.2), Thickness = 1, Transparency = 0.15, Parent = TextButton2 })
 		TextButton2.MouseEnter:Connect(function()
-			fn8(TextButton2, TweenInfo.new(0.12), { BackgroundColor3 = buttonColor:Lerp(Color3.new(1, 1, 1), 0.12) })
+			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(30, 30, 35) })
 		end)
 		TextButton2.MouseLeave:Connect(function()
-			fn8(TextButton2, TweenInfo.new(0.12), { BackgroundColor3 = buttonColor })
+			fn8(TextButton2, TweenInfo.new(0.12), { TextColor3 = Color3.fromRGB(140, 140, 148) })
 		end)
 		return TextButton2
 	end
-	local v3 = fn12("▢", 14) -- ซ้าย: เขียว
-	v = fn12("−", 18) -- กลาง: เหลือง
-	v2 = fn12("×", 18) -- ขวา: แดง
+	v = fn12("−", 18)
+	local v3 = fn12("▢", 14)
+	v2 = fn12("×", 18)
 	local flag6 = false
 	v3.MouseButton1Click:Connect(function()
 		flag6 = not flag6
@@ -1163,7 +1121,7 @@ do
 			Position = UDim2.fromOffset(14, 6),
 			BackgroundTransparency = 1,
 			Font = gothamMedium,
-			Text = (currentLanguage == "EN" and (translations[arg2] or arg2) or arg2) .. ": " .. n11,
+			Text = arg2 .. ": " .. n11,
 			TextColor3 = tbl6.Text,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			TextSize = 13,
@@ -1206,7 +1164,7 @@ do
 			local n12 = (n11 - arg3) / math.max(arg4 - arg3, 1)
 			Frame10.Size = UDim2.new(n12, 0, 1, 0)
 			Frame11.Position = UDim2.new(n12, -8, 0.5, 0)
-			TextLabel2.Text = (currentLanguage == "EN" and (translations[arg2] or arg2) or arg2) .. ": " .. n11
+			TextLabel2.Text = arg2 .. ": " .. n11
 		end
 		local function fn24(arg7)
 			fn23(arg3 + (arg4 - arg3) * math.clamp((arg7.Position.X - Frame9.AbsolutePosition.X) / math.max(Frame9.AbsoluteSize.X, 1), 0, 1))
@@ -1242,9 +1200,7 @@ do
 			Frame = Frame8,
 		}
 	end
-	local currentLanguage = "TH"
 	local function ThaiDisplayName(value)
-		if currentLanguage == "EN" then return tostring(value) end
 		local names = {
 			["Smart Select"] = "เลือกอัตโนมัติ",
 			["FishingRodUltimate"] = "คันเบ็ดขั้นสูงสุด",
@@ -1402,7 +1358,7 @@ do
 	v3 = fn21("ป้องกันเตะ", "rbxassetid://10734897394", 4)
 	Server = fn21("เซิร์ฟเวอร์", "rbxassetid://10734901094", 5)
 	Dev = fn21("ผู้พัฒนา", "rbxassetid://10734901807", 6)
-	v4 = fn21("ปรับ UI", "rbxassetid://10734903978", 7)
+	v4 = fn21("ปรับขนาด", "rbxassetid://10734903978", 7)
 	fn20("ระบบฟาร์มปลา")
 	task.defer(function()
 		pcall(fn10)
@@ -2044,85 +2000,6 @@ do
 			tbl7.ButtonScaleSlider:Set(100)
 		end
 	end)
-	fn12(v4, "ตั้งค่าภาษา / LANGUAGE")
-	local translations = {
-		["ปรับ UI"] = "UI Settings", ["ระบบฟาร์มปลา"] = "Fish Farm", ["ข้ามปลา"] = "Skip Fish",
-		["สถิติ"] = "Statistics", ["ป้องกันเตะ"] = "Anti-Kick", ["เซิร์ฟเวอร์"] = "Server",
-		["ผู้พัฒนา"] = "Developer", ["ตั้งค่าภาษา / LANGUAGE"] = "LANGUAGE SETTINGS",
-		["ภาษาไทย"] = "Thai", ["ภาษาอังกฤษ"] = "English", ["เลือกภาษาไทย"] = "Switch language to Thai",
-		["เปลี่ยนเป็นภาษาอังกฤษ"] = "Switch language to English", ["ขนาดเมนู %"] = "Menu Size %",
-		["ขนาดปุ่มเปิดเมนู %"] = "Open Button Size %", ["คืนค่าขนาดเริ่มต้น"] = "Reset UI Size",
-		["ตั้งค่าอุปกรณ์"] = "Equipment Settings", ["ประเภทคันเบ็ด"] = "Rod Type", ["ประเภทเหยื่อ"] = "Bait Type",
-		["จำนวนเหยื่อสูงสุด"] = "Maximum Bait Amount", ["ตั้งค่ายานพาหนะ"] = "Vehicle Settings",
-		["ซ่อมยานพาหนะอัตโนมัติ"] = "Auto Repair Vehicle", ["พื้นที่ตกปลา"] = "Fishing Area",
-		["ระดับ"] = "Level", ["เลือกภาษา"] = "Language", ["บันทึกการตั้งค่า"] = "Save Settings",
-		["ลบการตั้งค่า"] = "Delete Settings", ["เปลี่ยนเซิร์ฟเวอร์ตอนนี้"] = "Switch Server Now",
-		["ประเภทคันเบ็ด"] = "Rod Type", ["ประเภทเหยื่อ"] = "Bait Type", ["จำนวนเหยื่อ"] = "Bait Amount",
-		["เลือกชนิดปลาได้หลายรายการ  ▼"] = "Select multiple fish types  ▼",
-		["เลือกชนิดปลา"] = "Select Fish", ["เลือกปลา ▾"] = "Select Fish ▾",
-		["เลือกชนิดปลา (ยังไม่ได้เลือก)  ▼"] = "Select Fish (none selected)  ▼",
-		["เลือกแล้ว "] = "Selected ", ["ชนิด  ▼"] = " types  ▼",
-		["🏦 ยอดเงินในธนาคาร"] = "🏦 Bank Balance", ["💸 เงินสดในมือ"] = "💸 Cash on Hand",
-		["📈 เงินที่หาได้ตั้งแต่รันสคริปต์"] = "📈 Money Earned This Session",
-		["ตั้งค่าอุปกรณ์"] = "Equipment Settings", ["ตั้งค่ายานพาหนะ"] = "Vehicle Settings",
-		["ซ่อมรถอัตโนมัติ"] = "Auto Repair Vehicle", ["ขายปลาอัตโนมัติ"] = "Auto Sell Fish",
-		["ฝากเงินอัตโนมัติ"] = "Auto Deposit", ["จำนวนปลาก่อนขาย"] = "Fish Count Before Selling",
-		["ข้ามมินิเกม"] = "Skip Minigame", ["ตกปลาอัตโนมัติ"] = "Auto Fishing",
-		["เลือกปลาที่จะข้าม"] = "Select Fish to Skip", ["รายการปลาที่ข้าม"] = "Skipped Fish List",
-		["ระดับ 40 ขึ้นไป"] = "Level 40+", ["เลเวล 40 ขึ้นไป"] = "Level 40+", ["เลเวล 70 ขึ้นไป"] = "Level 70+",
-		["ประเภทคันเบ็ด:"] = "Rod Type:", ["ขนาดเมนู %:"] = "Menu Size %:",
-		["ขนาดปุ่มเปิดเมนู %:"] = "Open Button Size %:", ["พื้นที่ตกปลา"] = "Fishing Area",
-		["เลือกอัตโนมัติ"] = "Smart Select", ["คันเบ็ดขั้นสูงสุด"] = "Ultimate Fishing Rod",
-		["คันเบ็ดขั้นสูง"] = "Advanced Fishing Rod", ["คันเบ็ดมืออาชีพ"] = "Pro Fishing Rod",
-		["คันเบ็ดทั่วไป"] = "Regular Fishing Rod", ["เหยื่อกุ้งขั้นสูงสุด"] = "Ultimate Prawn Bait",
-		["เหยื่อกุ้งมืออาชีพ"] = "Pro Prawn Bait", ["เหยื่อกุ้งทั่วไป"] = "Regular Prawn Bait",
-		["เหยื่อหนอนขั้นสูงสุด"] = "Ultimate Worm Bait", ["เหยื่อหนอนมืออาชีพ"] = "Pro Worm Bait",
-		["เหยื่อหนอนทั่วไป"] = "Regular Worm Bait", ["มอเตอร์ไซค์"] = "Bike", ["รถยนต์"] = "Car",
-		["สถานะ: กำลังทำงาน"] = "Status: Running", ["สถานะ: หยุดทำงาน"] = "Status: Stopped",
-		["เปิด"] = "ON", ["ปิด"] = "OFF", ["เริ่ม"] = "Start", ["หยุด"] = "Stop",
-
-		["เข้าเซิร์ฟเวอร์เดิมอีกครั้ง"] = "Rejoin Current Server", ["การตั้งค่า"] = "Settings",
-		["คัดลอกลิงก์ดิสคอร์ด"] = "Copy Discord Link", ["ดิสคอร์ด"] = "Discord",
-		["ประเภทยานพาหนะ"] = "Vehicle Type", ["เลือกรถ"] = "Select Car", ["ความเร็วยานพาหนะ"] = "Vehicle Speed",
-		["ยอดเงินในธนาคาร"] = "Bank Balance", ["เงินสดในมือ"] = "Cash on Hand",
-		["เงินที่หาได้ตั้งแต่รันสคริปต์"] = "Money Earned This Session", ["ตกปลาอัตโนมัติ"] = "Auto Fishing",
-		["เปิดใช้งาน"] = "Enable", ["สถานะ: ปิด"] = "Status: Off", ["สถานะ: เปิด"] = "Status: On",
-	}
-	local reverseTranslations = {}
-	for thai, english in pairs(translations) do reverseTranslations[english] = thai end
-	local function L(text)
-		text = tostring(text or "")
-		if currentLanguage == "EN" then return translations[text] or text end
-		return reverseTranslations[text] or text
-	end
-	local function ApplyLanguage(lang)
-		currentLanguage = lang
-		for _, obj in ipairs(ScreenGui:GetDescendants()) do
-			if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-				local txt = obj.Text
-				if lang == "EN" then
-					if translations[txt] then obj.Text = translations[txt]
-					elseif txt:find("เลือกแล้ว ", 1, true) then obj.Text = txt:gsub("เลือกแล้ว ", "Selected "):gsub(" ชนิด", " types")
-					elseif txt:find("เงินในธนาคาร:", 1, true) then obj.Text = txt:gsub("เงินในธนาคาร:", "Bank Balance:")
-					elseif txt:find("เงินสด:", 1, true) then obj.Text = txt:gsub("เงินสด:", "Cash:")
-					end
-				else
-					if reverseTranslations[txt] then obj.Text = reverseTranslations[txt]
-					elseif txt:find("Selected ", 1, true) then obj.Text = txt:gsub("Selected ", "เลือกแล้ว "):gsub(" types", " ชนิด")
-					elseif txt:find("Bank Balance:", 1, true) then obj.Text = txt:gsub("Bank Balance:", "เงินในธนาคาร:")
-					elseif txt:find("Cash:", 1, true) then obj.Text = txt:gsub("Cash:", "เงินสด:")
-					end
-				end
-			end
-		end
-		if lang == "EN" then
-			ShowToast("LrapX Hub", "Language changed to English")
-		else
-			ShowToast("LrapX Hub", "เปลี่ยนภาษาเป็นไทยแล้ว")
-		end
-	end
-	fn14(v4, "ภาษาไทย / THAI", function() ApplyLanguage("TH") end)
-	fn14(v4, "ภาษาอังกฤษ / ENGLISH", function() ApplyLanguage("EN") end)
 	local function fn24()
 		local moneyTextLabel = playerGui:FindFirstChild("TopRightHud") and playerGui.TopRightHud:FindFirstChild("Holder") and playerGui.TopRightHud.Holder:FindFirstChild("Frame") and playerGui.TopRightHud.Holder.Frame:FindFirstChild("MoneyTextLabel")
 		if moneyTextLabel then
@@ -2212,18 +2089,16 @@ do
 	local n13 = 870
 	vector2 = Vector3.new(82.11319, 245.16185, 922.22076)
 	local function fn27(arg)
-		return Vector3.new(arg.X, 230.138, arg.Z)
+		local zone = tbl9 and tbl9[tbl4.ZoneSelect]
+		return Vector3.new(arg.X, (zone and zone.Pos and zone.Pos.Y) or 230.138, arg.Z)
 	end
 	tbl9 = {
 		["Level 40 +"] = {
 			Pos = Vector3.new(-308.574, 230.938, 552.806),
-			-- คงพิกัดโยนเบ็ด Level 40+ เดิมไว้
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 		["Level 70 +"] = {
-			-- ลดตำแหน่งตกปลาแนวตั้งลง 0.5 หน่วย โดยคงแกน X/Z เดิม
-			Pos = Vector3.new(21.745, 241.854, 643.734),
-			-- พิกัดโยนเบ็ดใหม่สำหรับ Level 70+ เท่านั้น
+			Pos = Vector3.new(21.745, 239.854, 643.734),
 			CastPositions = { Vector3.new(82.11319, 245.16185, 922.22076) },
 		},
 	}
@@ -3623,24 +3498,32 @@ do
 		end
 	end
 end
+-- Vehicle recovery: do not teleport the vehicle every 0.4s to a hard-coded Y.
+-- Repeated forced pivots can trigger the game's teleport detector and auto-respawn flow.
+local lastVehicleRecoveryAt = 0
 task.spawn(function()
-	while task.wait(0.4) do
-		if not (not tbl4.AutoFarmActive or not tbl4.UseVehicle) then
+	while task.wait(1.5) do
+		if tbl4.AutoFarmActive and tbl4.UseVehicle and not flag3 and tick() - lastVehicleRecoveryAt >= 8 then
 			pcall(function()
 				local vehicles = workspace:FindFirstChild("Vehicles")
-				if not vehicles then
-					return
-				end
-				for _, child in pairs(vehicles:GetChildren()) do
+				if not vehicles then return end
+				local targetZone = tbl9 and tbl9[tbl4.ZoneSelect]
+				local targetY = targetZone and targetZone.Pos and targetZone.Pos.Y
+				if not targetY then return end
+				for _, child in ipairs(vehicles:GetChildren()) do
 					if child:GetAttribute("OwnerUserId") == userId and child.PrimaryPart then
-						if child.PrimaryPart.Position.Y < n7 - 1 then
-							child:PivotTo(CFrame.new(child.PrimaryPart.Position.X, 230.138, child.PrimaryPart.Position.Z) * child:GetPivot().Rotation)
-							for _, descendant in pairs(child:GetDescendants()) do
+						-- Recover only if the vehicle has genuinely fallen far below the selected zone.
+						if child.PrimaryPart.Position.Y < targetY - 25 then
+							lastVehicleRecoveryAt = tick()
+							local pivot = child:GetPivot()
+							child:PivotTo(CFrame.new(pivot.Position.X, targetY + 2, pivot.Position.Z) * pivot.Rotation)
+							for _, descendant in ipairs(child:GetDescendants()) do
 								if descendant:IsA("BasePart") then
 									descendant.AssemblyLinearVelocity = Vector3.zero
 									descendant.AssemblyAngularVelocity = Vector3.zero
 								end
 							end
+							break
 						end
 					end
 				end
@@ -4058,73 +3941,6 @@ do
 			end
 		end
 	end)
-	-- ตรวจจับกรณีสายเบ็ดค้าง หรือถึงจุดตกปลาแล้วไม่จับปลาเป็นเวลานาน
-	-- หากอยู่ใกล้จุดตกปลาและไม่มีปลาที่จับได้เพิ่ม 90 วินาที จะรีตัวละครแล้วกลับไปจุดตกปลาใหม่
-	local stuckRecoveryBusy = false
-	local stuckRecoveryFishCount = tbl3.totalFish or 0
-	local stuckRecoveryLastFishTime = tick()
-	task.spawn(function()
-		while task.wait(5) do
-			local currentFishCount = tbl3.totalFish or 0
-			if currentFishCount ~= stuckRecoveryFishCount then
-				stuckRecoveryFishCount = currentFishCount
-				stuckRecoveryLastFishTime = tick()
-			end
-			if not tbl4.AutoFarmActive or flag3 or isSliderOpen() or stuckRecoveryBusy then
-				stuckRecoveryLastFishTime = tick()
-				continue
-			end
-			local fishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-			local currentCharacter = localPlayer.Character
-			local currentRoot = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
-			if not fishingZone or not fishingZone.Pos or not currentRoot then
-				continue
-			end
-			-- ไม่รีตัวระหว่างเดินทางไปขายปลา/ซื้อของ หรืออยู่ห่างจากจุดตกปลา
-			if (currentRoot.Position - fishingZone.Pos).Magnitude <= 120 and tick() - stuckRecoveryLastFishTime >= 90 then
-				stuckRecoveryBusy = true
-				stuckRecoveryLastFishTime = tick()
-				local oldCharacter = currentCharacter
-				ForceNextCast = false
-				flag7 = false
-				pcall(function()
-					local currentHumanoid = oldCharacter:FindFirstChildOfClass("Humanoid")
-					if currentHumanoid then
-						currentHumanoid.Health = 0
-					else
-						Net.send("request_respawn")
-						Net.send("death_screen_request_respawn")
-					end
-				end)
-				local waited = 0
-				while tbl4.AutoFarmActive and not flag3 and waited < 25 do
-					task.wait(0.25)
-					waited = waited + 0.25
-					local newCharacter = localPlayer.Character
-					if newCharacter and newCharacter ~= oldCharacter and newCharacter:FindFirstChild("HumanoidRootPart") and newCharacter:FindFirstChildOfClass("Humanoid") then
-						character = newCharacter
-						humanoid = newCharacter:FindFirstChildOfClass("Humanoid")
-						humanoidRootPart = newCharacter:FindFirstChild("HumanoidRootPart")
-						backpack = localPlayer:FindFirstChild("Backpack")
-						task.wait(1)
-						if tbl4.AutoFarmActive and not flag3 then
-							local currentZone = tbl9 and tbl9[tbl4.ZoneSelect]
-							if currentZone and currentZone.Pos then
-								tbl13:SmartMoveTo(currentZone.Pos)
-							end
-							if tbl4.AutoFarmActive and not flag3 then
-								ForceNextCast = true
-								lastThrowTick = 0
-								stuckRecoveryLastFishTime = tick()
-							end
-						end
-						break
-					end
-				end
-				stuckRecoveryBusy = false
-			end
-		end
-	end)
 	task.spawn(function()
 		while true do
 			task.wait(0.4)
@@ -4184,7 +4000,7 @@ do
 		tbl13:QuickAction(function()
 			tbl13:SellAllFish()
 		end, 0.3)
-		tbl13:SmoothVerticalMove(230.138, 0.3)
+		tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 		-- รอให้เงินจากการขายปลาเข้ากระเป๋าก่อนตรวจยอด
 		if tbl4.AutoFarmActive and not flag3 and tbl4.AutoDepositAfterSell then
 			task.wait(2)
@@ -4196,17 +4012,6 @@ do
 			local threshold = tonumber(tbl4.AutoDepositThreshold) or 20000
 			if cashNow >= threshold then
 				DepositAllMoney()
-			end
-		end
-		-- หลังขายปลา/ฝากเงิน ให้กลับไปยังจุดตกปลาของโซนที่เลือกเสมอ
-		-- ใช้ tbl9 ปัจจุบันเพื่อไม่ให้กลับไปพิกัดเก่าหากเปลี่ยนโซน
-		if tbl4.AutoFarmActive and not flag3 then
-			local fishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-			if fishingZone and fishingZone.Pos then
-				tbl13:SmartMoveTo(fishingZone.Pos)
-				if tbl4.AutoFarmActive and not flag3 then
-					tbl13:SmoothVerticalMove(230.138, 0.3)
-				end
 			end
 		end
 		fn4()
@@ -4339,7 +4144,7 @@ do
 				end
 				if tbl13:GetMoney() <= 0 then
 					if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
-						tbl13:SmoothVerticalMove(230.138, 0.3)
+						tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 					end
 					return true
 				end
@@ -4522,7 +4327,7 @@ do
 				tbl13:EnterVehicle(ownedVehicle)
 			end
 			if humanoid and humanoid.Sit then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 			end
 		end
 		local vehicleHealth2, v11, v12, v13, v14 = tbl13:GetVehicleHealth(v7 or vehicleNameFromInventory)
@@ -4531,109 +4336,81 @@ do
 		end
 		return false
 	end
+	-- ป้องกันการเรียกกู้รถซ้อนกันและเสกรถซ้ำจากการอ่านสถานะคลาดเคลื่อน
+	local forceRespawnBusy = false
+	local lastForceRespawnAt = 0
 	tbl13.ForceRespawnVehicle = function()
-		if humanoid and humanoid.Sit then
-			pcall(function()
-				Net.get("exit_seat")
-			end)
-			task.wait(0.12)
+		if not tbl4.AutoFarmActive then
+			return false
 		end
-		local ownedVehicle = tbl13:GetOwnedVehicle()
-		if ownedVehicle and ownedVehicle.PrimaryPart then
-			tbl13:EnterVehicle(ownedVehicle)
-			pcall(function()
-				Net.send("lock_vehicle", ownedVehicle, true)
-			end)
-			local n12 = 0
-			while humanoid and not humanoid.Sit and n12 < 6 and tbl4.AutoFarmActive do
-				tbl13:EnterVehicle(ownedVehicle)
-				task.wait(0.08)
-				n12 += 1
-			end
-			if humanoid and humanoid.Sit then
-				return true
-			end
+		-- ถ้าฟังก์ชันกู้รถกำลังทำงานอยู่ ห้ามเริ่มรอบใหม่
+		if forceRespawnBusy then
+			return false
 		end
-		local v5 = tbl13:RespawnAndMountVehicle()
-		if v5 and v5.PrimaryPart and humanoid and humanoid.Sit then
-			pcall(function()
-				Net.send("lock_vehicle", v5, true)
-			end)
-			return true
-		end
-		tbl4.Respawn = true
-		pcall(function()
-			if tbl7.RespawnToggle then
-				tbl7.RespawnToggle:Set(true)
-			end
-		end)
-		pcall(function()
-			Net.send("request_respawn")
-		end)
-		task.wait(0.4)
-		pcall(function()
-			Net.send("death_screen_request_respawn")
-		end)
-		task.wait(0.4)
-		local n12 = 0
-		while n12 < 25 do
-			task.wait(0.4)
-			local character2 = localPlayer.Character
-			if character2 and character2.Parent and character2:FindFirstChild("Humanoid") and character2:FindFirstChild("HumanoidRootPart") then
-				local humanoid2 = character2:FindFirstChildOfClass("Humanoid")
-				local flag8 = humanoid2 and humanoid2.Health > 0
-				if flag8 then
-					local dead = Enum.HumanoidStateType.Dead
-					flag8 = humanoid2:GetState() ~= dead
-				end
-				if flag8 then
-					break
-				else
-					n12 += 1
-				end
-			else
-				n12 += 1
-			end
-		end
-		task.wait(0.8)
-		character = localPlayer.Character
-		if character then
-			humanoid = character:FindFirstChildOfClass("Humanoid") or humanoid
-			humanoidRootPart = character:FindFirstChild("HumanoidRootPart") or humanoidRootPart
-			backpack = localPlayer:FindFirstChild("Backpack") or backpack
-		end
-		for i = 1, 4 do
-			if not tbl4.AutoFarmActive then
+		-- จำกัดการเริ่มกู้รถ ไม่ให้ระบบหลายจุดเรียกติดกันจนรถเกิดซ้ำ
+		if tick() - lastForceRespawnAt < 8 then
+			local currentVehicle = tbl13:GetOwnedVehicle()
+			if currentVehicle and currentVehicle.PrimaryPart then
+				if humanoid and humanoid.Sit then return true end
+				pcall(function() tbl13:EnterVehicle(currentVehicle) end)
 				return false
 			end
-			local ownedVehicle2 = tbl13:GetOwnedVehicle()
-			if ownedVehicle2 and ownedVehicle2.PrimaryPart then
-				tbl13:EnterVehicle(ownedVehicle2)
-				pcall(function()
-					Net.send("lock_vehicle", ownedVehicle2, true)
-				end)
-				local n13 = 0
-				while humanoid and not humanoid.Sit and n13 < 8 and tbl4.AutoFarmActive do
-					tbl13:EnterVehicle(ownedVehicle2)
-					task.wait(0.08)
-					n13 += 1
+			return false
+		end
+		forceRespawnBusy = true
+		lastForceRespawnAt = tick()
+		local result = false
+		local ok = pcall(function()
+			character = localPlayer.Character
+			humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+			-- ใช้รถที่มีอยู่ก่อนเสมอ ห้ามออกจากรถแล้วสั่งเกิดใหม่โดยไม่จำเป็น
+			local ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and ownedVehicle.PrimaryPart then
+				if humanoid and humanoid.Sit then
+					pcall(function() Net.send("lock_vehicle", ownedVehicle, true) end)
+					result = true
+					return
+				end
+				pcall(function() tbl13:EnterVehicle(ownedVehicle) end)
+				local tries = 0
+				while humanoid and not humanoid.Sit and tries < 8 and tbl4.AutoFarmActive do
+					-- ตรวจว่ารถยังเป็นคันเดิมก่อนลองขึ้นอีกครั้ง
+					local checkVehicle = tbl13:GetOwnedVehicle()
+					if not (checkVehicle and checkVehicle.PrimaryPart) then break end
+					pcall(function() tbl13:EnterVehicle(checkVehicle) end)
+					task.wait(0.1)
+					tries += 1
 				end
 				if humanoid and humanoid.Sit then
-					return true
+					pcall(function() Net.send("lock_vehicle", ownedVehicle, true) end)
+					result = true
+					return
 				end
+				-- รถยังอยู่แต่ขึ้นไม่ได้: อย่าสั่ง respawn เพราะอาจทำให้เกิดรถซ้ำ
+				return
 			end
-			local v6 = tbl13:RespawnAndMountVehicle()
-			if v6 and v6.PrimaryPart and humanoid and humanoid.Sit then
-				local function fn30()
-					Net.send("lock_vehicle", v6, true)
-				end
-				pcall(fn30)
-				return true
+			-- ยืนยันอีกครั้งว่ารถหายจริงก่อนพยายามกู้คืน
+			task.wait(0.35)
+			ownedVehicle = tbl13:GetOwnedVehicle()
+			if ownedVehicle and ownedVehicle.PrimaryPart then return end
+			local inventoryName = tbl13:GetVehicleNameFromInventory()
+			if not inventoryName then return end
+			local mounted = tbl13:RespawnAndMountVehicle()
+			if mounted and mounted.PrimaryPart then
+				result = true
+				return
 			end
-			task.wait(1.2)
+			-- ไม่ส่ง request_respawn/death_screen_request_respawn ซ้ำจากทุกลูป
+		end)
+		forceRespawnBusy = false
+		if not ok then
+			warn("[AutoFarm] Vehicle recovery failed safely")
+			return false
 		end
-		return false
+		return result
 	end
+
 	local tbl14 = {
 		"FishingRodUltimate",
 		"FishingRodAdvanced",
@@ -5042,7 +4819,7 @@ do
 								if ownedVehicle then
 									tbl13:EnterVehicle(ownedVehicle)
 									if humanoid and humanoid.Sit then
-										tbl13:SmoothVerticalMove(230.138, 0.35)
+										tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 									end
 								end
 							end
@@ -5126,9 +4903,6 @@ do
 	local flag9 = false
 	StartAutoFarm = function()
 		local state = 1
-		-- TP ขึ้นหลังคาใหม่ทุกครั้งที่เดินทางออกไปแล้วกลับถึงจุดตกปลา
-		local didFishingSpotRoofTeleport = false
-		local roofTeleportZone = tbl4.ZoneSelect
 		local ownedVehicle, vehicleHealth, destroyed, vehicleDataFromData, flag10, sit, value, flag11, v6, flag12, flag13, sit2, ownedVehicle2, flag14, flag15, flag16, n12, character2, humanoid2, humanoidRootPart2, humanoid3, flag17, humanoid4, humanoidRootPart3, flag18, flag19, flag20, ownedVehicle3, sit3, value2, value3, flag21, v7, totalFish, v8, v9, v10, flag22, flag23, flag24, flag25, v11, flag26, flag27, flag28, flag29, v12, flag30, autoFarmActive, value4, flag31, autoFarmActive2, vehicleHealth2, v13, v14, flag32, autoFarmActive3, sit4, ownedVehicle4, flag33, flag34, sit5, pos, position, ownedVehicle5, flag35, ownedVehicle6, v15, v16, flag36, flag37, v17, v18, now3, v19, n13, n14, autoFarmActive4, flag38, flag39, flag40, v20, flag41, flag42, flag43, now4, autoFarmActive5, v21, n15, flag44, flag45, flag46, autoFarmActive6, value5, flag47, autoFarmActive7, now5, flag48, autoFarmActive8, v22, autoFarmActive9
 		while true do
 			if state == 1 then
@@ -5248,7 +5022,8 @@ do
 				flag11 = value <= 0
 				state = 18
 			elseif state == 18 then
-				if flag11 then
+				-- อย่าเสกรถใหม่เมื่อระบบอ่านค่าเลือดรถไม่ได้ชั่วคราว; ทำเฉพาะเมื่อมีค่าเลือดจริงและรถพังเท่านั้น
+				if flag11 and type(value) == "number" and value <= 0 then
 					state = 19
 				else
 					state = 22
@@ -5601,7 +5376,7 @@ do
 					state = 87
 				end
 			elseif state == 86 then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.35)
 				state = 87
 			elseif state == 87 then
 				if tbl4.AutoBuyEnabled then
@@ -6538,7 +6313,7 @@ do
 					state = 259
 				end
 			elseif state == 258 then
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 259
 			elseif state == 259 then
 				task.wait(0.2)
@@ -6589,62 +6364,30 @@ do
 				end
 				state = 269
 			elseif state == 269 then
-				-- TP ขึ้นหลังคาเมื่อถึงจุดตกปลา; เมื่อออกห่างแล้วกลับมา จะ TP ใหม่อีกครั้ง
-				local currentFishingZone = tbl9 and tbl9[tbl4.ZoneSelect]
-				if roofTeleportZone ~= tbl4.ZoneSelect then
-					roofTeleportZone = tbl4.ZoneSelect
-					didFishingSpotRoofTeleport = false
-				end
-				local targetIsFishingSpot = false
-				if currentFishingZone and currentFishingZone.Pos and humanoidRootPart then
-					local playerPos = humanoidRootPart.Position
-					targetIsFishingSpot = (Vector3.new(playerPos.X, 0, playerPos.Z) - Vector3.new(currentFishingZone.Pos.X, 0, currentFishingZone.Pos.Z)).Magnitude <= 18
-				end
-				-- ออกจากบริเวณจุดตกปลาแล้วรีเซ็ต เพื่อให้การกลับมาถึงครั้งถัดไป TP ใหม่
-				if not targetIsFishingSpot then
-					didFishingSpotRoofTeleport = false
-				end
-				local shouldTeleportRoof = targetIsFishingSpot and not didFishingSpotRoofTeleport
-				if tbl4.AutoFarmActive and not flag3 and shouldTeleportRoof then
+				-- TP ขึ้นหลังคาทุกครั้งที่ลงรถ ณ จุดฟาร์ม รวมถึงรอบกลับมาจากขายปลา
 				pcall(function()
-					local vehiclesFolder = workspace:FindFirstChild("Vehicles")
-					local roofCollider = nil
-					local vehicleRoot = ownedVehicle5 and (ownedVehicle5.PrimaryPart or ownedVehicle5:FindFirstChildWhichIsA("BasePart", true))
-					-- ใช้ Colliders ของรถที่ผู้เล่นกำลังขับอยู่ ไม่ผูกกับชื่อรถ Urus หรือรถรุ่นใดรุ่นหนึ่ง
-					local collidersFolder = ownedVehicle5 and ownedVehicle5:FindFirstChild("Colliders", true)
-					if not collidersFolder and vehiclesFolder and ownedVehicle5 then
-						local sameVehicle = vehiclesFolder:FindFirstChild(ownedVehicle5.Name)
-						collidersFolder = sameVehicle and sameVehicle:FindFirstChild("Colliders", true)
+					character = localPlayer.Character
+					humanoid = character and character:FindFirstChildOfClass("Humanoid")
+					humanoidRootPart = character and character:FindFirstChild("HumanoidRootPart")
+					local vehicle = tbl13:GetOwnedVehicle()
+					-- ถ้าระบบรถยังคืนค่า nil ชั่วคราว ให้ใช้รถที่บันทึกไว้จากขั้นตอนก่อนหน้า
+					if not (vehicle and vehicle.Parent) and ownedVehicle5 and ownedVehicle5.Parent then
+						vehicle = ownedVehicle5
 					end
-					local colliderChildren = collidersFolder and collidersFolder:GetChildren()
-					-- ลองใช้ Collider ลำดับที่ 5 ก่อน ตามโครงสร้างรถที่ผู้ใช้ระบุ
-					local fifthCollider = colliderChildren and colliderChildren[5]
-					if fifthCollider and fifthCollider:IsA("BasePart") then
-						roofCollider = fifthCollider
-					end
-					-- ถ้ารถรุ่นอื่นไม่มีชิ้นที่ 5 หรือโครงสร้างต่างกัน ให้เลือกชิ้นส่วน Collider ที่ใกล้รถคันนั้นที่สุด
-					if not roofCollider and vehicleRoot and colliderChildren then
-						local nearestDistance = math.huge
-						for _, collider in ipairs(colliderChildren) do
-							if collider:IsA("BasePart") then
-								local distance = (collider.Position - vehicleRoot.Position).Magnitude
-								if distance < nearestDistance then
-									nearestDistance = distance
-									roofCollider = collider
-								end
-							end
-						end
-					end
-					if roofCollider and humanoidRootPart then
-						humanoidRootPart.CFrame = roofCollider.CFrame * CFrame.new(0, roofCollider.Size.Y / 2 + 3, 0)
+					if vehicle and vehicle.Parent and humanoidRootPart then
+						local boxCFrame, boxSize = vehicle:GetBoundingBox()
+						local roofPosition = boxCFrame.Position + Vector3.new(0, boxSize.Y / 2 + 3, 0)
+						humanoidRootPart.Anchored = false
 						humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
 						humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+						humanoidRootPart.CFrame = CFrame.new(roofPosition) * (boxCFrame - boxCFrame.Position)
+						task.wait(0.2)
+						-- ยืนยันอีกครั้งหลังตัวละคร/ฟิสิกส์อัปเดต เพื่อกันรอบถัดไปที่ TP ไม่ติด
+						if humanoidRootPart.Parent and (humanoidRootPart.Position - roofPosition).Magnitude > 5 then
+							humanoidRootPart.CFrame = CFrame.new(roofPosition) * (boxCFrame - boxCFrame.Position)
+						end
 					end
 				end)
-					if targetIsFishingSpot then
-						didFishingSpotRoofTeleport = true
-					end
-				end
 				task.wait(0.15)
 				state = 282
 			elseif state == 282 then
@@ -6662,8 +6405,7 @@ do
 			elseif state == 284 then
 				EnsureRodEquipped()
 				EquipBaitOnRod()
-				-- ใช้พิกัดโยนเบ็ดเดียวกับครั้งแรกของโซนที่เลือก เพื่อไม่ให้ครั้งถัดไปเปลี่ยนจุด
-				v15 = (tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].CastPositions and tbl9[tbl4.ZoneSelect].CastPositions[1]) or vector2
+				v15 = vector2
 				v16 = GetRodTool()
 				if v16 then
 					state = 286
@@ -7172,7 +6914,7 @@ do
 				end
 			elseif state == 384 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 398
 			elseif state == 385 then
 				now5 = tick()
@@ -7236,7 +6978,7 @@ do
 				end
 			elseif state == 397 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 				state = 398
 			elseif state == 398 then
 				state = 399
@@ -7451,7 +7193,7 @@ do
 		task.wait(0.15)
 		tbl12.lastUpdate = 0
 		fn20()
-		tbl13:SmoothVerticalMove(230.138, 0.3)
+		tbl13:SmoothVerticalMove((tbl9 and tbl9[tbl4.ZoneSelect] and tbl9[tbl4.ZoneSelect].Pos and tbl9[tbl4.ZoneSelect].Pos.Y) or 230.138, 0.3)
 		fn4()
 		return true
 	end
