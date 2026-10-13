@@ -489,7 +489,7 @@ do
 	TextButton = fn6("TextButton", {
 		Name = "OpenBtn",
 		Size = UDim2.fromOffset(72, 72),
-		BackgroundColor3 = tbl6.Panel,
+		BackgroundColor3 = Color3.fromRGB(24, 24, 30),
 		AutoButtonColor = false,
 		Text = "",
 		ClipsDescendants = true,
@@ -503,19 +503,19 @@ do
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://115653579666883",
+		Image = "rbxassetid://130451026897638",
 		ImageColor3 = Color3.fromRGB(255, 255, 255),
-		ScaleType = Enum.ScaleType.Crop,
+		ImageTransparency = 0,
+		ScaleType = Enum.ScaleType.Fit,
 		ZIndex = 17,
 		Parent = TextButton,
 	})
 	fn6("UICorner", { CornerRadius = UDim.new(1, 0), Parent = ImageLabel })
 	TextButton.MouseEnter:Connect(function()
-		local tbl7 = { BackgroundColor3 = tbl6.AccentDim }
-		fn8(TextButton, TweenInfo.new(0.15), tbl7)
+		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(36, 36, 44) })
 	end)
 	TextButton.MouseLeave:Connect(function()
-		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(255, 255, 255) })
+		fn8(TextButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(24, 24, 30) })
 	end)
 	udim2 = UDim2.fromOffset(550, 550)
 	Frame3 = fn6("Frame", {
@@ -583,7 +583,8 @@ do
 		Size = UDim2.fromOffset(30, 30),
 		Position = UDim2.fromOffset(14, 8),
 		BackgroundTransparency = 1,
-		Image = "rbxassetid://115653579666883",
+		Image = "rbxassetid://130451026897638",
+		ImageTransparency = 0,
 		ScaleType = Enum.ScaleType.Fit,
 		ZIndex = 6,
 		Parent = Frame6,
