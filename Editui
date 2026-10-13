@@ -1767,14 +1767,7 @@ do
 			n = 0
 			flag3 = false
 			fn4()
-			-- เริ่มงานแยกเธรดและจับ error เพื่อไม่ให้ callback ของ UI ค้าง
-			task.defer(function()
-				local ok, err = pcall(StartAutoFarm)
-				if not ok then
-					warn("[LrapX Hub] StartAutoFarm error: " .. tostring(err))
-					flag9 = false
-				end
-			end)
+			task.spawn(StartAutoFarm)
 		else
 			tbl4.StopWalking = true
 			tbl4.Running = false
@@ -5116,12 +5109,6 @@ do
 		local roofTeleportZone = tbl4.ZoneSelect
 		local ownedVehicle, vehicleHealth, destroyed, vehicleDataFromData, flag10, sit, value, flag11, v6, flag12, flag13, sit2, ownedVehicle2, flag14, flag15, flag16, n12, character2, humanoid2, humanoidRootPart2, humanoid3, flag17, humanoid4, humanoidRootPart3, flag18, flag19, flag20, ownedVehicle3, sit3, value2, value3, flag21, v7, totalFish, v8, v9, v10, flag22, flag23, flag24, flag25, v11, flag26, flag27, flag28, flag29, v12, flag30, autoFarmActive, value4, flag31, autoFarmActive2, vehicleHealth2, v13, v14, flag32, autoFarmActive3, sit4, ownedVehicle4, flag33, flag34, sit5, pos, position, ownedVehicle5, flag35, ownedVehicle6, v15, v16, flag36, flag37, v17, v18, now3, v19, n13, n14, autoFarmActive4, flag38, flag39, flag40, v20, flag41, flag42, flag43, now4, autoFarmActive5, v21, n15, flag44, flag45, flag46, autoFarmActive6, value5, flag47, autoFarmActive7, now5, flag48, autoFarmActive8, v22, autoFarmActive9
 		while true do
-			-- ป้องกัน state machine วิ่งวนติดกันจนบล็อกเธรดของเกม
-			task.wait()
-			if not tbl4.AutoFarmActive then
-				flag9 = false
-				return
-			end
 			if state == 1 then
 				if flag9 then
 					state = 419
