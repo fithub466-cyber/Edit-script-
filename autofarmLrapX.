@@ -186,7 +186,7 @@ do
 		VehicleSpeed = 55,
 		AutoRepairVehicle = false,
 		SellAfterFishCount = 0,
-		SellMode = "ปลาที่เลือก",
+		SellMode = "ขายเมื่อกระเป๋าเต็ม",
 		SellTargetCaught = false,
 		FishCountSinceLastSell = 0,
 		SellFishSelected = {},
@@ -271,7 +271,7 @@ n6 = 0
 ForceNextCast = false
 lastThrowTick = tick()
 local n7
-n7 = 230.138
+n7 = 228.138
 local n8
 n8 = 8
 local fn3
@@ -1644,13 +1644,10 @@ do
 	else
 		DestroyHopWatch()
 	end
-	tbl7.SellModeDropdown = fn23(FishFarm, "โหมดขายอัตโนมัติ", { "ปลาที่เลือก", "ขายเมื่อครบจำนวน" }, tbl4.SellMode or "ปลาที่เลือก", function(mode)
+	tbl7.SellModeDropdown = fn23(FishFarm, "โหมดขายอัตโนมัติ", { "ขายเมื่อกระเป๋าเต็ม", "ปลาที่เลือก" }, tbl4.SellMode or "ขายเมื่อกระเป๋าเต็ม", function(mode)
 		tbl4.SellMode = mode
 		tbl4.SellTargetCaught = false
 		pcall(SaveConfig)
-	end)
-	tbl7.SellAfterFishSlider = fn16(FishFarm, "จำนวนครั้งที่จับปลาได้ก่อนขาย", 0, 15, tbl4.SellAfterFishCount or 0, function(sellAfterFishCount)
-		tbl4.SellAfterFishCount = sellAfterFishCount
 	end)
 
 	tbl4.SellFishSelected = tbl4.SellFishSelected or {}
@@ -2208,12 +2205,12 @@ do
 	local n13 = 870
 	vector2 = Vector3.new(82.11319, 245.16185, 922.22076)
 	local function fn27(arg)
-		return Vector3.new(arg.X, 230.138, arg.Z)
+		return Vector3.new(arg.X, 228.138, arg.Z)
 	end
 	tbl9 = {
 		["Level 40 +"] = {
-			-- จุดฟาร์มบ่อ 40+: เพิ่มความสูงขึ้นอีก 40 studs (แกน Y จาก 287.382 เป็น 327.382)
-			Pos = Vector3.new(-277.656, 297.382, 830.413),
+			-- จุดฟาร์มบ่อ 40+: ลดระดับลง 5 studs เพื่อแก้ปัญหาไปถึงจุดแล้วอยู่ใต้ดิน
+			Pos = Vector3.new(-277.656, 292.382, 830.413),
 			-- พิกัดโยนเบ็ดของบ่อ 40+ แยกจากบ่อ 70+
 			CastPositions = { Vector3.new(-319.7475891113281, 245.671875, 779.9577026367188) },
 		},
@@ -2386,9 +2383,12 @@ do
 			if HopRemainLabel then
 				HopRemainLabel.Visible = tbl4.HopNoFishEnabled == true
 			end
-			if data.SellMode == "ปลาที่เลือก" or data.SellMode == "ขายเมื่อครบจำนวน" then
+			if data.SellMode == "ปลาที่เลือก" then
 				tbl4.SellMode = data.SellMode
 				pcall(function() tbl7.SellModeDropdown:Set(data.SellMode) end)
+			elseif data.SellMode == "ขายเมื่อครบจำนวน" or data.SellMode == "ขายเมื่อกระเป๋าเต็ม" then
+				tbl4.SellMode = "ขายเมื่อกระเป๋าเต็ม"
+				pcall(function() tbl7.SellModeDropdown:Set("ขายเมื่อกระเป๋าเต็ม") end)
 			end
 			if data.SellAfterFishCount then
 				tbl4.SellAfterFishCount = data.SellAfterFishCount
@@ -3170,13 +3170,11 @@ do
 		if not humanoidRootPart then
 			return false
 		end
-		-- โหมดขายตามจำนวนครั้ง: ระหว่างรอจับปลาให้ครบ ห้ามดึง/วาร์ปรถมาหาตัวละครที่บ่อ
-		-- อนุญาตให้ดึงรถได้ตามปกติเมื่ออยู่นอกบริเวณฟาร์ม หรือครบจำนวนแล้ว
-		if tbl4.AutoFarmActive and tbl4.SellMode == "ขายเมื่อครบจำนวน" then
-			local targetCount = math.max(1, math.floor(tonumber(tbl4.SellAfterFishCount) or 1))
-			local caughtCount = tonumber(tbl4.FishCountSinceLastSell) or 0
+		-- โหมดกระเป๋าเต็ม: ระหว่างฟาร์มไม่ดึงรถมารบกวนตำแหน่งตัวละคร
+		if tbl4.AutoFarmActive and tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม" then
+			local inventoryFull = select(1, tbl13:IsInventoryFull())
 			local zone = tbl9 and tbl9[tbl4.ZoneSelect]
-			if caughtCount < targetCount and zone and zone.Pos
+			if not inventoryFull and zone and zone.Pos
 				and (humanoidRootPart.Position - zone.Pos).Magnitude < 100 then
 				return false
 			end
@@ -3216,7 +3214,7 @@ do
 				flag8 = true
 			end
 			local abs = math.abs
-			local n15 = 230.138
+			local n15 = 228.138
 			if not n7 then
 				n15 = 230
 			end
@@ -3688,7 +3686,7 @@ do
 			return
 		end
 		-- กู้ระดับรถก่อนเริ่มเดินทางออกจากบ่อ 40+: หลังจบการตกปลา
-		-- ระบบเดิมอาจลดรถไว้ที่ระดับเดินทาง Y=230.138 ซึ่งอยู่ใต้พื้นบริเวณบ่อ 40+
+		-- ระบบเดิมอาจลดรถไว้ที่ระดับเดินทาง Y=228.138 ซึ่งเป็นระดับเดินทางใต้ดิน
 		-- ยกรถขึ้นที่ตำแหน่ง X/Z ปัจจุบันก่อน แล้วจึงเริ่มเส้นทางระดับต่ำตามระบบเดิม
 		local recoveryZone = tbl9 and tbl9[tbl4.ZoneSelect]
 		local recoveryVehicle = tbl13:GetOwnedVehicle()
@@ -3703,7 +3701,7 @@ do
 					task.wait(0.12)
 				end
 				local currentPivot = recoveryVehicle:GetPivot()
-				recoveryVehicle:PivotTo(CFrame.new(currentPos.X, recoveryZone.Pos.Y, currentPos.Z) * (currentPivot - currentPivot.Position))
+				recoveryVehicle:PivotTo(CFrame.new(currentPos.X, recoveryZone.Pos.Y - 5, currentPos.Z) * (currentPivot - currentPivot.Position))
 				for _, part in ipairs(recoveryVehicle:GetDescendants()) do
 					if part:IsA("BasePart") then
 						part.AssemblyLinearVelocity = Vector3.zero
@@ -3767,14 +3765,40 @@ do
 				-- ยกรถขึ้นที่ปลายทางทุกครั้ง ไม่ใช่เฉพาะจุดฟาร์ม
 				-- แก้บัคไปขายปลา/ซื้อเหยื่อแล้วรถกับผู้เล่นค้างอยู่ใต้ดิน
 				if liftAtDestination and tbl4.AutoFarmActive and not flag3 then
-					task.wait(0.18)
+					-- บ่อ 40+: รอ 1 วินาทีก่อนยกรถ/แท่นจากเส้นทางใต้ดินขึ้นจุดตกปลา
+					if tbl4.ZoneSelect == "Level 40 +" and activeFarmZone and activeFarmZone.Pos
+						and (Vector3.new(requestedTarget.X, 0, requestedTarget.Z) - Vector3.new(activeFarmZone.Pos.X, 0, activeFarmZone.Pos.Z)).Magnitude < 12 then
+						task.wait(1)
+					else
+						task.wait(0.18)
+					end
 					local arrivedVehicle = tbl13:GetOwnedVehicle()
-					if arrivedVehicle and arrivedVehicle.PrimaryPart then
-						tbl13:SmoothVerticalMove(requestedTarget.Y, 0.8)
-						task.wait(0.08)
-						tbl13:UpdateHiddenPlatform(arrivedVehicle)
-					elseif humanoidRootPart then
-						tbl13:SmoothVerticalMove(requestedTarget.Y, 0.8)
+					-- บ่อ 40+: ลดเฉพาะระดับที่ยกรถ/แท่นขึ้นจากทางใต้ดิน 5 studs
+					-- ไม่แก้ tbl9["Level 40 +"].Pos ซึ่งเป็นพิกัดจุดตกปลาจริง
+					local liftTargetY = requestedTarget.Y
+					if tbl4.ZoneSelect == "Level 40 +" and activeFarmZone and activeFarmZone.Pos
+						and (Vector3.new(requestedTarget.X, 0, requestedTarget.Z) - Vector3.new(activeFarmZone.Pos.X, 0, activeFarmZone.Pos.Z)).Magnitude < 12 then
+						liftTargetY = requestedTarget.Y - 5
+					end
+					-- หากระบบเทเลพอร์ต/ฟิสิกส์ขัดจังหวะตอนยกขึ้น ให้รอ 1 วินาทีแล้วลองใหม่
+					-- ตรวจระดับ Y จริงหลังยก และลองซ้ำได้สูงสุด 3 ครั้งเพื่อไม่ให้ค้างวนไม่จบ
+					for liftAttempt = 1, 3 do
+						if not tbl4.AutoFarmActive or flag3 then break end
+						arrivedVehicle = tbl13:GetOwnedVehicle()
+						if arrivedVehicle and arrivedVehicle.PrimaryPart then
+							tbl13:SmoothVerticalMove(liftTargetY, 0.8)
+							task.wait(0.12)
+							arrivedVehicle = tbl13:GetOwnedVehicle()
+							if arrivedVehicle and arrivedVehicle.PrimaryPart then
+								tbl13:UpdateHiddenPlatform(arrivedVehicle)
+								if math.abs(arrivedVehicle.PrimaryPart.Position.Y - liftTargetY) <= 4 then break end
+							end
+						elseif humanoidRootPart then
+							tbl13:SmoothVerticalMove(liftTargetY, 0.8)
+							task.wait(0.12)
+							if math.abs(humanoidRootPart.Position.Y - liftTargetY) <= 4 then break end
+						end
+						if liftAttempt < 3 then task.wait(1) end
 					end
 				end
 				return
@@ -3797,7 +3821,7 @@ task.spawn(function()
 				for _, child in pairs(vehicles:GetChildren()) do
 					if child:GetAttribute("OwnerUserId") == userId and child.PrimaryPart then
 						if child.PrimaryPart.Position.Y < n7 - 1 then
-							child:PivotTo(CFrame.new(child.PrimaryPart.Position.X, 230.138, child.PrimaryPart.Position.Z) * child:GetPivot().Rotation)
+							child:PivotTo(CFrame.new(child.PrimaryPart.Position.X, 228.138, child.PrimaryPart.Position.Z) * child:GetPivot().Rotation)
 							for _, descendant in pairs(child:GetDescendants()) do
 								if descendant:IsA("BasePart") then
 									descendant.AssemblyLinearVelocity = Vector3.zero
@@ -4360,29 +4384,25 @@ do
 		if tbl4.SellMode == "ปลาที่เลือก" then
 			return tbl4.SellTargetCaught == true
 		end
-		-- ใช้จำนวนปลาที่เห็นจริงในกระเป๋า ไม่ใช้ตัวนับปลาที่จับได้อย่างเดียว
+		-- ใช้ IsInventoryFull แทนระบบนับจำนวนปลา
 		local scanOk = fn20(true)
 		if not scanOk then return false end
-		local target = math.max(1, math.floor(tonumber(tbl4.SellAfterFishCount) or 1))
-		return (tonumber(tbl4.SellAfterFishCount) or 0) > 0 and (tonumber(tbl12.fishCount) or 0) >= target
+		return select(1, tbl13:IsInventoryFull()) == true
 	end
 	tbl13.SellFishWithPath = function(forceForEmptyBait)
 		-- โหมดครบจำนวน: ห้ามขายก่อนครบเป้า ยกเว้นตรวจจากกระเป๋าได้ชัดเจนว่าไม่มีเหยื่อทุกชนิดที่รองรับ
-		if forceForEmptyBait and tbl4.SellMode == "ขายเมื่อครบจำนวน" then
+		if forceForEmptyBait and tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม" then
 			local baitScanOk = fn20(true)
 			if baitScanOk == false or #tbl12.baits > 0 then
 				return false
 			end
 		end
-		if not forceForEmptyBait and tbl4.SellMode == "ขายเมื่อครบจำนวน" then
-			-- ตรวจจาก Inventory จริง: ขายเมื่อมีปลาในกระเป๋าครบจำนวนที่ตั้งไว้
+		if not forceForEmptyBait and tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม" then
+			-- ตรวจด้วย IsInventoryFull จริง: ขายเฉพาะเมื่อกระเป๋าเต็มแล้วเท่านั้น
 			local scanOk = fn20(true)
 			if not scanOk then return false end
-			local targetCount = math.max(1, math.floor(tonumber(tbl4.SellAfterFishCount) or 1))
-			local inventoryFishCount = tonumber(tbl12.fishCount) or 0
-			if (tonumber(tbl4.SellAfterFishCount) or 0) <= 0 or inventoryFishCount < targetCount then
-				return false
-			end
+			local inventoryFull = select(1, tbl13:IsInventoryFull())
+			if not inventoryFull then return false end
 		end
 		tbl4.SellTargetCaught = false
 		pcall(function() if humanoid then humanoid:UnequipTools() end end)
@@ -4439,7 +4459,7 @@ do
 				tbl13:SmartMoveTo(fishingZone.Pos)
 				if tbl4.AutoFarmActive and not flag3 and tbl4.ZoneSelect ~= "Level 40 +" then
 					-- โซนอื่นคงพฤติกรรมเดิม; บ่อ 40+ ต้องค้างบนจุดฟาร์มด้านบน
-					tbl13:SmoothVerticalMove(230.138, 0.3)
+					tbl13:SmoothVerticalMove(228.138, 0.3)
 				end
 			end
 		end
@@ -4574,7 +4594,7 @@ do
 				end
 				if tbl13:GetMoney() <= 0 then
 					if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
-						tbl13:SmoothVerticalMove(230.138, 0.3)
+						tbl13:SmoothVerticalMove(228.138, 0.3)
 					end
 					return true
 				end
@@ -4842,7 +4862,7 @@ do
 				tbl13:EnterVehicle(ownedVehicle)
 			end
 			if humanoid and humanoid.Sit then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove(228.138, 0.35)
 			end
 		end
 		local vehicleHealth2, v11, v12, v13, v14 = tbl13:GetVehicleHealth(v7 or vehicleNameFromInventory)
@@ -5370,7 +5390,7 @@ do
 								task.wait(0.15)
 								if humanoid and humanoid.Sit and tbl13:GetOwnedVehicle() then
 									pcall(function()
-										tbl13:SmoothVerticalMove(230.138, 0.2, true)
+										tbl13:SmoothVerticalMove(228.138, 0.2, true)
 									end)
 								end
 								ForceNextCast = true
@@ -5417,7 +5437,7 @@ do
 								if ownedVehicle then
 									tbl13:EnterVehicle(ownedVehicle)
 									if humanoid and humanoid.Sit then
-										tbl13:SmoothVerticalMove(230.138, 0.35)
+										tbl13:SmoothVerticalMove(228.138, 0.35)
 									end
 								end
 							end
@@ -5976,7 +5996,7 @@ do
 					state = 87
 				end
 			elseif state == 86 then
-				tbl13:SmoothVerticalMove(230.138, 0.35)
+				tbl13:SmoothVerticalMove(228.138, 0.35)
 				state = 87
 			elseif state == 87 then
 				if tbl4.AutoBuyEnabled then
@@ -6306,7 +6326,7 @@ do
 				v9 = tbl13:HasAnyBait()
 				state = 218
 			elseif state == 143 then
-				flag26 = tbl4.SellAfterFishCount > 0
+				flag26 = (tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม") or tbl4.SellAfterFishCount > 0
 				if flag26 then
 					state = 144
 				else
@@ -6704,12 +6724,11 @@ do
 				v9 = tbl13:HasAnyBait()
 				state = 218
 			elseif state == 218 then
-				-- ตรวจ Inventory จริงทุกครั้ง: ครบจำนวนปลาแล้วค่อยไปขาย
+				-- ขายเมื่อ IsInventoryFull เป็น true เท่านั้น ไม่ใช้ตัวนับจำนวนปลาที่จับได้
 				local scanOk = fn20(true)
-				local sellTarget = math.max(1, math.floor(tonumber(tbl4.SellAfterFishCount) or 1))
-				local inventoryFishCount = scanOk and (tonumber(tbl12.fishCount) or 0) or 0
-				if tbl4.AutoFarmActive and not flag3 and tbl4.SellMode == "ขายเมื่อครบจำนวน"
-					and scanOk and (tonumber(tbl4.SellAfterFishCount) or 0) > 0 and inventoryFishCount >= sellTarget then
+				local inventoryFull = select(1, tbl13:IsInventoryFull())
+				if tbl4.AutoFarmActive and not flag3 and tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม"
+					and scanOk and inventoryFull then
 					tbl13:SellFishWithPath(false)
 					task.wait(0.2)
 					state = 217
@@ -6942,7 +6961,7 @@ do
 					state = 259
 				end
 			elseif state == 258 then
-				tbl13:SmoothVerticalMove(230.138, 0.3)
+				tbl13:SmoothVerticalMove(228.138, 0.3)
 				state = 259
 			elseif state == 259 then
 				task.wait(0.2)
@@ -7520,7 +7539,7 @@ do
 					state = 372
 				end
 			elseif state == 372 then
-				value5 = tbl4.SellAfterFishCount > 0
+				value5 = (tbl4.SellMode == "ขายเมื่อกระเป๋าเต็ม") or tbl4.SellAfterFishCount > 0
 				if value5 then
 					state = 373
 				else
@@ -7583,9 +7602,8 @@ do
 				end
 			elseif state == 384 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				-- บ่อ 40+: SmartMoveTo ยกรถขึ้นถึงจุดฟาร์มแล้ว ห้ามลดกลับไปที่ระดับเดินทางใต้ดิน
 				if tbl4.ZoneSelect ~= "Level 40 +" then
-					tbl13:SmoothVerticalMove(230.138, 0.3)
+					tbl13:SmoothVerticalMove(228.138, 0.3)
 				end
 				state = 398
 			elseif state == 385 then
@@ -7650,9 +7668,8 @@ do
 				end
 			elseif state == 397 then
 				tbl13:SmartMoveTo(tbl9[tbl4.ZoneSelect].Pos)
-				-- บ่อ 40+: SmartMoveTo ยกรถขึ้นถึงจุดฟาร์มแล้ว ห้ามลดกลับไปที่ระดับเดินทางใต้ดิน
 				if tbl4.ZoneSelect ~= "Level 40 +" then
-					tbl13:SmoothVerticalMove(230.138, 0.3)
+					tbl13:SmoothVerticalMove(228.138, 0.3)
 				end
 				state = 398
 			elseif state == 398 then
@@ -7861,7 +7878,7 @@ do
 		task.wait(0.15)
 		tbl12.lastUpdate = 0
 		fn20()
-		tbl13:SmoothVerticalMove(230.138, 0.3)
+		tbl13:SmoothVerticalMove(228.138, 0.3)
 		fn4()
 		return true
 	end
